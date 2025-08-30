@@ -1,0 +1,8 @@
+# back 폴더 내부의 gradlew 파일에 대한 줄바꿈(LF) 설정
+/back/gradlew text eol=lf
+
+# bat 파일에 대한 줄바꿈(CRLF) 설정 (이건 경로 수정 불필요)
+*.bat text eol=crlf
+
+# jar 파일은 바이너리 파일로 취급
+*.jar binary
