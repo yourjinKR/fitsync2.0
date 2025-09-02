@@ -1,12 +1,13 @@
+// build.gradle
+
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.5'
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.boot' version '3.3.3' // Spring Boot 버전을 명시
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
 group = 'com.fitsync'
 version = '0.0.1-SNAPSHOT'
-description = 'FitSync backend service with Spring Boot'
 
 java {
     toolchain {
@@ -18,12 +19,22 @@ repositories {
     mavenCentral()
 }
 
+// 의존성(Dependencies) 설정
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // 1. Spring Web: 웹 애플리케이션을 구동하기 위한 기본 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-web'
-//    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    // 2. Spring Data JPA: 데이터베이스와 객체를 연결(ORM)해주는 기술
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'com.h2database:h2'
+
+    // 3. PostgreSQL Driver: PostgreSQL 데이터베이스와 통신하기 위한 드라이버
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // 4. Lombok: 반복적인 코드를 줄여주는 편의 라이브러리
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // 테스트를 위한 기본 라이브러리
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
