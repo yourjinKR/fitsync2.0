@@ -1,8 +1,150 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import styled from 'styled-components';
 
 // API 기본 URL 설정
 const API_URL = "/api/test";
+
+// Styled Components
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: sans-serif;
+`;
+
+const Title = styled.h1`
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+`;
+
+const SubTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #374151;
+`;
+
+const FormContainer = styled.div`
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+`;
+
+const InputGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+`;
+
+const Input = styled.input`
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  width: 100%;
+`;
+
+const TextArea = styled.textarea`
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.25rem;
+  width: 100%;
+  height : 200px;
+  resize : none;
+`;
+
+const Button = styled.button`
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+  color: white;
+  
+  ${props => props.primary && `
+    background-color: #3b82f6;
+    &:hover {
+      background-color: #2563eb;
+    }
+  `}
+  
+  ${props => props.secondary && `
+    background-color: #6b7280;
+    &:hover {
+      background-color: #4b5563;
+    }
+  `}
+  
+  ${props => props.danger && `
+    background-color: #ef4444;
+    &:hover {
+      background-color: #dc2626;
+    }
+  `}
+  
+  ${props => props.success && `
+    background-color: #10b981;
+    &:hover {
+      background-color: #059669;
+    }
+  `}
+`;
+
+const UserList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const UserItem = styled.li`
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const UserInfo = styled.div`
+  flex: 1;
+`;
+
+const UserName = styled.p`
+  font-weight: bold;
+  font-size: 1.125rem;
+`;
+
+const UserDetail = styled.p`
+  font-size: 0.875rem;
+  color: #6b7280;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const GenderGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  span {
+    color: #6b7280;
+  }
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
 
 const TestPage = () => {
   // 폼 데이터를 위한 초기 상태
@@ -104,73 +246,69 @@ const TestPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-8 font-sans">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">사용자 관리</h1>
+    <Container>
+      <Title>사용자 관리</Title>
       
       {/* 사용자 추가/수정 폼 */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-700">
+      <FormContainer>
+        <SubTitle>
           {editingId ? '사용자 정보 수정' : '새로운 사용자 추가'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 입력 필드들을 grid로 배치 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="이름 (필수)" className="p-2 border rounded" required />
-            <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="이메일 (필수)" className="p-2 border rounded" required />
-            <input type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="비밀번호 (필수)" className="p-2 border rounded" required />
-            <input type="date" name="birthDate" value={formData.birthDate} onChange={handleInputChange} className="p-2 border rounded" />
-            <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="전화번호" className="p-2 border rounded" />
-            <input type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="주소" className="p-2 border rounded" />
-            <input type="text" name="profileImageUrl" value={formData.profileImageUrl} onChange={handleInputChange} placeholder="프로필 이미지 URL" className="p-2 border rounded" />
-            {/* 성별 선택 라디오 버튼 */}
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-600">성별:</span>
+        </SubTitle>
+        <form onSubmit={handleSubmit}>
+          <InputGrid>
+            <Input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="이름 (필수)" required />
+            <Input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="이메일 (필수)" required />
+            <Input type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="비밀번호 (필수)" required />
+            <Input type="date" name="birthDate" value={formData.birthDate} onChange={handleInputChange} />
+            <Input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} placeholder="전화번호" />
+            <Input type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="주소" />
+            <Input type="text" name="profileImageUrl" value={formData.profileImageUrl} onChange={handleInputChange} placeholder="프로필 이미지 URL" />
+            <GenderGroup>
+              <span>성별:</span>
               <label><input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleInputChange} /> 남자</label>
               <label><input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleInputChange} /> 여자</label>
-            </div>
-          </div>
-          <textarea name="bio" value={formData.bio} onChange={handleInputChange} placeholder="자기소개" className="p-2 border rounded w-full"></textarea>
-          {/* 약관 동의 체크박스 */}
-          <label className="flex items-center">
-            <input type="checkbox" name="agreedToTerms" checked={formData.agreedToTerms} onChange={handleInputChange} className="mr-2" />
+            </GenderGroup>
+          </InputGrid>
+          <TextArea name="bio" value={formData.bio} onChange={handleInputChange} placeholder="자기소개" />
+          <CheckboxLabel>
+            <input type="checkbox" name="agreedToTerms" checked={formData.agreedToTerms} onChange={handleInputChange} />
             이용약관에 동의합니다.
-          </label>
-          {/* 버튼 영역 */}
-          <div className="flex space-x-2">
-            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+          </CheckboxLabel>
+          <ButtonGroup>
+            <Button type="submit" primary>
               {editingId ? '수정하기' : '추가하기'}
-            </button>
+            </Button>
             {editingId && (
-              <button type="button" onClick={resetForm} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors">
+              <Button type="button" onClick={resetForm} secondary>
                 취소
-              </button>
+              </Button>
             )}
-          </div>
+          </ButtonGroup>
         </form>
-      </div>
+      </FormContainer>
 
       {/* 사용자 목록 */}
       <div>
-        <h2 className="text-2xl font-semibold mb-4 text-gray-700">사용자 목록</h2>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <ul className="space-y-4">
+        <SubTitle>사용자 목록</SubTitle>
+        <FormContainer>
+          <UserList>
             {users.map((user) => (
-              <li key={user.id} className="border-b pb-4 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-lg">{user.name} ({user.email})</p>
-                  <p className="text-sm text-gray-600">생년월일: {user.birthDate ? user.birthDate.split('T')[0] : 'N/A'}</p>
-                  <p className="text-sm text-gray-600">연락처: {user.phoneNumber || 'N/A'}</p>
-                </div>
-                <div className="flex space-x-2">
-                  <button onClick={() => handleEdit(user)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">수정</button>
-                  <button onClick={() => handleDelete(user.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">삭제</button>
-                </div>
-              </li>
+              <UserItem key={user.id}>
+                <UserInfo>
+                  <UserName>{user.name} ({user.email})</UserName>
+                  <UserDetail>생년월일: {user.birthDate ? user.birthDate.split('T')[0] : 'N/A'}</UserDetail>
+                  <UserDetail>연락처: {user.phoneNumber || 'N/A'}</UserDetail>
+                </UserInfo>
+                <ButtonGroup>
+                  <Button onClick={() => handleEdit(user)} success>수정</Button>
+                  <Button onClick={() => handleDelete(user.id)} danger>삭제</Button>
+                </ButtonGroup>
+              </UserItem>
             ))}
-          </ul>
-        </div>
+          </UserList>
+        </FormContainer>
       </div>
-    </div>
+    </Container>
   );
 };
 

@@ -1,11 +1,11 @@
 import React from 'react';
-import DBConnectPage from './test/DBConnectPage';
+import TestPage from './test/DBConnectPage';
 
 const Display = () => {
   return (
     <div>
-      <h1>FitSync입니다.</h1>
-      <DBConnectPage/>
+      <h1>FitSync 2.0</h1>
+      <TestPage/>
     </div>
   );
 };
