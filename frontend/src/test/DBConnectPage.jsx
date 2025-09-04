@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
+import apiClient from '../api/apiClient';
 
 // API 기본 URL 설정
-const API_URL = "/api/test";
+const API_URL = `/api/test`;
 
 // Styled Components
 const Container = styled.div`
@@ -173,7 +174,7 @@ const TestPage = () => {
   // 백엔드 API로부터 모든 사용자 목록을 가져오는 함수
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await apiClient.get(API_URL);
       setUsers(response.data);
     } catch (error) {
       console.error("사용자 목록을 불러오는 데 실패했습니다:", error);
@@ -202,11 +203,11 @@ const TestPage = () => {
     try {
       if (editingId) {
         // editingId가 있으면 수정 모드
-        await axios.put(`${API_URL}/${editingId}`, formData);
+        await apiClient.put(`${API_URL}/${editingId}`, formData);
         alert("사용자 정보가 성공적으로 수정되었습니다.");
       } else {
         // editingId가 없으면 생성 모드
-        await axios.post(API_URL, formData);
+        await apiClient.post(API_URL, formData);
         alert("새로운 사용자가 성공적으로 추가되었습니다.");
       }
       resetForm(); // 폼 초기화
@@ -229,7 +230,7 @@ const TestPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("정말로 이 사용자를 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`${API_URL}/${id}`);
+        await apiClient.delete(`${API_URL}/${id}`);
         alert("사용자가 삭제되었습니다.");
         fetchUsers(); // 목록 갱신
       } catch (error) {

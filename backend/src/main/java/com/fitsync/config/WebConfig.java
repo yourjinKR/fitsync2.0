@@ -1,18 +1,24 @@
 package com.fitsync.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration // 이 클래스가 Spring의 설정 파일임을 나타냅니다.
+@Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    // application-{profile}.properties 파일에서 값을 읽어와 주입합니다.
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**") // '/api/'로 시작하는 모든 경로에 대해 CORS 설정을 적용합니다.
-                .allowedOrigins("http://localhost:3000") // 'http://localhost:3000'からのリクエストを許可します。
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 허용할 HTTP 메서드를 지정합니다.
-                .allowedHeaders("*") // 모든 HTTP 헤더를 허용합니다.
-                .allowCredentials(true); // 쿠키와 같은 인증 정보를 허용합니다.
+        registry.addMapping("/api/**")
+                // 주입받은 변수를 사용합니다.
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH") // PATCH 추가
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

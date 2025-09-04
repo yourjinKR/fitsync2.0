@@ -53,7 +53,7 @@ HELP.md
 backend.zip
 
 # 각종 key 파일
-backend/src/main/resources/application.properties
+application-dev.properties
 *.pem
 
 ### Intellij+all ###
