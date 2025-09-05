@@ -74,7 +74,7 @@ jobs:
     - name: Set up Node.js # 8. 프론트엔드 빌드를 위한 Node.js 설정
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20'
 
     - name: Install Frontend dependencies and Build # 9. 프론트엔드 의존성 설치 및 빌드
       run: |
