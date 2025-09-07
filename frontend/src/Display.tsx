@@ -1,13 +1,16 @@
 import React from 'react';
-import TestPage from './test/DBConnectPage';
 import { Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import AdminMain from './pages/AdminMain';
 
 const Display = () => {
   return (
     <div>
-      <h1>FitSync 2 페이지입니당</h1>
       <Routes>
-        <Route path="/" element={<TestPage/>}/>
+        <Route path="/" element={<Home/>}/>
+      </Routes>
+      <Routes>
+        <Route path="/admin" element={<AdminMain/>}/>
       </Routes>
     </div>
   );
