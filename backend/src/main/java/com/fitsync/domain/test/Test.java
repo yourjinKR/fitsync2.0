@@ -1,4 +1,4 @@
-package com.fitsync.domain;
+package com.fitsync.domain.test;
 
 
 import jakarta.persistence.*;
