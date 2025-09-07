@@ -1,20 +1,11 @@
 // AdminMain.tsx
 import React, { useEffect, useState } from 'react';
 import UserApi from '../api/users';
-
-type User = {
-  id?: number;
-  userId?: number;
-  memberId?: number;
-  name?: string;
-  username?: string;
-  email?: string;
-  // 필요시 필드 추가
-};
+import { User } from '../types/domain/users';
 
 const AdminMain = () => {
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
@@ -53,8 +44,8 @@ const AdminMain = () => {
   if (error) return <div style={{ color: 'red' }}>에러: {error}</div>;
 
   // ✅ 키 안전하게 선택 (id가 없을 수도 있으니 인덱스 fallback)
-  const getKey = (u: User, i: number) => (u.id ?? u.userId ?? u.memberId ?? i).toString();
-  const getName = (u: User) => u.name ?? u.username ?? '(이름 없음)';
+  const getKey = (u: User, i: number) => (u.id ?? u.email ?? u.id ?? i).toString();
+  const getName = (u: User) => u.name ?? '(이름 없음)';
 
   return (
     <div>
