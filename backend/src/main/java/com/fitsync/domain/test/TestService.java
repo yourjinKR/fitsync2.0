@@ -1,7 +1,5 @@
-package com.fitsync.service;
+package com.fitsync.domain.test;
 
-import com.fitsync.domain.Test;
-import com.fitsync.repository.TestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

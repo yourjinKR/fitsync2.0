@@ -1,8 +1,6 @@
-package com.fitsync.controller;
+package com.fitsync.domain.test;
 
 
-import com.fitsync.domain.Test;
-import com.fitsync.service.TestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

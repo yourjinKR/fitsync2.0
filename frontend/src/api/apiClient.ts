@@ -11,5 +11,17 @@ const apiClient = axios.create({
   // headers: { 'Content-Type': 'application/json' },
 });
 
+// ✅ 응답 인터셉터 추가
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log('[API Response]', response); // 응답 전체 출력
+    return response; // 반드시 반환해야 함
+  },
+  (error) => {
+    console.error('[API Error]', error.response || error.message);
+    return Promise.reject(error); // 에러는 reject
+  }
+);
+
 // 4. 생성한 인스턴스를 다른 파일에서 사용할 수 있도록 내보냅니다.
 export default apiClient;
