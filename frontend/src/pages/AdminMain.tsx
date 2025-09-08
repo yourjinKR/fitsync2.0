@@ -1,6 +1,6 @@
 // AdminMain.tsx
 import React, { useEffect, useState } from 'react';
-import UserApi from '../api/users';
+import UserApi from '../api/UserApi';
 import { User } from '../types/domain/users';
 
 const AdminMain = () => {

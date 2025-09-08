@@ -145,3 +145,4 @@ fabric.properties
 !.idea/runConfigurations
 
 memo.md
+docs/json/*

@@ -1,5 +1,5 @@
 import React from 'react';
-import UserApi from '../api/users';
+import UserApi from '../api/UserApi';
 
 const Home = () => {
   return (

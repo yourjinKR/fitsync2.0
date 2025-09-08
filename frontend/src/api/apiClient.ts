@@ -11,7 +11,7 @@ const apiClient = axios.create({
   // headers: { 'Content-Type': 'application/json' },
 });
 
-// ✅ 응답 인터셉터 추가
+// 응답 인터셉터 추가
 apiClient.interceptors.response.use(
   (response) => {
     console.log('[API Response]', response); // 응답 전체 출력

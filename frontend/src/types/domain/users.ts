@@ -45,3 +45,4 @@ export interface UserCreateRequest {
 }
 
 export type UserUpdateRequest = Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt'>>;
+
