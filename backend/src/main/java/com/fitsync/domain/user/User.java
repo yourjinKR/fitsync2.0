@@ -83,10 +83,11 @@ public class User {
 
     // --- 빌더 패턴 ---
     @Builder
-    public User(String email, String name, String imageUrl, SocialProvider socialProvider, UserType type) {
+    public User(String email, String name, SocialProvider socialProvider, UserType type) {
         this.email = email;
         this.name = name;
         this.socialProvider = socialProvider;
         this.type = type;
+        this.isHidden = false;
     }
 }
