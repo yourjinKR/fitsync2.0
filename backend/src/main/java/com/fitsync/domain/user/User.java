@@ -1,4 +1,4 @@
-package com.fitsync.domain.users;
+package com.fitsync.domain.user;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,8 +18,8 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-// @Table(name = "users") // 클래스 이름과 테이블 이름이 같으면 생략 가능합니다.
-public class Users {
+@Table(name = "users") // 클래스 이름과 테이블 이름이 같으면 생략 가능합니다.
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -83,7 +83,7 @@ public class Users {
 
     // --- 빌더 패턴 ---
     @Builder
-    public Users(String email, String name, String imageUrl, SocialProvider socialProvider, UserType type) {
+    public User(String email, String name, String imageUrl, SocialProvider socialProvider, UserType type) {
         this.email = email;
         this.name = name;
         this.socialProvider = socialProvider;
