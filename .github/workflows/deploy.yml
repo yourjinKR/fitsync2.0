@@ -46,8 +46,9 @@ jobs:
         push: true
         # ✅ 이미지 이름을 'fitsync2'로 사용
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/fitsync2:latest 
-
-    - name: Deploy to EC2 # 7. EC2에 백엔드 배포
+    
+    # 7. EC2에 백엔드 배포
+    - name: Deploy to EC2 
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -62,11 +63,13 @@ jobs:
           docker rm fitsync-container || true
           docker run -d --name fitsync-container \
             -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=prod \
+            -e CORS_DOMAIN=${{ secrets.CORS_DOMAIN }} \
             -e SPRING_DATASOURCE_URL=${{ secrets.DB_URL }} \
             -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }} \
             -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -e SPRING_PROFILES_ACTIVE=prod \
-            -e CORS_DOMAIN=${{ secrets.CORS_DOMAIN }} \
+            -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+            -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
             ${{ secrets.DOCKERHUB_USERNAME }}/fitsync2:latest
 
     # --- Frontend CI/CD ---
