@@ -1,4 +1,4 @@
-package com.fitsync.domain.users;
+package com.fitsync.domain.user;
 
 public enum UserType {
     MEMBER, TRAINER
