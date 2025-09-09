@@ -28,6 +28,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Value("${cors.allowed-origins}")
     private String frontendURL;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     /**
      * 로그인이 성공했을 때 자동으로 호출되는 메서드
      *
@@ -44,7 +47,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // 2. 리프레시 토큰을 HttpOnly 쿠키에 담기
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
+        // 배포 환경일때만 쿠키에 secure를 설정
+        if ("prod".equals(activeProfile)) {
+            refreshTokenCookie.setSecure(true);
+        }
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
         response.addCookie(refreshTokenCookie);

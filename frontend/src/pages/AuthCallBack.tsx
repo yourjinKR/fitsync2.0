@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { error, log } from 'console';
 
 const AuthCallBack: React.FC = () => {
   const location = useLocation();
@@ -16,10 +15,10 @@ const AuthCallBack: React.FC = () => {
     if (accessToken) {
       setAccessToken(accessToken);
 
-      log('로그인 성공, 토큰을 상태에 저장함');
+      console.log('로그인 성공, 토큰을 상태에 저장함');
       navigate('/', { replace: true });
     } else {
-      error('로그인 실패, 토큰을 못찾음')
+      console.error('로그인 실패, 토큰을 못찾음')
       navigate('/login', {replace : true});
     }
   }, [location, navigate, setAccessToken]);

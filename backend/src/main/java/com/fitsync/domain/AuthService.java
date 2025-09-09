@@ -26,6 +26,7 @@ public class AuthService {
 
     /**
      * 리프레시 토큰을 받아 유효성을 검증하고, 새로운 액세스 토큰을 발급합니다.
+     *
      * @param refreshToken HttpOnly 쿠키로 전달받은 리프레시 토큰
      * @return 새로 발급된 액세스 토큰
      */
@@ -42,14 +43,10 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 이메일을 가진 사용자를 찾을 수 없습니다" + email));
 
-        // 4. 해당 사용자에 대한 새로운 Authentication 객체를 생성합니다
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-          user.getEmail(),
-          "",
-          Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-
-        return jwtTokenProvider.createAccessToken(authentication);
+        // 4. (수정) 불필요한 Authentication 객체 생성 로직을 제거했습니다.
+        // DB에서 조회한 사용자의 이메일을 직접 사용하여 액세스 토큰을 생성합니다.
+        // 이렇게 하면 String을 OAuth2User로 변환하려는 문제가 발생하지 않습니다.
+        return jwtTokenProvider.createAccessToken(user.getEmail());
 
     }
 }
