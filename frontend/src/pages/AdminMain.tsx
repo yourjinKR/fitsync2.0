@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import UserApi from '../api/UserApi';
 import { User } from '../types/domain/users';
+import axios from 'axios';
 
 const AdminMain = () => {
   const [loading, setLoading] = useState(true);
