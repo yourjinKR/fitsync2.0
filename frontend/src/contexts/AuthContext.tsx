@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     silentRefresh();
-  }, []); // 이 useEffect는 처음 한 번만 실행됩니다.
+  }, [accessToken]); // 이 useEffect는 처음 한 번만 실행됩니다.
 
 
   if (isLoading) {
