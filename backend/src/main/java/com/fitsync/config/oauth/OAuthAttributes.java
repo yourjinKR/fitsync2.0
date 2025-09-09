@@ -67,37 +67,16 @@ public class OAuthAttributes {
             return ofGoogle(userNameAttributeName, attributes);
         }
 
-        // 현재는 GitHub 로그인만 구현했으므로, ofGithub 메서드를 바로 호출합니다.
-        return ofGithub(userNameAttributeName, attributes);
-    }
-
-    /**
-     * GitHub 로그인 요청을 처리하여 OAuthAttributes 객체를 생성하는 private 메서드입니다.
-     * GitHub가 보내주는 사용자 정보(attributes)의 구조를 정확히 알고,
-     * 거기서 이름(name)과 이메일(email)을 꺼내어 객체를 조립합니다.
-     *
-     * @param userNameAttributeName 사용자의 고유 ID가 담긴 키 이름
-     * @param attributes GitHub에서 받아온 원본 사용자 정보
-     * @return GitHub 맞춤형으로 조립된 OAuthAttributes 객체
-     */
-    private static OAuthAttributes ofGithub(String userNameAttributeName, Map<String, Object> attributes) {
-        // @Builder를 사용해 OAuthAttributes 객체를 생성합니다.
-        return OAuthAttributes.builder()
-                // attributes 맵에서 "name" 키의 값을 찾아 String으로 변환 후 'name' 필드에 담습니다.
-                .name((String) attributes.get("name"))
-                // attributes 맵에서 "email" 키의 값을 찾아 String으로 변환 후 'email' 필드에 담습니다.
-                .email((String) attributes.get("email")) // GitHub에서 이메일 비공개 시 null일 수 있습니다.
-                // 원본 데이터는 나중에 필요할 수 있으니 그대로 'attributes' 필드에 담아둡니다.
-                .attributes(attributes)
-                // 사용자의 고유 ID 키 이름도 'nameAttributeKey' 필드에 담아둡니다.
-                .nameAttributeKey(userNameAttributeName)
-                // 최종적으로 객체를 생성합니다.
-                .build();
+        // 일단 null 처리?
+        return null;
     }
 
     /**
      * Google 로그인 요청을 처리하여 OAuthAttributes 객체를 생성하는 private 메서드입니다.
      * Google이 보내주는 사용자 정보(attributes)의 구조에 맞게 이름, 이메일을 추출합니다.
+     *
+     * @param userNameAttributeName 사용자의 고유 ID가 담긴 키 이름
+     * @param attributes GitHub에서 받아온 원본 사용자 정보
      */
     private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
         return OAuthAttributes.builder()
