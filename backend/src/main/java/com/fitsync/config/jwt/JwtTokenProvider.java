@@ -1,9 +1,9 @@
 package com.fitsync.config.jwt;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -16,6 +16,7 @@ import java.util.Date;
  * JWT(JSON Web Token)를 생성하고 검증하는 역할을 담당하는 클래스입니다.
  * '토큰 제작소'와 같은 역할을 하며, 보안과 관련된 핵심 로직을 처리합니다.
  */
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -58,6 +59,26 @@ public class JwtTokenProvider {
         this.refreshTokenValidityInSeconds = refreshTokenValidityInSeconds * 1000;
     }
 
+
+    /**
+     * (추가) 이메일 문자열을 직접 받아 액세스 토큰을 생성하는 메서드입니다.
+     * 토큰 재발급 시 사용됩니다.
+     *
+     * @param email 사용자의 이메일
+     * @return 생성된 액세스 토큰 문자열
+     */
+    public String createAccessToken(String email) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + this.accessTokenValidityInSeconds);
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(key)
+                .compact();
+    }
+
     /**
      * 액세스 토큰을 생성하는 메서드입니다.
      *
@@ -69,18 +90,8 @@ public class JwtTokenProvider {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         // 2. OAuth2User 객체에서 사용자 이메일을 추출하여 토큰의 주체(subject)로 사용합니다.
         String email = (String) oAuth2User.getAttributes().get("email");
-
-        // 3. 토큰 발급 시간과 만료 시간을 설정합니다.
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + this.accessTokenValidityInSeconds);
-
-        // 4. JWT 빌더를 사용하여 토큰을 생성합니다.
-        return Jwts.builder()
-                .subject(email) // 토큰의 주체 (누구의 토큰인지 식별)
-                .issuedAt(now) // 토큰 발급 시간
-                .expiration(validity) // 토큰 만료 시간
-                .signWith(key) // 사용할 암호화 알고리즘과 비밀 키로 서명
-                .compact(); // 최종적으로 토큰을 문자열 형태로 만듭니다.
+        // 3. 코드 재사용
+        return createAccessToken(email);
     }
 
     /**
@@ -104,4 +115,33 @@ public class JwtTokenProvider {
                 .signWith(key)
                 .compact();
     }
+
+    // 토큰에서 사용자 이메일 추출
+    public String getEmail (String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
+
+    // 토큰 유효성 검증
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            return true;
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info("잘못된 JWT 서명입니다");
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 JWT 토큰입니다");
+        } catch (UnsupportedJwtException e) {
+            log.info("지원되지 않는 토큰입니다");
+        } catch (IllegalArgumentException e) {
+            log.info("JWT 토큰이 잘못되었습니다");
+        }
+        return false;
+    }
+    
+
 }
