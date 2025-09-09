@@ -2,6 +2,7 @@ package com.fitsync.config.oauth;
 
 import com.fitsync.config.jwt.JwtTokenProvider;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -40,10 +41,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
 
-        // 2. 프론트엔드로 리디렉션할 URL을 만든 후 URL의 쿼리 파라미터에 생성된 토큰들을 담아 전달합니다.
+        // 2. 리프레시 토큰을 HttpOnly 쿠키에 담기
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        response.addCookie(refreshTokenCookie);
+
+        // 3. 액세스 토큰은 URL 쿼리 파라미터로 전달
         String targetUrl = UriComponentsBuilder.fromUriString(frontendURL + "/auth/callback") // 프론트엔드에서 토큰을 처리할 경로
                 .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
                 .build().toUriString();
 
         // 3. 클라이언트(브라우저)를 위에서 만든 targetUrl로 리디렉션시킵니다.

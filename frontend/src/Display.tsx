@@ -8,8 +8,6 @@ const Display = () => {
     <div>
       <Routes>
         <Route path="/" element={<Home/>}/>
-      </Routes>
-      <Routes>
         <Route path="/admin" element={<AdminMain/>}/>
       </Routes>
     </div>
