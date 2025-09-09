@@ -5,12 +5,17 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * JWT(JSON Web Token)를 생성하고 검증하는 역할을 담당하는 클래스입니다.
@@ -50,11 +55,8 @@ public class JwtTokenProvider {
             @Value("${jwt.secret-key}") String secretKey,
             @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityInSeconds,
             @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds) {
-        // 1. application.properties에서 받은 secretKey 문자열을 Base64 디코딩하여 byte 배열로 변환합니다.
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        // 2. 디코딩된 byte 배열을 사용하여 HMAC-SHA 암호화에 사용할 SecretKey 객체를 생성합니다.
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        // 3. 유효 기간을 초(seconds)에서 밀리초(milliseconds) 단위로 변환하여 저장합니다. (Java의 Date 객체는 밀리초를 사용)
         this.accessTokenValidityInSeconds = accessTokenValidityInSeconds * 1000;
         this.refreshTokenValidityInSeconds = refreshTokenValidityInSeconds * 1000;
     }
@@ -86,11 +88,8 @@ public class JwtTokenProvider {
      * @return 생성된 액세스 토큰 문자열
      */
     public String createAccessToken(Authentication authentication) {
-        // 1. 인증된 사용자 정보에서 OAuth2User 객체를 가져옵니다.
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        // 2. OAuth2User 객체에서 사용자 이메일을 추출하여 토큰의 주체(subject)로 사용합니다.
         String email = (String) oAuth2User.getAttributes().get("email");
-        // 3. 코드 재사용
         return createAccessToken(email);
     }
 
@@ -117,7 +116,7 @@ public class JwtTokenProvider {
     }
 
     // 토큰에서 사용자 이메일 추출
-    public String getEmail (String token) {
+    public String getEmail(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -142,6 +141,21 @@ public class JwtTokenProvider {
         }
         return false;
     }
-    
 
+    /**
+     * (추가) JWT 토큰에서 인증 정보를 조회하는 메서드입니다.
+     * 이 메서드는 JwtAuthenticationFilter에서 사용됩니다.
+     *
+     * @param token 유효한 JWT 토큰
+     * @return Spring Security가 이해할 수 있는 Authentication 객체
+     */
+    public Authentication getAuthentication(String token) {
+        String email = getEmail(token);
+        // 실제로는 DB에서 User를 조회하여 권한 정보를 가져와야 하지만,
+        // 여기서는 예시로 "ROLE_USER" 권한을 부여합니다.
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        // email을 principal로, 비밀번호는 비워두고, 권한 목록을 담아 Authentication 객체를 생성합니다.
+        return new UsernamePasswordAuthenticationToken(email, "", authorities);
+    }
 }
+

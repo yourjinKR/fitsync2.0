@@ -1,7 +1,9 @@
 package com.fitsync.config;
 
+import com.fitsync.config.jwt.JwtAuthenticationFilter;
 import com.fitsync.config.oauth.CustomOAuth2UserService;
 import com.fitsync.config.oauth.OAuth2AuthenticationSuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.NullSecurityContextRepository;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,30 +26,20 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // 로그인 없이 접근 가능한 경로들
     private static final String[] PERMIT_ALL_PATTERNS = {
-            "/",                // 홈 화면
-            "/css/**",          // 정적 리소스 (CSS)
-            "/images/**",       // 정적 리소스 (이미지)
-            "/js/**",           // 정적 리소스 (JavaScript)
-            "/favicon.ico",
-            "/error",
-            "/oauth2/**",       // 소셜 로그인 관련 경로
-            "/api/auth/**"      // 토큰 재발급, 로그아웃 등 인증 관련 API
+            "/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/error",
+            "/oauth2/**", "/api/auth/**"
     };
 
-    // cors 설정을 위한 Bean을 추가합니다
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://d25pkmq22vlln0.cloudfront.net"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        // 쿠키를 포함한 요청을 허용하기 위한 중요한 설정
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -59,20 +51,30 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .requestCache(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
+
+                // (핵심 추가) API 요청에 대한 예외 처리 구성
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // 인증되지 않은 사용자가 보호된 API 리소스에 접근할 때
+                            // 로그인 페이지로 리다이렉트하는 대신 401 Unauthorized 에러를 응답합니다.
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
-//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
-                );
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
+
