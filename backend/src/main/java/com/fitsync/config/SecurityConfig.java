@@ -19,18 +19,22 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-@Configuration
-@EnableWebSecurity
-@RequiredArgsConstructor
+@Configuration // 스프링의 설정 클래스임을 나타냅니다
+@EnableWebSecurity // Spring Security 활성화
+@RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 생성
 public class SecurityConfig {
 
+    // OAuth2 인증 처리를 위한 커스텀 서비스
     private final CustomOAuth2UserService customOAuth2UserService;
+    // OAuth2 인증 성공 시 JWT 토큰 생성 등을 처리하는 핸들러
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    // JWT 토큰 검증 필터
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    // 인증 없이 접근 가능한 URL 패턴들
     private static final String[] PERMIT_ALL_PATTERNS = {
             "/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/error",
-            "/oauth2/**", "/api/auth/**"
+            "/oauth2/**", "/api/auth/**", "/health" // OAuth2 관련 경로와 토큰 재발급 등의 인증 관련 경로
     };
 
     @Bean
@@ -48,10 +52,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // CORS 설정 적용
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // CSRF 보호 비활성화 (JWT를 사용하므로 불필요)
                 .csrf(AbstractHttpConfigurer::disable)
+                // 기본 http 인증 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable)
+                // 폼 로그인 비활성화 (OAuth2 사용)
                 .formLogin(AbstractHttpConfigurer::disable)
+                // 세션 비활성화 (JWT 사용으로 인해 세션이 필요없음)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // (핵심 추가) API 요청에 대한 예외 처리 구성
@@ -63,15 +72,23 @@ public class SecurityConfig {
                         })
                 )
 
+                // URL 기반의 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        // PERMIT_ALL_PATTERNS에 정의된 경로는 인증 없이 접근 가능
                         .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
+                        // /api/** 경로는 인증된 사용자만 접근 가능
                         .requestMatchers("/api/**").authenticated()
+                        // 그 외 모든 요청도 인증 필요
                         .anyRequest().authenticated()
                 )
+                // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
+                        // OAuth2 로그인 성공 시 사용자 정보를 가져올 때 사용할 서비스 설정
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        // OAuth2 로그인 성공 시 실행될 핸들러 설정
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
+                // JWT 검증 필터를 Spring Security 필터 체인에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

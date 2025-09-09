@@ -27,15 +27,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. 요청 헤더에서 JWT 토큰을 추출합니다.
+        // 1. 요청 헤더에서 JWT 토큰을 추출합니다 (Authorization: Bearer xxx 형식)
         String token = resolveToken(request);
 
-        // 2. 토큰이 존재하고 유효하다면, 인증 정보를 SecurityContext에 저장합니다.
+        // 2. 토큰 검증 및 인증 처리
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 토큰이 유효하면 토큰으로부터 유저 정보를 받아옵니다.
+            // 2-1. 유효한 토큰에서 Authentication 객체 생성
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            // SecurityContext 에 Authentication 객체를 저장합니다.
-            // 이 시점부터 해당 요청은 '인증된' 요청으로 취급됩니다.
+            // 2-2. SecurityContext에 Authentication 객체를 저장
+            // Spring Security는 이 컨텍스트를 통해 현재 요청이 인증되었는지 확인
+            // @AuthenticationPrincipal 등의 어노테이션으로 컨트롤러에서 사용 가능
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

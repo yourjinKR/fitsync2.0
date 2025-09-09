@@ -40,19 +40,21 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        // 1. JwtTokenProvider를 사용해 액세스 토큰과 리프레시 토큰을 생성
+        // 1. OAuth2 인증 성공 후, JWT 토큰 생성
+        // - accessToken: API 요청 시 사용할 토큰 (짧은 유효기간)
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
+        // - refreshToken: accessToken 재발급용 토큰 (긴 유효기간)
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
 
-        // 2. 리프레시 토큰을 HttpOnly 쿠키에 담기
+        // 2. refreshToken을 보안을 위해 HttpOnly 쿠키로 설정
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        // 배포 환경일때만 쿠키에 secure를 설정
+        refreshTokenCookie.setHttpOnly(true); // JavaScript로 접근 불가능하게 설정
+        // 운영 환경에서만 Secure 쿠키 설정 (HTTPS에서만 전송)
         if ("prod".equals(activeProfile)) {
             refreshTokenCookie.setSecure(true);
         }
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7); // 7일간 유효
         response.addCookie(refreshTokenCookie);
 
         // 3. 액세스 토큰은 URL 쿼리 파라미터로 전달
