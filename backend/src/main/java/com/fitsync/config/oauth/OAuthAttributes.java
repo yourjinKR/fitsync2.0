@@ -62,13 +62,14 @@ public class OAuthAttributes {
      * @return 표준화된 OAuthAttributes 객체
      */
     public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
-        // TODO: 나중에 Google, Naver 등 다른 소셜 로그인을 추가할 경우,
-        if ("google".equals(registrationId)) {
+        if ("kakao".equalsIgnoreCase(registrationId)) {
+            return ofKakao(userNameAttributeName, attributes);
+        }
+        if ("google".equalsIgnoreCase(registrationId)) {
             return ofGoogle(userNameAttributeName, attributes);
         }
-
-        // 일단 null 처리?
-        return null;
+        // 지원하지 않는 소셜 로그인일 경우 예외를 발생
+        throw new IllegalArgumentException("Unsupported registrationId: " + registrationId);
     }
 
     /**
@@ -84,6 +85,24 @@ public class OAuthAttributes {
                 .email((String) attributes.get("email"))
                 .attributes(attributes)
                 .nameAttributeKey(userNameAttributeName) // Google의 PK는 "sub"라는 키에 담겨 옵니다.
+                .build();
+    }
+
+    /**
+     * Kakao 로그인
+     */
+    private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
+        // 카카오 응답은 'kakao_account'라는 키에 사용자 정보가 중첩되어 있습니다.
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+
+        return OAuthAttributes.builder()
+                // [수정] kakao_account에서 'name'을 직접 가져옵니다.
+                .name((String) kakaoAccount.get("name"))
+                // [수정] kakao_account에서 'email'을 직접 가져옵니다.
+                .email((String) kakaoAccount.get("email"))
+                // 원본 데이터를 그대로 담아줍니다.
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)
                 .build();
     }
 

@@ -1,20 +1,21 @@
 package com.fitsync.config.oauth;
 
 import com.fitsync.config.jwt.JwtTokenProvider;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
- * OAuth2 로그인 성공 시, JWT를 생성하여 프론트엔드에게 전달하는 커스텀 성공 핸들러
+ * OAuth2 로그인 성공 시, RefreshToken은 HttpOnly 쿠키에 담고,
+ * AccessToken은 부모 창으로 전달하는 스크립트가 포함된 HTML을 응답하는 최종 핸들러.
  */
 @Component
 @RequiredArgsConstructor
@@ -22,54 +23,48 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Value("${cors.allowed-origins}")
-    private String frontendURL;
+    @Value("${jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenValidityInSeconds;
 
-    @Value("${spring.profiles.active}")
+    @Value("${spring.profiles.active:default}")
     private String activeProfile;
 
-    /**
-     * 로그인이 성공했을 때 자동으로 호출되는 메서드
-     */
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        // 1. JWT 토큰 생성
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        // 1. AccessToken과 RefreshToken을 모두 생성합니다.
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
 
-        // 2. (수정) 환경에 따라 쿠키 속성을 동적으로 설정
-        addCookie(response, "refreshToken", refreshToken, 60*60*24*7);
+        // 2. RefreshToken을 HttpOnly 쿠키에 안전하게 저장합니다.
+        addRefreshTokenToCookie(response, refreshToken);
 
-        // 로그인 성공 후, 더 이상 필요 없는 임시 인증 관련 쿠키를 정리
-        deleteCookie(response, "oauth2_auth_request");
-
-        // 3. 액세스 토큰은 URL 쿼리 파라미터로 프론트엔드에 전달
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendURL + "/auth/callback")
-                .queryParam("accessToken", accessToken)
-                .build().toUriString();
-
-        // 4. 클라이언트를 프론트엔드의 콜백 URL로 리디렉션
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        // 3. 리다이렉트 대신, 토큰을 전달하고 스스로 닫히는 HTML 페이지를 응답합니다.
+        response.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        out.println("<html>");
+        out.println("<head><title>로그인 처리 중...</title></head>");
+        out.println("<body>");
+        out.println("<script>");
+        // 부모 창(React 앱)으로 accessToken을 메시지로 보냅니다.
+        out.println("window.opener.postMessage({ type: 'loginSuccess', accessToken: '" + accessToken + "' }, '*');");
+        // 메시지를 보낸 후 현재 팝업 창을 닫습니다.
+        out.println("window.close();");
+        out.println("</script>");
+        out.println("</body>");
+        out.println("</html>");
+        out.flush();
     }
 
-    /**
-     * 지정된 이름과 값으로 쿠키를 생성하고 응답에 추가하는 핼퍼 메소드
-     */
-    private void addCookie(HttpServletResponse response, String name, String value, long maxAge) {
-        String cookieValue;
-        if ("prod".equals(activeProfile)) {
-            cookieValue = String.format("%s=%s; Max-Age=%d; Path=/; Domain=fitsync.kro.kr; SameSite=None; Secure; HttpOnly", name, value, maxAge);
-        } else {
-            cookieValue = String.format("%s=%s; Max-Age=%d; Path=/; HttpOnly", name, value, maxAge);
-        }
-        response.addHeader("Set-Cookie", cookieValue);
-    }
+    private void addRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(refreshTokenValidityInSeconds)
+                .secure("prod".equals(activeProfile))
+                .sameSite("prod".equals(activeProfile) ? "None" : "Lax")
+                .build();
 
-    /**
-     * 지정된 이름의 쿠키를 삭제하는 헬퍼 메소드
-     */
-    private void deleteCookie(HttpServletResponse response, String name) {
-        addCookie(response, name, "", 0);
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }
 
