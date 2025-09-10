@@ -91,18 +91,29 @@ public class OAuthAttributes {
     /**
      * Kakao 로그인
      */
+    @SuppressWarnings("unchecked")
     private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
-        // 카카오 응답은 'kakao_account'라는 키에 사용자 정보가 중첩되어 있습니다.
+        System.out.println("Kakao OAuth 데이터: " + attributes);  // 디버깅용 로그
+        
+        // 카카오 응답에서 'kakao_account' 정보를 추출
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-
+        
+        if (kakaoAccount == null) {
+            throw new IllegalArgumentException("카카오 계정 정보를 찾을 수 없습니다.");
+        }
+        
+        String name = (String) kakaoAccount.get("name");
+        String email = (String) kakaoAccount.get("email");
+        
+        if (name == null || email == null) {
+            throw new IllegalArgumentException("필수 정보(이름 또는 이메일)가 누락되었습니다.");
+        }
+        
         return OAuthAttributes.builder()
-                // [수정] kakao_account에서 'name'을 직접 가져옵니다.
-                .name((String) kakaoAccount.get("name"))
-                // [수정] kakao_account에서 'email'을 직접 가져옵니다.
-                .email((String) kakaoAccount.get("email"))
-                // 원본 데이터를 그대로 담아줍니다.
+                .name(name)
+                .email(email)
                 .attributes(attributes)
-                .nameAttributeKey(userNameAttributeName)
+                .nameAttributeKey(userNameAttributeName)  // Spring Security가 제공하는 값 사용
                 .build();
     }
 

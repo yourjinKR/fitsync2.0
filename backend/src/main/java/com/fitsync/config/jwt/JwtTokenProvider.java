@@ -16,6 +16,7 @@ import javax.crypto.SecretKey;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JWT(JSON Web Token)를 생성하고 검증하는 역할을 담당하는 클래스입니다.
@@ -89,7 +90,21 @@ public class JwtTokenProvider {
      */
     public String createAccessToken(Authentication authentication) {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = (String) oAuth2User.getAttributes().get("email");
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        
+        // 카카오의 경우 이메일이 kakao_account 안에 있음
+        String email;
+        if (attributes.containsKey("kakao_account")) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            email = (String) kakaoAccount.get("email");
+        } else {
+            email = (String) attributes.get("email");
+        }
+        
+        if (email == null) {
+            throw new IllegalArgumentException("이메일을 찾을 수 없습니다: " + attributes);
+        }
+        
         return createAccessToken(email);
     }
 
@@ -100,9 +115,23 @@ public class JwtTokenProvider {
      * @param authentication Spring Security에서 인증된 사용자 정보
      * @return 생성된 리프레시 토큰 문자열
      */
+    @SuppressWarnings("unchecked")
     public String createRefreshToken(Authentication authentication) {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = (String) oAuth2User.getAttributes().get("email");
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        
+        // 카카오의 경우 이메일이 kakao_account 안에 있음
+        String email;
+        if (attributes.containsKey("kakao_account")) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            email = (String) kakaoAccount.get("email");
+        } else {
+            email = (String) attributes.get("email");
+        }
+        
+        if (email == null) {
+            throw new IllegalArgumentException("이메일을 찾을 수 없습니다: " + attributes);
+        }
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + this.refreshTokenValidityInSeconds);

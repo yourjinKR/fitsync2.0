@@ -1,15 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { GOOGLE_URL, KAKAO_URL } from '../api/AuthApi';
 
 const LoginPage: React.FC = () => {
     const { setAccessToken } = useAuth();
     const navigate = useNavigate();
     
-    // 백엔드의 소셜 로그인 시작 URL
-    const GOOGLE_URL = 'http://localhost:8080/oauth2/authorization/google';
-    const KAKAO_URL = 'http://localhost:8080/oauth2/authorization/kakao';
-
     useEffect(() => {
         // 팝업 창으로부터 메시지를 받기 위한 이벤트 리스너를 등록합니다.
         const handleMessage = (event: MessageEvent) => {

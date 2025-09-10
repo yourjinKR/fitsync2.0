@@ -32,30 +32,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // 앱이 처음 로드될 때 실행되는 '자동 로그인' 로직
     useEffect(() => {
-        if (accessToken) {
-            setIsLoading(false);
-            return;
-        }
-        const silentRefresh = async () => {
-            try {
-                const { data } = await apiClient.post('/api/auth/refresh');
-                setAccessToken(data.accessToken);
-                console.log('자동 로그인 성공!');
-            } catch (error) {
-                console.log('자동 로그인 실패. 유효한 리프레시 토큰이 없습니다.');
-            } finally {
+        let mounted = true;
+        
+        const refreshAccessToken = async () => {
+            // 이미 accessToken이 있으면 새로운 토큰을 요청하지 않음
+            if (accessToken) {
                 setIsLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/refresh`, {
+                    method: 'POST',
+                    credentials: 'include',  // 쿠키 포함
+                });
+                
+                if (!response.ok) {
+                    throw new Error('토큰 갱신 실패');
+                }
+
+                const data = await response.json();
+                
+                if (mounted && data.accessToken) {
+                    setAccessToken(data.accessToken);
+                    console.log('자동 로그인 성공!');
+                }
+            } catch (error) {
+                if (mounted) {
+                    console.log('자동 로그인 실패:', error);
+                    setAccessToken(null);  // 확실하게 null로 설정
+                }
+            } finally {
+                if (mounted) {
+                    setIsLoading(false);
+                }
             }
         };
-        silentRefresh();
-    }, [accessToken]);
+
+        refreshAccessToken();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const authContextValue = useMemo(() => ({
         accessToken, isLoggedIn, isLoading, setAccessToken, logout,
     }), [accessToken, isLoggedIn, isLoading, logout]);
     
-    if (isLoading) {
-        return <div>애플리케이션 로딩 중...</div>;
+    if (isLoading) {    
+        return <div>애플리케이션 로딩 중</div>;
     }
 
     return (
