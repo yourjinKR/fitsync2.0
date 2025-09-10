@@ -2,9 +2,11 @@ package com.fitsync.config;
 
 import com.fitsync.config.jwt.JwtAuthenticationFilter;
 import com.fitsync.config.oauth.CustomOAuth2UserService;
+import com.fitsync.config.oauth.OAuth2AuthenticationFailureHandler;
 import com.fitsync.config.oauth.OAuth2AuthenticationSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.CookieProcessorBase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,6 +30,8 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     // OAuth2 인증 성공 시 JWT 토큰 생성 등을 처리하는 핸들러
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    // 실패 핸들러 추가
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     // JWT 토큰 검증 필터
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -48,6 +52,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -87,6 +92,8 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         // OAuth2 로그인 성공 시 실행될 핸들러 설정
                         .successHandler(oAuth2AuthenticationSuccessHandler)
+                        // 실패시 핸들러 설정
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
                 // JWT 검증 필터를 Spring Security 필터 체인에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

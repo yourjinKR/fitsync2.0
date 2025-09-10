@@ -38,24 +38,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
 
         // 2. (수정) 환경에 따라 쿠키 속성을 동적으로 설정
-        long maxAge = 60 * 60 * 24 * 7; // 7일 유효
+        addCookie(response, "refreshToken", refreshToken, 60*60*24*7);
 
-        // 기본 쿠키 설정 (개발 환경용)
-        String cookieValue = String.format(
-                "refreshToken=%s; Max-Age=%d; Path=/; HttpOnly",
-                refreshToken, maxAge
-        );
-
-        // 배포 환경(prod)일 경우에만 Domain, SameSite, Secure 속성을 추가합니다.
-        if ("prod".equals(activeProfile)) {
-            cookieValue = String.format(
-                    "refreshToken=%s; Max-Age=%d; Path=/; Domain=fitsync.kro.kr; SameSite=None; Secure; HttpOnly",
-                    refreshToken, maxAge
-            );
-        }
-
-        // 생성된 쿠키 문자열을 응답 헤더에 추가
-        response.addHeader("Set-Cookie", cookieValue);
+        // 로그인 성공 후, 더 이상 필요 없는 임시 인증 관련 쿠키를 정리
+        deleteCookie(response, "oauth2_auth_request");
 
         // 3. 액세스 토큰은 URL 쿼리 파라미터로 프론트엔드에 전달
         String targetUrl = UriComponentsBuilder.fromUriString(frontendURL + "/auth/callback")
@@ -64,6 +50,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         // 4. 클라이언트를 프론트엔드의 콜백 URL로 리디렉션
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    /**
+     * 지정된 이름과 값으로 쿠키를 생성하고 응답에 추가하는 핼퍼 메소드
+     */
+    private void addCookie(HttpServletResponse response, String name, String value, long maxAge) {
+        String cookieValue;
+        if ("prod".equals(activeProfile)) {
+            cookieValue = String.format("%s=%s; Max-Age=%d; Path=/; Domain=fitsync.kro.kr; SameSite=None; Secure; HttpOnly", name, value, maxAge);
+        } else {
+            cookieValue = String.format("%s=%s; Max-Age=%d; Path=/; HttpOnly", name, value, maxAge);
+        }
+        response.addHeader("Set-Cookie", cookieValue);
+    }
+
+    /**
+     * 지정된 이름의 쿠키를 삭제하는 헬퍼 메소드
+     */
+    private void deleteCookie(HttpServletResponse response, String name) {
+        addCookie(response, name, "", 0);
     }
 }
 
