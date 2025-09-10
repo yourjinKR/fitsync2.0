@@ -22,5 +22,8 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "noUnusedLocals": true,
+  "noUnusedParameters": true,
+  "importsNotUsedAsValues": "remove"
 }
