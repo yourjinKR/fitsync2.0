@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { GOOGLE_URL } from '../contexts/AuthURL';
 import { useNavigate } from 'react-router-dom';
 
 const Home : React.FC = () => {
