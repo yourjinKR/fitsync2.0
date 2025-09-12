@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [accessToken]);
 
     const authContextValue = useMemo(() => ({
         accessToken, isLoggedIn, isLoading, setAccessToken, logout,
