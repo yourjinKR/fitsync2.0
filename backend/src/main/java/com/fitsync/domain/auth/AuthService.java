@@ -1,18 +1,12 @@
-package com.fitsync.domain;
+package com.fitsync.domain.auth;
 
 
 import com.fitsync.config.jwt.JwtTokenProvider;
 import com.fitsync.domain.user.User;
 import com.fitsync.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.Optional;
 
 /**
  * 토큰 재발급 및 로그아웃과 같은 인증 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.

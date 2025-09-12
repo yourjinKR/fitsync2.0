@@ -1,4 +1,4 @@
-package com.fitsync.domain;
+package com.fitsync.domain.auth;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
