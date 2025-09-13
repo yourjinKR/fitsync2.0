@@ -1,4 +1,4 @@
-package com.fitsync.config;
+package com.fitsync;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

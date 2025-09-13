@@ -1,4 +1,4 @@
-package com.fitsync.config.oauth;
+package com.fitsync.domain.oauth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

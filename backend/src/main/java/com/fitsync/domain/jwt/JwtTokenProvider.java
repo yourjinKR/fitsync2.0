@@ -1,4 +1,4 @@
-package com.fitsync.config.jwt;
+package com.fitsync.domain.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

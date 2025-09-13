@@ -1,4 +1,4 @@
-package com.fitsync.config.oauth;
+package com.fitsync.domain.oauth;
 
 import com.fitsync.domain.user.SocialProvider;
 import com.fitsync.domain.user.User;
@@ -71,22 +71,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     /**
      * OAuthAttributes 객체를 받아 DB에 사용자를 저장하거나 업데이트하는 private 메서드입니다.
-     *
+     * 1. attributes 객체에서 이메일을 꺼내, 해당 이메일로 DB에서 사용자를 찾아봅니다.
+     * 2. .orElse()를 사용하여 회원이 없다면 attributes.toEntity()를 실행하여 새로운 User 객체 생성
      * @param attributes 표준화된 사용자 정보 DTO
      * @return 저장되거나 조회된 User 엔티티
      */
     private User saveOrUpdate(OAuthAttributes attributes, String registrationId) {
-        // 1. attributes 객체에서 이메일을 꺼내, 해당 이메일로 DB에서 사용자를 찾아봅니다.
+        
         User user = userRepository.findByEmail(attributes.getEmail())
-                // 2. `.orElse()`: 만약 findByEmail의 결과가 비어있다면(Optional.empty()),
-                //    즉, 해당 이메일을 가진 사용자가 DB에 없다면(신규 사용자라면),
-                //    괄호 안의 `attributes.toEntity()`를 실행하여 새로운 User 객체를 생성합니다.
-                //    만약 사용자가 이미 존재한다면, `orElse`는 실행되지 않고 기존 User 객체가 반환됩니다.
-                //    (참고: 기존 사용자의 이름이 바뀌었을 경우를 대비해 정보를 업데이트하고 싶다면, .map()을 사용합니다.)
                 .orElse(attributes.toEntity(SocialProvider.valueOf(registrationId.toUpperCase())));
 
-        // 3. `userRepository.save()`: 최종적으로 얻은 user 객체(신규 또는 기존)를 DB에 저장(INSERT 또는 UPDATE)하고,
-        //    저장된 최종 엔티티를 반환합니다.
         return userRepository.save(user);
     }
 }

@@ -1,6 +1,6 @@
-package com.fitsync.config.oauth;
+package com.fitsync.domain.oauth;
 
-import com.fitsync.config.jwt.JwtTokenProvider;
+import com.fitsync.domain.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

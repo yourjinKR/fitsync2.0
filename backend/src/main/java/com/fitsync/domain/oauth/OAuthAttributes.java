@@ -1,4 +1,4 @@
-package com.fitsync.config.oauth;
+package com.fitsync.domain.oauth;
 
 import com.fitsync.domain.user.SocialProvider;
 import com.fitsync.domain.user.User;
@@ -62,11 +62,19 @@ public class OAuthAttributes {
      * @return 표준화된 OAuthAttributes 객체
      */
     public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
+        System.out.println("registrationId: " + registrationId);
+        System.out.println("userNameAttributeName: " + userNameAttributeName);
+        System.out.println("attributes: " + attributes);
+
+
         if ("kakao".equalsIgnoreCase(registrationId)) {
             return ofKakao(userNameAttributeName, attributes);
         }
         if ("google".equalsIgnoreCase(registrationId)) {
             return ofGoogle(userNameAttributeName, attributes);
+        }
+        if ("naver".equalsIgnoreCase(registrationId)) {
+            return ofNaver(userNameAttributeName, attributes);
         }
         // 지원하지 않는 소셜 로그인일 경우 예외를 발생
         throw new IllegalArgumentException("Unsupported registrationId: " + registrationId);
@@ -80,6 +88,8 @@ public class OAuthAttributes {
      * @param attributes GitHub에서 받아온 원본 사용자 정보
      */
     private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
+        System.out.println("Google OAuth 데이터: " + attributes);  // 디버깅용 로그
+
         return OAuthAttributes.builder()
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
@@ -109,6 +119,35 @@ public class OAuthAttributes {
             throw new IllegalArgumentException("필수 정보(이름 또는 이메일)가 누락되었습니다.");
         }
         
+        return OAuthAttributes.builder()
+                .name(name)
+                .email(email)
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)  // Spring Security가 제공하는 값 사용
+                .build();
+    }
+
+    /**
+     * Naver 로그인
+     */
+    private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
+        System.out.println("Naver OAuth 데이터 : " );
+
+        // 네이버 응답에서 'kakao_account' 정보를 추출
+        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+
+        if (response == null) {
+            throw new IllegalArgumentException("네이버 계정 정보를 찾을 수 없습니다.");
+        }
+
+        String id = (String) response.get("id");
+        String name = (String) response.get("name");
+        String email = (String) response.get("email");
+
+        if (name == null || email == null) {
+            throw new IllegalArgumentException("필수 정보(이름 또는 이메일)가 누락되었습니다.");
+        }
+
         return OAuthAttributes.builder()
                 .name(name)
                 .email(email)
