@@ -74,6 +74,7 @@ public class OAuthAttributes {
             return ofGoogle(userNameAttributeName, attributes);
         }
         if ("naver".equalsIgnoreCase(registrationId)) {
+            System.out.println("네이버로 인식하긴 함.");
             return ofNaver(userNameAttributeName, attributes);
         }
         // 지원하지 않는 소셜 로그인일 경우 예외를 발생
@@ -131,7 +132,7 @@ public class OAuthAttributes {
      * Naver 로그인
      */
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
-        System.out.println("Naver OAuth 데이터 : " );
+        System.out.println("Naver OAuth 데이터 : "  + attributes);
 
         // 네이버 응답에서 'kakao_account' 정보를 추출
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
@@ -163,17 +164,11 @@ public class OAuthAttributes {
      * @return 생성된 User 엔티티
      */
     public User toEntity(SocialProvider socialProvider) {
-        // User 엔티티의 빌더를 사용해 객체를 생성합니다.
         return User.builder()
-                // 이 클래스(OAuthAttributes)의 name 필드 값을 User 엔티티의 name 필드에 넣습니다.
                 .name(name)
-                // 이 클래스의 email 필드 값을 User 엔티티의 email 필드에 넣습니다.
                 .email(email)
-                // 처음 가입하는 사용자는 GitHub를 통해 가입했으므로 SocialProvider를 GITHUB으로 지정합니다.
                 .socialProvider(socialProvider)
-                // 가입 시 기본 사용자 유형을 MEMBER로 지정합니다.
                 .type(UserType.MEMBER)
-                // 최종적으로 User 엔티티 객체를 생성합니다.
                 .build();
     }
 }

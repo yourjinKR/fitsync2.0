@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { GOOGLE_URL, KAKAO_URL } from '../api/AuthApi';
+import { GOOGLE_URL, KAKAO_URL, NAVER_URL } from '../api/AuthApi';
 
 const LoginPage: React.FC = () => {
     const { setAccessToken } = useAuth();
@@ -43,6 +43,7 @@ const LoginPage: React.FC = () => {
         <div>
             <h1>로그인</h1>
             <button onClick={() => openLoginPopup(GOOGLE_URL)}>구글로 로그인</button>
+            <button onClick={() => openLoginPopup(NAVER_URL)}>네이버로 로그인</button>
             <button onClick={() => openLoginPopup(KAKAO_URL)}>카카오로 로그인</button>
         </div>
     );

@@ -1,7 +1,7 @@
 package com.fitsync.domain.auth;
 
 
-import com.fitsync.config.jwt.JwtTokenProvider;
+import com.fitsync.domain.jwt.JwtTokenProvider;
 import com.fitsync.domain.user.User;
 import com.fitsync.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;

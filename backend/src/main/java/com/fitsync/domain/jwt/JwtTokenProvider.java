@@ -91,15 +91,22 @@ public class JwtTokenProvider {
     public String createAccessToken(Authentication authentication) {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Map<String, Object> attributes = oAuth2User.getAttributes();
+
+        System.out.println("attributes !!! : " + attributes);
         
-        // 카카오의 경우 이메일이 kakao_account 안에 있음
         String email;
         if (attributes.containsKey("kakao_account")) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
             email = (String) kakaoAccount.get("email");
-        } else {
+        } else if (attributes.containsKey("response")) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("response");
+            email = (String) kakaoAccount.get("email");
+        }
+        else {
             email = (String) attributes.get("email");
         }
+
+        System.out.println("email !!! : " + email);
         
         if (email == null) {
             throw new IllegalArgumentException("이메일을 찾을 수 없습니다: " + attributes);
@@ -120,10 +127,12 @@ public class JwtTokenProvider {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Map<String, Object> attributes = oAuth2User.getAttributes();
         
-        // 카카오의 경우 이메일이 kakao_account 안에 있음
         String email;
         if (attributes.containsKey("kakao_account")) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            email = (String) kakaoAccount.get("email");
+        } else if (attributes.containsKey("response")) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("response");
             email = (String) kakaoAccount.get("email");
         } else {
             email = (String) attributes.get("email");
