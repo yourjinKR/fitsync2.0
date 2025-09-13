@@ -10,7 +10,6 @@ fitsync2.0
 │  │     └─ gradle-wrapper.properties
 │  ├─ gradlew
 │  ├─ gradlew.bat
-│  ├─ scripts
 │  ├─ settings.gradle
 │  └─ src
 │     ├─ main
@@ -19,27 +18,38 @@ fitsync2.0
 │     │  │     └─ fitsync
 │     │  │        ├─ BackendApplication.java
 │     │  │        ├─ config
+│     │  │        │  ├─ HealthCheckController.java
+│     │  │        │  ├─ jwt
+│     │  │        │  │  ├─ JwtAuthenticationFilter.java
+│     │  │        │  │  └─ JwtTokenProvider.java
+│     │  │        │  ├─ oauth
+│     │  │        │  │  ├─ CustomOAuth2UserService.java
+│     │  │        │  │  ├─ OAuth2AuthenticationFailureHandler.java
+│     │  │        │  │  ├─ OAuth2AuthenticationSuccessHandler.java
+│     │  │        │  │  └─ OAuthAttributes.java
+│     │  │        │  ├─ SecurityConfig.java
 │     │  │        │  └─ WebConfig.java
 │     │  │        └─ domain
+│     │  │           ├─ AuthController.java
+│     │  │           ├─ AuthService.java
+│     │  │           ├─ Role.java
 │     │  │           ├─ test
 │     │  │           │  ├─ Test.java
 │     │  │           │  ├─ TestController.java
 │     │  │           │  ├─ TestRepository.java
 │     │  │           │  └─ TestService.java
-│     │  │           └─ users
+│     │  │           └─ user
 │     │  │              ├─ SocialProvider.java
+│     │  │              ├─ User.java
+│     │  │              ├─ UserController.java
 │     │  │              ├─ UserGender.java
-│     │  │              ├─ Users.java
-│     │  │              ├─ UsersController.java
-│     │  │              ├─ UsersRepository.java
-│     │  │              ├─ UsersService.java
+│     │  │              ├─ UserRepository.java
+│     │  │              ├─ UserService.java
 │     │  │              ├─ UserStatus.java
 │     │  │              └─ UserType.java
 │     │  └─ resources
 │     │     ├─ application-prod.properties
 │     │     ├─ application.properties
-│     │     ├─ db
-│     │     │  └─ migration
 │     │     ├─ static
 │     │     │  └─ index.html
 │     │     └─ templates
@@ -50,14 +60,7 @@ fitsync2.0
 │        │        └─ BackendApplicationTests.java
 │        └─ resources
 │           └─ application.properties
-├─ docs
-│  ├─ data
-│  │  ├─ attachments.md
-│  │  ├─ users.md
-│  │  └─ user_time_slots.md
-│  └─ memo.md
 ├─ frontend
-│  ├─ .env.production
 │  ├─ Dockerfile
 │  ├─ package-lock.json
 │  ├─ package.json
@@ -72,26 +75,41 @@ fitsync2.0
 │  ├─ src
 │  │  ├─ api
 │  │  │  ├─ apiClient.ts
-│  │  │  └─ users.ts
+│  │  │  ├─ AuthApi.ts
+│  │  │  └─ UserApi.ts
 │  │  ├─ App.css
 │  │  ├─ App.test.tsx
 │  │  ├─ App.tsx
 │  │  ├─ components
-│  │  │  └─ Home.jsx
+│  │  │  ├─ PrivateRoute.tsx
+│  │  │  └─ PublicRoute.tsx
+│  │  ├─ contexts
+│  │  │  ├─ AuthContext.tsx
+│  │  │  └─ AuthURL.ts
 │  │  ├─ Display.tsx
 │  │  ├─ hooks
 │  │  ├─ index.css
 │  │  ├─ index.tsx
 │  │  ├─ logo.svg
 │  │  ├─ pages
+│  │  │  ├─ AdminMain.tsx
+│  │  │  ├─ AuthCallBack.tsx
+│  │  │  ├─ ErrorPage.tsx
+│  │  │  ├─ Home.tsx
+│  │  │  └─ LoginPage.tsx
 │  │  ├─ react-app-env.d.ts
 │  │  ├─ reportWebVitals.ts
 │  │  ├─ setupTests.ts
 │  │  ├─ styles
+│  │  │  └─ GlobalStyle.js
 │  │  ├─ test
 │  │  │  └─ DBConnectPage.jsx
 │  │  ├─ tests
 │  │  ├─ types
+│  │  │  ├─ api.ts
+│  │  │  ├─ common.ts
+│  │  │  └─ domain
+│  │  │     └─ users.ts
 │  │  └─ utils
 │  └─ tsconfig.json
 └─ README.md

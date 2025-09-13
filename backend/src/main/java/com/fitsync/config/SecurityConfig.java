@@ -1,12 +1,11 @@
 package com.fitsync.config;
 
-import com.fitsync.config.jwt.JwtAuthenticationFilter;
-import com.fitsync.config.oauth.CustomOAuth2UserService;
-import com.fitsync.config.oauth.OAuth2AuthenticationFailureHandler;
-import com.fitsync.config.oauth.OAuth2AuthenticationSuccessHandler;
+import com.fitsync.domain.jwt.JwtAuthenticationFilter;
+import com.fitsync.domain.oauth.CustomOAuth2UserService;
+import com.fitsync.domain.oauth.OAuth2AuthenticationFailureHandler;
+import com.fitsync.domain.oauth.OAuth2AuthenticationSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.CookieProcessorBase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -96,7 +95,7 @@ public class SecurityConfig {
                         .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
                 // JWT 검증 필터를 Spring Security 필터 체인에 추가
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -1,4 +1,4 @@
-package com.fitsync.config.oauth;
+package com.fitsync.domain.oauth;
 
 import com.fitsync.domain.user.SocialProvider;
 import com.fitsync.domain.user.User;
@@ -62,13 +62,23 @@ public class OAuthAttributes {
      * @return 표준화된 OAuthAttributes 객체
      */
     public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
-        // TODO: 나중에 Google, Naver 등 다른 소셜 로그인을 추가할 경우,
-        if ("google".equals(registrationId)) {
+        System.out.println("registrationId: " + registrationId);
+        System.out.println("userNameAttributeName: " + userNameAttributeName);
+        System.out.println("attributes: " + attributes);
+
+
+        if ("kakao".equalsIgnoreCase(registrationId)) {
+            return ofKakao(userNameAttributeName, attributes);
+        }
+        if ("google".equalsIgnoreCase(registrationId)) {
             return ofGoogle(userNameAttributeName, attributes);
         }
-
-        // 일단 null 처리?
-        return null;
+        if ("naver".equalsIgnoreCase(registrationId)) {
+            System.out.println("네이버로 인식하긴 함.");
+            return ofNaver(userNameAttributeName, attributes);
+        }
+        // 지원하지 않는 소셜 로그인일 경우 예외를 발생
+        throw new IllegalArgumentException("Unsupported registrationId: " + registrationId);
     }
 
     /**
@@ -79,11 +89,71 @@ public class OAuthAttributes {
      * @param attributes GitHub에서 받아온 원본 사용자 정보
      */
     private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
+        System.out.println("Google OAuth 데이터: " + attributes);  // 디버깅용 로그
+
         return OAuthAttributes.builder()
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
                 .attributes(attributes)
                 .nameAttributeKey(userNameAttributeName) // Google의 PK는 "sub"라는 키에 담겨 옵니다.
+                .build();
+    }
+
+    /**
+     * Kakao 로그인
+     */
+    @SuppressWarnings("unchecked")
+    private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
+        System.out.println("Kakao OAuth 데이터: " + attributes);  // 디버깅용 로그
+        
+        // 카카오 응답에서 'kakao_account' 정보를 추출
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        
+        if (kakaoAccount == null) {
+            throw new IllegalArgumentException("카카오 계정 정보를 찾을 수 없습니다.");
+        }
+        
+        String name = (String) kakaoAccount.get("name");
+        String email = (String) kakaoAccount.get("email");
+        
+        if (name == null || email == null) {
+            throw new IllegalArgumentException("필수 정보(이름 또는 이메일)가 누락되었습니다.");
+        }
+        
+        return OAuthAttributes.builder()
+                .name(name)
+                .email(email)
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)  // Spring Security가 제공하는 값 사용
+                .build();
+    }
+
+    /**
+     * Naver 로그인
+     */
+    private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
+        System.out.println("Naver OAuth 데이터 : "  + attributes);
+
+        // 네이버 응답에서 'kakao_account' 정보를 추출
+        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+
+        if (response == null) {
+            throw new IllegalArgumentException("네이버 계정 정보를 찾을 수 없습니다.");
+        }
+
+        String id = (String) response.get("id");
+        String name = (String) response.get("name");
+        String email = (String) response.get("email");
+
+        if (name == null || email == null) {
+            throw new IllegalArgumentException("필수 정보(이름 또는 이메일)가 누락되었습니다.");
+        }
+
+        return OAuthAttributes.builder()
+                .name(name)
+                .email(email)
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)  // Spring Security가 제공하는 값 사용
                 .build();
     }
 
@@ -94,17 +164,11 @@ public class OAuthAttributes {
      * @return 생성된 User 엔티티
      */
     public User toEntity(SocialProvider socialProvider) {
-        // User 엔티티의 빌더를 사용해 객체를 생성합니다.
         return User.builder()
-                // 이 클래스(OAuthAttributes)의 name 필드 값을 User 엔티티의 name 필드에 넣습니다.
                 .name(name)
-                // 이 클래스의 email 필드 값을 User 엔티티의 email 필드에 넣습니다.
                 .email(email)
-                // 처음 가입하는 사용자는 GitHub를 통해 가입했으므로 SocialProvider를 GITHUB으로 지정합니다.
                 .socialProvider(socialProvider)
-                // 가입 시 기본 사용자 유형을 MEMBER로 지정합니다.
                 .type(UserType.MEMBER)
-                // 최종적으로 User 엔티티 객체를 생성합니다.
                 .build();
     }
 }

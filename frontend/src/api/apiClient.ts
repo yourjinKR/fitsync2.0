@@ -56,17 +56,32 @@ apiClient.interceptors.response.use(
 
     // AccessToken 만료로 인한 401 에러이고, 아직 재시도를 안 했다면
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // 무한 재발급 요청을 방지하기 위한 플래그
+      // 토큰 재발급 요청 자체에 대해서는 재시도하지 않음
+      if (originalRequest.url === '/api/auth/refresh') {
+        logout();
+        return Promise.reject(error);
+      }
+
+      originalRequest._retry = true;
 
       try {
-        // RefreshToken을 사용하여 새로운 AccessToken을 요청합니다.
-        const { data } = await apiClient.post('/api/auth/refresh');
+        const response = await fetch(`${baseURL}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('토큰 갱신 실패');
+        }
+
+        const data = await response.json();
         const newAccessToken = data.accessToken;
 
-        // AuthContext의 setAccessToken 함수를 호출하여 상태를 업데이트합니다.
-        setAccessToken(newAccessToken);
+        if (!newAccessToken) {
+          throw new Error('새로운 액세스 토큰이 없습니다');
+        }
 
-        // 원래 요청의 헤더에 새로운 AccessToken을 설정하여 다시 보냅니다.
+        setAccessToken(newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
         

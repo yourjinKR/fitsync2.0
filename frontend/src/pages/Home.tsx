@@ -5,10 +5,11 @@ import { useNavigate } from 'react-router-dom';
 const Home : React.FC = () => {
   const { isLoggedIn, accessToken, logout } = useAuth();  
   const navi = useNavigate();
+  const prjName = process.env.REACT_APP_PROJECT_NAME;
 
   return (
     <div>
-      <h1>메인 페이지</h1>
+      <h1>{prjName}메인 페이지</h1>
       {isLoggedIn ? (
         <div>
           <p>로그인에 성공했습니다!</p>

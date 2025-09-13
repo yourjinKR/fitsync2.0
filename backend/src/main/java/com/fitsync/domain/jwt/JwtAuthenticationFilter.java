@@ -1,4 +1,4 @@
-package com.fitsync.config.jwt;
+package com.fitsync.domain.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 @Component // (중요) 이 필터를 Spring Bean으로 등록해야 SecurityConfig에서 주입받을 수 있습니다.
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter { // OncePerRequestFilter를 통해 한번만 실행함
 
     private final JwtTokenProvider jwtTokenProvider;
 
