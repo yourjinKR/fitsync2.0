@@ -34,9 +34,6 @@ public class User {
     @Column(name = "\"name\"", nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false, length = 255)
-    private String password;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SocialProvider socialProvider;
