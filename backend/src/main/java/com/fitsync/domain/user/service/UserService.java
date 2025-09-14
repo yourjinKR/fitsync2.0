@@ -1,10 +1,8 @@
 package com.fitsync.domain.user.service;
 
-import com.fitsync.domain.user.dto.UserRequestDTO;
 import com.fitsync.domain.user.repository.UserRepository;
 import com.fitsync.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
