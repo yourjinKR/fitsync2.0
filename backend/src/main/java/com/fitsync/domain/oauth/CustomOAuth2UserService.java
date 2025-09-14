@@ -1,8 +1,8 @@
 package com.fitsync.domain.oauth;
 
-import com.fitsync.domain.user.SocialProvider;
-import com.fitsync.domain.user.User;
-import com.fitsync.domain.user.UserRepository;
+import com.fitsync.domain.user.entity.SocialProvider;
+import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

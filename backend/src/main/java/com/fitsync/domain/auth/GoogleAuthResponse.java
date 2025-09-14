@@ -1,7 +1,7 @@
 package com.fitsync.domain.auth;
 
 import com.fitsync.domain.oauth.OAuth2Response;
-import com.fitsync.domain.user.SocialProvider;
+import com.fitsync.domain.user.entity.SocialProvider;
 
 import java.util.Map;
 
