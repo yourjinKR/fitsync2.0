@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -14,10 +15,11 @@ import java.time.OffsetDateTime;
  * 요청에 따라 복수형(Users)으로 통일하여 작성되었습니다.
  */
 @Getter
-// @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users") // 클래스 이름과 테이블 이름이 같으면 생략 가능합니다.
 public class User {
 
@@ -31,6 +33,9 @@ public class User {
 
     @Column(name = "\"name\"", nullable = false, length = 50)
     private String name;
+
+    @Column(nullable = false, length = 255)
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -81,13 +86,4 @@ public class User {
     @Column(nullable = false)
     private OffsetDateTime updatedAt;
 
-    // --- 빌더 패턴 ---
-    @Builder
-    public User(String email, String name, SocialProvider socialProvider, UserType type) {
-        this.email = email;
-        this.name = name;
-        this.socialProvider = socialProvider;
-        this.type = type;
-        this.isHidden = false;
-    }
 }
