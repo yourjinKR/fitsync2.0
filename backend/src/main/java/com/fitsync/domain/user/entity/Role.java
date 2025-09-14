@@ -1,4 +1,4 @@
-package com.fitsync.domain;
+package com.fitsync.domain.user.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

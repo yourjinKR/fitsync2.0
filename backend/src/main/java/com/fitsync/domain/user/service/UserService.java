@@ -1,13 +1,17 @@
-package com.fitsync.domain.user;
+package com.fitsync.domain.user.service;
 
+import com.fitsync.domain.user.dto.UserRequestDTO;
+import com.fitsync.domain.user.repository.UserRepository;
+import com.fitsync.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 만들어 의존성을 주입합니다.
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository usersRepository;

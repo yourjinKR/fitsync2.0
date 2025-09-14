@@ -1,5 +1,7 @@
-package com.fitsync.domain.user;
+package com.fitsync.domain.user.controller;
 
+import com.fitsync.domain.user.service.UserService;
+import com.fitsync.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

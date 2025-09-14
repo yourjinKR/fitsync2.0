@@ -1,4 +1,4 @@
-package com.fitsync.domain.user;
+package com.fitsync.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
