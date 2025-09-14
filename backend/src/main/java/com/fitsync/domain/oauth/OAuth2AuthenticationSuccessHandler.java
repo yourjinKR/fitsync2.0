@@ -56,14 +56,18 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     private void addRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .path("/")
                 .maxAge(refreshTokenValidityInSeconds)
                 .secure("prod".equals(activeProfile))
-                .sameSite("prod".equals(activeProfile) ? "None" : "Lax")
-                .build();
+                .sameSite("prod".equals(activeProfile) ? "None" : "Lax");
 
+        if ("prod".equals(activeProfile)) {
+            cookieBuilder.domain(".fitsync.kro.kr");
+        }
+
+        ResponseCookie cookie = cookieBuilder.build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
 }
