@@ -1,5 +1,5 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
-import apiClient, { setAuthFunctions } from '../api/apiClient';
+import { setAuthFunctions } from '../api/apiClient';
 import { backendURL } from '../api/AuthApi';
 
 export interface AuthContextType {
@@ -19,13 +19,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = useCallback(async () => {
         try {
-            await apiClient.post('/api/auth/logout');
+            // 백엔드에 로그아웃 요청을 보내고 refreshToken 쿠키를 제거
+            await fetch(`${backendURL}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            // 프론트엔드의 상태와 저장소 초기화
+            setAccessToken(null);
+            
+            // 브라우저 저장소 초기화
+            localStorage.removeItem('accessToken');
+            sessionStorage.clear();
+            
+            // 모든 쿠키 제거 시도
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
         } catch (error) {
             console.error('로그아웃 요청 실패:', error);
-        } finally {
+            // 에러가 발생하더라도 프론트엔드 상태는 초기화
             setAccessToken(null);
+            localStorage.removeItem('accessToken');
         }
-    }, []);
+    }, [accessToken]);
     
     useEffect(() => {
         setAuthFunctions(() => accessToken, setAccessToken, logout);
