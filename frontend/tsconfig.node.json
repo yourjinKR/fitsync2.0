@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode (Vite 권장) */
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* 편의/호환 옵션 */
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["vite/client"],
+
+    /* Linting/엄격도 */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+
+    /* 확장자 붙여 import를 허용하지 않음(권장)
+       "allowImportingTsExtensions": false  // ← 아예 제거(기본값 false)
+    */
+  },
+  "include": ["src", "src/types"]
+}

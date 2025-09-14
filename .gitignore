@@ -147,3 +147,4 @@ fabric.properties
 docs/*
 
 .env
+.env.development

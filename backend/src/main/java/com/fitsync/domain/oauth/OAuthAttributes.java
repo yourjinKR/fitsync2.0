@@ -1,8 +1,8 @@
 package com.fitsync.domain.oauth;
 
-import com.fitsync.domain.user.SocialProvider;
-import com.fitsync.domain.user.User;
-import com.fitsync.domain.user.UserType;
+import com.fitsync.domain.user.entity.SocialProvider;
+import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.user.entity.UserType;
 import lombok.Builder;
 import lombok.Getter;
 

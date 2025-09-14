@@ -2,8 +2,8 @@ package com.fitsync.domain.auth;
 
 
 import com.fitsync.domain.jwt.JwtTokenProvider;
-import com.fitsync.domain.user.User;
-import com.fitsync.domain.user.UserRepository;
+import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import apiClient, { setAuthFunctions } from '../api/apiClient';
 
-interface AuthContextType {
+export interface AuthContextType {
     accessToken: string | null;
     isLoggedIn: boolean;
     isLoading: boolean;
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             try {
-                const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/refresh`, {
+                const response = await fetch(`${import.meta.env.BACKEND_URL || 'http://localhost:8080'}/api/auth/refresh`, {
                     method: 'POST',
                     credentials: 'include',  // 쿠키 포함
                 });
@@ -91,11 +91,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 };
 
-export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth는 AuthProvider 안에서 사용해야 합니다.');
-    }
-    return context;
-};
-
+// AuthContext의 실제 훅은 hooks/useAuth.ts로 이동했습니다.
+// 이 파일에서는 AuthProvider만 내보냅니다.
+export { AuthContext };

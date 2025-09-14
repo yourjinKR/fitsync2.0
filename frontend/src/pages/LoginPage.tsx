@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { GOOGLE_URL, KAKAO_URL, NAVER_URL } from '../api/AuthApi';
+import { useAuth } from '../hooks/useAuth';
 
 const LoginPage: React.FC = () => {
     const { setAccessToken } = useAuth();

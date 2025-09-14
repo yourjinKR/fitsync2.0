@@ -22,7 +22,7 @@ import java.util.List;
 
 @Configuration // 스프링의 설정 클래스임을 나타냅니다
 @EnableWebSecurity // Spring Security 활성화
-@RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 생성
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     // OAuth2 인증 처리를 위한 커스텀 서비스

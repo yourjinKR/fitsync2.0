@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 
 // 환경 변수에서 API의 기본 URL을 가져옵니다.
-const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const baseURL = import.meta.env.BACKEND_URL || 'http://localhost:8080';
 
 // baseURL과 쿠키 전송 옵션이 설정된 axios 인스턴스를 생성합니다.
 const apiClient : AxiosInstance = axios.create({
@@ -97,4 +97,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

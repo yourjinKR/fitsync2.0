@@ -1,6 +1,6 @@
 package com.fitsync.domain.oauth;
 
-import com.fitsync.domain.user.SocialProvider;
+import com.fitsync.domain.user.entity.SocialProvider;
 
 public interface OAuth2Response {
 

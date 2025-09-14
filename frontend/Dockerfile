@@ -16,7 +16,7 @@ RUN npm run build
 FROM nginx:stable-alpine
 
 # 빌드된 정적 파일을 Nginx 웹 서버의 기본 경로로 복사합니다.
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Nginx 포트를 외부에 노출합니다.
 EXPOSE 80

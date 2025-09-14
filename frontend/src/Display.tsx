@@ -1,12 +1,11 @@
-import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import AdminMain from './pages/AdminMain';
-import AuthCallBack from './pages/AuthCallBack';
 import PrivateRoute from './components/PrivateRoute';
 import PublicRoute from './components/PublicRoute';
 import LoginPage from './pages/LoginPage';
 import ErrorPage from './pages/ErrorPage';
+import AuthCallBack from './pages/AuthCallback';
 
 const Display = () => {
   return (

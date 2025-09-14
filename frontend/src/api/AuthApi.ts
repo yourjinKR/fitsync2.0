@@ -1,4 +1,4 @@
-const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const baseURL = import.meta.env.BACKEND_URL || 'http://localhost:8080';
 
 export const GOOGLE_URL = `${baseURL}/oauth2/authorization/google`;
 export const NAVER_URL = `${baseURL}/oauth2/authorization/naver`;

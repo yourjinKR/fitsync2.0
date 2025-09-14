@@ -28,9 +28,10 @@ const AdminMain = () => {
       }
 
       setUsers(arr);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err?.message ?? '사용자 목록 조회 실패');
+      const errorMessage = err instanceof Error ? err.message : '사용자 목록 조회 실패';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
