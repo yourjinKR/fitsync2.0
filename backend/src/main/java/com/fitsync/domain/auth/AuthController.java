@@ -35,7 +35,7 @@ public class AuthController {
         // 배포 환경(prod)일 경우, 반드시 Domain 속성을 포함하여 쿠키를 삭제해야 합니다.
         if ("prod".equals(activeProfile)) {
             // (수정) 불필요한 String.format 제거
-            cookieValue = "refreshToken=; Max-Age=0; Path=/; Domain=fitsync.kro.kr; SameSite=None; Secure; HttpOnly";
+            cookieValue = "refreshToken=; Max-Age=0; Path=/; Domain=.fitsync.kro.kr; SameSite=None; Secure; HttpOnly";
         } else {
             // 개발 환경에서는 Domain 속성 없이 쿠키를 삭제합니다.
             // (수정) 불필요한 String.format 제거
