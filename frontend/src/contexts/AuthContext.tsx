@@ -1,5 +1,6 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import apiClient, { setAuthFunctions } from '../api/apiClient';
+import { backendURL } from '../api/AuthApi';
 
 export interface AuthContextType {
     accessToken: string | null;
@@ -42,7 +43,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             try {
-                const response = await fetch(`${import.meta.env.BACKEND_URL || 'http://localhost:8080'}/api/auth/refresh`, {
+                const response = await fetch(`${backendURL}/api/auth/refresh`, {
                     method: 'POST',
                     credentials: 'include',  // 쿠키 포함
                 });

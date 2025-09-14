@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { baseURL, GOOGLE_URL, KAKAO_URL, NAVER_URL } from '../api/AuthApi';
+import { GOOGLE_URL, KAKAO_URL, NAVER_URL } from '../api/AuthApi';
 import { useAuth } from '../hooks/useAuth';
 
 const LoginPage: React.FC = () => {
@@ -42,7 +42,6 @@ const LoginPage: React.FC = () => {
     return (
         <div>
             <h1>로그인</h1>
-            <div>현재 백엔드 주소임 : {baseURL}</div>
             <button onClick={() => openLoginPopup(GOOGLE_URL)}>구글로 로그인</button>
             <button onClick={() => openLoginPopup(NAVER_URL)}>네이버로 로그인</button>
             <button onClick={() => openLoginPopup(KAKAO_URL)}>카카오로 로그인</button>
