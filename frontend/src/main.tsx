@@ -7,6 +7,6 @@ import GlobalStyle from './styles/GlobalStyle'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <GlobalStyle/>
-      <App />
-  </StrictMode>,
+    <App />
+  </StrictMode>
 )
