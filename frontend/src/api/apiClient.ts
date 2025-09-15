@@ -1,11 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
-import { backendURL } from './AuthApi';
+import { BACKEND_URL } from './AuthApi';
 
 // 환경 변수에서 API의 기본 URL을 가져옵니다.
 
 // baseURL과 쿠키 전송 옵션이 설정된 axios 인스턴스를 생성합니다.
 const apiClient : AxiosInstance = axios.create({
-  baseURL: backendURL,
+  baseURL: BACKEND_URL,
   withCredentials : true // cross-origin 요청 시 쿠키를 포함시키기 위한 설정
 });
 
@@ -65,7 +65,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const response = await fetch(`${backendURL}/api/auth/refresh`, {
+        const response = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
         });

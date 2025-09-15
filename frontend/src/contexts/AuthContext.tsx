@@ -1,6 +1,6 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import { setAuthFunctions } from '../api/apiClient';
-import { backendURL } from '../api/AuthApi';
+import { BACKEND_URL } from '../api/AuthApi';
 
 export interface AuthContextType {
     accessToken: string | null;
@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = useCallback(async () => {
         try {
             // 백엔드에 로그아웃 요청을 보내고 refreshToken 쿠키를 제거
-            await fetch(`${backendURL}/api/auth/logout`, {
+            await fetch(`${BACKEND_URL}/api/auth/logout`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             try {
-                const response = await fetch(`${backendURL}/api/auth/refresh`, {
+                const response = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
                     method: 'POST',
                     credentials: 'include',  // 쿠키 포함
                 });
