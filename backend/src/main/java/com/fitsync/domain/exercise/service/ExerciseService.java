@@ -1,7 +1,6 @@
 package com.fitsync.domain.exercise.service;
 
-import com.fitsync.domain.exercise.dto.ExerciseDto;
-import com.fitsync.domain.exercise.dto.ExerciseResponseDto;
+import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
 import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.repository.ExerciseInstructionRepository;
@@ -11,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,10 +34,10 @@ public class ExerciseService {
      * @param exerciseId 운동 정보 PK
      * @return ExerciseResponseDto
      */
-    public ExerciseResponseDto getExercise(Long exerciseId) {
+    public ExerciseDetailResponseDto getExercise(Long exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
-        return new ExerciseResponseDto(exercise);
+        return new ExerciseDetailResponseDto(exercise);
     }
 }

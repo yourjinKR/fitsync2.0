@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public class ExerciseResponseDto {
+public class ExerciseDetailResponseDto {
 
     private final Long id;
     private final String name;
@@ -33,7 +33,7 @@ public class ExerciseResponseDto {
     }
 
     // 엔티티 -> DTO
-    public ExerciseResponseDto(Exercise exercise) {
+    public ExerciseDetailResponseDto(Exercise exercise) {
         this.id = exercise.getId();
         this.name = exercise.getName();
         this.category = exercise.getCategory();
