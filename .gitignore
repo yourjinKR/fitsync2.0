@@ -145,6 +145,7 @@ fabric.properties
 !.idea/runConfigurations
 
 docs/*
+!docs/data
 
 .env
 .env.development
