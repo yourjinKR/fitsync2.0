@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -37,4 +39,13 @@ public class Exercise {
     @UpdateTimestamp
     @Column(nullable = false)
     private OffsetDateTime updatedAt;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExerciseInstruction> instructions = new ArrayList<>();
+
+    public void addInstruction(ExerciseInstruction instruction) {
+        this.instructions.add(instruction);
+        instruction.setExercise(this); // ExerciseInstruction 엔티티에 setExercise() 필요
+    }
 }

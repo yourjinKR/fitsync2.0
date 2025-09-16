@@ -34,4 +34,13 @@ public class ExerciseInstruction {
     private OffsetDateTime createdAt;
 
     // 빌더나 생성자는 필요에 따라 추가
+
+    /**
+     * Exercise 와의 연관관계를 설정하는 메소드.
+     * 이 메소드는 Exercise 엔티티의 addInstruction 메소드 내에서만 호출되어야 합니다.
+     */
+     void setExercise(Exercise exercise) {
+        this.exercise = exercise;
+    }
+
 }

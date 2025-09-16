@@ -18,7 +18,30 @@ fitsync2.0
 │     │  │     └─ fitsync
 │     │  │        ├─ BackendApplication.java
 │     │  │        ├─ config
-│     │  │        │  ├─ HealthCheckController.java
+│     │  │        │  ├─ JpaAuditingConfig.java
+│     │  │        │  ├─ SecurityConfig.java
+│     │  │        │  └─ WebConfig.java
+│     │  │        ├─ domain
+│     │  │        │  ├─ auth
+│     │  │        │  │  ├─ AuthController.java
+│     │  │        │  │  ├─ AuthService.java
+│     │  │        │  │  ├─ GoogleAuthResponse.java
+│     │  │        │  │  ├─ KakaoAuthResponse.java
+│     │  │        │  │  └─ NaverAuthResponse.java
+│     │  │        │  ├─ exercise
+│     │  │        │  │  ├─ controller
+│     │  │        │  │  │  └─ ExerciseController.java
+│     │  │        │  │  ├─ dto
+│     │  │        │  │  │  ├─ ExerciseDto.java
+│     │  │        │  │  │  └─ ExerciseResponseDto.java
+│     │  │        │  │  ├─ entity
+│     │  │        │  │  │  ├─ Exercise.java
+│     │  │        │  │  │  └─ ExerciseInstruction.java
+│     │  │        │  │  ├─ repository
+│     │  │        │  │  │  ├─ ExerciseInstructionRepository.java
+│     │  │        │  │  │  └─ ExerciseRepository.java
+│     │  │        │  │  └─ service
+│     │  │        │  │     └─ ExerciseService.java
 │     │  │        │  ├─ jwt
 │     │  │        │  │  ├─ JwtAuthenticationFilter.java
 │     │  │        │  │  └─ JwtTokenProvider.java
@@ -26,27 +49,24 @@ fitsync2.0
 │     │  │        │  │  ├─ CustomOAuth2UserService.java
 │     │  │        │  │  ├─ OAuth2AuthenticationFailureHandler.java
 │     │  │        │  │  ├─ OAuth2AuthenticationSuccessHandler.java
+│     │  │        │  │  ├─ OAuth2Response.java
 │     │  │        │  │  └─ OAuthAttributes.java
-│     │  │        │  ├─ SecurityConfig.java
-│     │  │        │  └─ WebConfig.java
-│     │  │        └─ domain
-│     │  │           ├─ AuthController.java
-│     │  │           ├─ AuthService.java
-│     │  │           ├─ Role.java
-│     │  │           ├─ test
-│     │  │           │  ├─ Test.java
-│     │  │           │  ├─ TestController.java
-│     │  │           │  ├─ TestRepository.java
-│     │  │           │  └─ TestService.java
-│     │  │           └─ user
-│     │  │              ├─ SocialProvider.java
-│     │  │              ├─ User.java
-│     │  │              ├─ UserController.java
-│     │  │              ├─ UserGender.java
-│     │  │              ├─ UserRepository.java
-│     │  │              ├─ UserService.java
-│     │  │              ├─ UserStatus.java
-│     │  │              └─ UserType.java
+│     │  │        │  └─ user
+│     │  │        │     ├─ controller
+│     │  │        │     │  └─ UserController.java
+│     │  │        │     ├─ entity
+│     │  │        │     │  ├─ Role.java
+│     │  │        │     │  ├─ SocialProvider.java
+│     │  │        │     │  ├─ User.java
+│     │  │        │     │  ├─ UserGender.java
+│     │  │        │     │  ├─ UserStatus.java
+│     │  │        │     │  └─ UserType.java
+│     │  │        │     ├─ repository
+│     │  │        │     │  └─ UserRepository.java
+│     │  │        │     └─ service
+│     │  │        │        └─ UserService.java
+│     │  │        ├─ global
+│     │  │        └─ HealthCheckController.java
 │     │  └─ resources
 │     │     ├─ application-prod.properties
 │     │     ├─ application.properties
@@ -61,16 +81,28 @@ fitsync2.0
 │        └─ resources
 │           └─ application.properties
 ├─ frontend
+│  ├─ dist
+│  │  ├─ assets
+│  │  │  ├─ index-ajP0DiCn.js
+│  │  │  ├─ index-DUm9wyTj.css
+│  │  │  ├─ noto-sans-kr-cyrillic-400-normal-D9rwZ47q.woff2
+│  │  │  ├─ noto-sans-kr-cyrillic-400-normal-Dw-N_lhu.woff
+│  │  │  ├─ noto-sans-kr-latin-400-normal-9HDSzKCN.woff
+│  │  │  ├─ noto-sans-kr-latin-400-normal-CdyDEFPE.woff2
+│  │  │  ├─ noto-sans-kr-latin-ext-400-normal-BYEQ_wmt.woff
+│  │  │  ├─ noto-sans-kr-latin-ext-400-normal-D7aSIu2N.woff2
+│  │  │  ├─ noto-sans-kr-vietnamese-400-normal-BwH49Cp7.woff
+│  │  │  ├─ noto-sans-kr-vietnamese-400-normal-D41pEeVj.woff2
+│  │  │  └─ react-CHdo91hT.svg
+│  │  ├─ index.html
+│  │  └─ vite.svg
 │  ├─ Dockerfile
+│  ├─ eslint.config.js
+│  ├─ index.html
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ public
-│  │  ├─ favicon.ico
-│  │  ├─ index.html
-│  │  ├─ logo192.png
-│  │  ├─ logo512.png
-│  │  ├─ manifest.json
-│  │  └─ robots.txt
+│  │  └─ vite.svg
 │  ├─ README.md
 │  ├─ src
 │  │  ├─ api
@@ -78,40 +110,43 @@ fitsync2.0
 │  │  │  ├─ AuthApi.ts
 │  │  │  └─ UserApi.ts
 │  │  ├─ App.css
-│  │  ├─ App.test.tsx
 │  │  ├─ App.tsx
+│  │  ├─ assets
+│  │  │  └─ react.svg
 │  │  ├─ components
 │  │  │  ├─ PrivateRoute.tsx
 │  │  │  └─ PublicRoute.tsx
 │  │  ├─ contexts
-│  │  │  ├─ AuthContext.tsx
-│  │  │  └─ AuthURL.ts
+│  │  │  └─ AuthContext.tsx
 │  │  ├─ Display.tsx
 │  │  ├─ hooks
+│  │  │  └─ useAuth.ts
 │  │  ├─ index.css
 │  │  ├─ index.tsx
-│  │  ├─ logo.svg
+│  │  ├─ main.tsx
 │  │  ├─ pages
 │  │  │  ├─ AdminMain.tsx
-│  │  │  ├─ AuthCallBack.tsx
+│  │  │  ├─ AuthCallback.tsx
 │  │  │  ├─ ErrorPage.tsx
 │  │  │  ├─ Home.tsx
 │  │  │  └─ LoginPage.tsx
-│  │  ├─ react-app-env.d.ts
-│  │  ├─ reportWebVitals.ts
-│  │  ├─ setupTests.ts
 │  │  ├─ styles
-│  │  │  └─ GlobalStyle.js
+│  │  │  └─ GlobalStyle.ts
 │  │  ├─ test
 │  │  │  └─ DBConnectPage.jsx
-│  │  ├─ tests
 │  │  ├─ types
 │  │  │  ├─ api.ts
 │  │  │  ├─ common.ts
-│  │  │  └─ domain
-│  │  │     └─ users.ts
-│  │  └─ utils
-│  └─ tsconfig.json
+│  │  │  ├─ domain
+│  │  │  │  └─ users.ts
+│  │  │  ├─ error.ts
+│  │  │  └─ font.d.ts
+│  │  └─ vite-env.d.ts
+│  ├─ tsconfig.app.json
+│  ├─ tsconfig.json
+│  ├─ tsconfig.node.json
+│  ├─ tsconfig.tsbuildinfo
+│  └─ vite.config.ts
 └─ README.md
 
 ```
