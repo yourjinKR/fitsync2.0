@@ -32,7 +32,7 @@ public class ExerciseResponseDto {
         }
     }
 
-    // 엔티티를 DTO로 변환하는 생성자
+    // 엔티티 -> DTO
     public ExerciseResponseDto(Exercise exercise) {
         this.id = exercise.getId();
         this.name = exercise.getName();
