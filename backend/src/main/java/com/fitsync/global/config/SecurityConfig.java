@@ -1,4 +1,4 @@
-package com.fitsync.config;
+package com.fitsync.global.config;
 
 import com.fitsync.domain.jwt.JwtAuthenticationFilter;
 import com.fitsync.domain.oauth.CustomOAuth2UserService;
