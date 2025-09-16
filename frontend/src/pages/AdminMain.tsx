@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import UserApi from '../api/UserApi';
 import { User } from '../types/domain/users';
+import ExerciseApi from '../api/ExerciseApi';
 
 const AdminMain = () => {
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,8 @@ const AdminMain = () => {
   return (
     <div>
       <h1>관리자 페이지</h1>
+
+      <button onClick={() => ExerciseApi.findExercise(2).then(response => console.log(response))}>운동 정보 확인</button>
 
       <h2>유저 수: {users.length}</h2>
 
