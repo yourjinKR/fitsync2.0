@@ -11,6 +11,7 @@
 - `name`: 운동 이름 (예: '벤치프레스')
 - `category`: 운동 카테고리 (예: '가슴', '하체', '유산소')
 - `description`: 운동 방법 및 주의사항에 대한 설명
+- `is_hidden` : 숨김 처리 (특정 운동을 삭제하려고 할때 운동기록과 루틴을 보존하기 위해)
 - `created_at`: 레코드 생성일시
 - `updated_at`: 레코드 마지막 수정일시
 
@@ -35,6 +36,7 @@ CREATE TABLE exercises (
     category VARCHAR(50) NOT NULL,
     -- image_url TEXT, -- 운동 정보 이미지 또한 aws S3에서 관리하도록 변경
     description TEXT,
+    is_hidden BOOLEAN NOT NULL DEFAULT false, -- 삭제 상황에서 기존의 운동기록과 루틴을 보존하기 위해
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -46,4 +48,5 @@ CREATE INDEX idx_exercises_category ON exercises(category);
 COMMENT ON TABLE exercises IS '서비스에서 제공하는 모든 운동의 종류를 정의하는 마스터 테이블';
 COMMENT ON COLUMN exercises.name IS '운동 이름 (예: 벤치프레스)';
 COMMENT ON COLUMN exercises.category IS '운동 부위 또는 종류 (예: 가슴, 등, 유산소)';
+COMMENT ON COLUMN exercises.is_hidden IS '삭제 상황에서 기존의 운동기록과 루틴을 보존하기 위해 (기본값 false)';
 ```
