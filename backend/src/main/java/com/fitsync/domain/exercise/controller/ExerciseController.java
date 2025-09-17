@@ -3,6 +3,7 @@ package com.fitsync.domain.exercise.controller;
 import com.fitsync.domain.exercise.dto.ExerciseCreateRequestDto;
 import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
 import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
+import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
 import com.fitsync.domain.exercise.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,10 +54,25 @@ public class ExerciseController {
      */
     @GetMapping("/{exerciseId}")
     public ResponseEntity<ExerciseDetailResponseDto> getExercise(@PathVariable("exerciseId") Long exerciseId) {
-        // 예외 처리는 GlobalExceptionHandler가 처리해줌
+
         return ResponseEntity.ok(exerciseService.getExercise(exerciseId));
     }
 
-    // 운동 정보
+
+    /**
+     * 특정 운동 수정하기
+     * @param exerciseId pk
+     * @param requestDto 내부에 id는 없음
+     */
+    @PutMapping("/{exerciseId}")
+    public ResponseEntity<ExerciseDetailResponseDto> updateExercise(@PathVariable Long exerciseId, @RequestBody ExerciseUpdateRequestDto requestDto) {
+
+        System.out.println("id 확인 : " + exerciseId);
+        System.out.println("dto 확인 : " + requestDto);
+
+        ExerciseDetailResponseDto updatedExercise = exerciseService.updateExercise(exerciseId, requestDto);
+
+        return ResponseEntity.ok(updatedExercise);
+    }
 
 }

@@ -3,6 +3,7 @@ package com.fitsync.domain.exercise.service;
 import com.fitsync.domain.exercise.dto.ExerciseCreateRequestDto;
 import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
 import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
+import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.repository.ExerciseInstructionRepository;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
@@ -60,4 +61,18 @@ public class ExerciseService {
 
         return new ExerciseDetailResponseDto(exercise);
     }
+
+    // 운동 정보를 수정하는 메소드
+    @Transactional
+    public ExerciseDetailResponseDto updateExercise(Long exerciseId, ExerciseUpdateRequestDto requestDto) {
+
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
+
+        exercise.update(requestDto);
+
+        return new ExerciseDetailResponseDto(exercise);
+
+    }
+
 }

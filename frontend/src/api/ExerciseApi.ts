@@ -1,5 +1,5 @@
 import { Page } from "../types/api";
-import { ExerciseCreateRequestDto, ExerciseDetailResponseDto, ExerciseSimpleResponseDto } from "../types/domain/exercise";
+import { ExerciseRequestDto, ExerciseDetailResponseDto, ExerciseSimpleResponseDto } from "../types/domain/exercise";
 import apiClient from "./apiClient";
 
 // 페이지네이션 요청을 위한 파라미터 타입
@@ -31,13 +31,24 @@ const ExerciseApi = {
 
   /**
    * 운동 정보를 새로 생성합니다.
-   * @param requestDto ExerciseCreateRequestDto (생성 전용 DTO, types/domain/exercise.ts 참고)
+   * @param requestDto ExerciseRequestDto (types/domain/exercise.ts 참고)
    * @returns ExerciseDetailResponseDto (관리자가 운동을 생성하면 해당 운동 정보를 바로 보여줌)
    */
-  createExercise(requestDto: ExerciseCreateRequestDto) : Promise<ExerciseDetailResponseDto> {
+  createExercise(requestDto: ExerciseRequestDto) : Promise<ExerciseDetailResponseDto> {
     return apiClient.post(`/api/exercise`, requestDto)
       .then(response => response.data);
-  }
+  },
+
+  /**
+   * 운동 정보를 수정합니다
+   * @param exerciseId ExerciseRequestDto (types/domain/exercise.ts 참고)
+   * @param requestDto 
+   * @returns 
+   */
+  updateExercise(exerciseId: number, requestDto: ExerciseRequestDto) : Promise<ExerciseDetailResponseDto> {
+    return apiClient.put(`/api/exercise/${exerciseId}`, requestDto)
+      .then(response => response.data);
+  },
 };
 
 export default ExerciseApi;

@@ -14,7 +14,8 @@ import java.util.List;
  * TODO : 이미지 URL 추가 (추후에 진행)
  */
 public class ExerciseCreateRequestDto {
-
+    
+    // id 필요없음
     private String name;
     private String category;
     private String description;
@@ -25,6 +26,7 @@ public class ExerciseCreateRequestDto {
     @Getter
     @NoArgsConstructor
     public static class InstructionRequestDto {
+        // id 필요없음
         private Integer stepOrder;
         private String description;
 

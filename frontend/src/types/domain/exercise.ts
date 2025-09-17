@@ -27,8 +27,9 @@ export interface InstructionInfo {
   description: string;
 }
 
+// TODO : 이거 나중에 요청 DTO 수정해야될 수도 있음
 // 운동정보 생성 요청 DTO
-export interface ExerciseCreateRequestDto {
+export interface ExerciseRequestDto {
   name: string;
   category: string;
   description: Nullable<string>;

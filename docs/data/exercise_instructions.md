@@ -46,3 +46,4 @@ COMMENT ON TABLE exercise_instructions IS '운동별 수행 방법을 순서가 
 COMMENT ON COLUMN exercise_instructions.exercise_id IS '연관된 운동의 ID (exercises.id)';
 COMMENT ON COLUMN exercise_instructions.step_order IS '운동 방법의 단계 순서 (1부터 시작)';
 COMMENT ON COLUMN exercise_instructions.description IS '해당 단계의 상세 설명';
+```
