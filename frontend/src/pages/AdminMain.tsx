@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import UserApi from '../api/UserApi';
 import { User } from '../types/domain/users';
-import ExerciseApi from '../api/ExerciseApi';
+import { useNavigate } from 'react-router-dom';
 
 const AdminMain = () => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
@@ -49,17 +51,12 @@ const AdminMain = () => {
   const getKey = (u: User, i: number) => (u.id ?? u.email ?? u.id ?? i).toString();
   const getName = (u: User) => u.name ?? '(이름 없음)';
 
-  const testPage = {
-    page: 1,
-    size: 20,
-  }
-
   return (
     <div>
       <h1>관리자 페이지</h1>
 
-      <button onClick={() => ExerciseApi.getExerciseById(2).then(response => console.log(response))}>특정 운동 정보 확인</button>
-      <button onClick={() => ExerciseApi.getAllExercises(testPage).then(response => console.log(response))}>운동 정보 리스트</button>
+      <button onClick={() => navigate('/test/exercise')}>운동 테스트 페이지</button>
+
 
       <h2>유저 수: {users.length}</h2>
 

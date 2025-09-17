@@ -6,6 +6,7 @@ import PublicRoute from './components/PublicRoute';
 import LoginPage from './pages/LoginPage';
 import ErrorPage from './pages/ErrorPage';
 import AuthCallBack from './pages/AuthCallback';
+import ExerciseTestPage from './test/ExerciseTestPage';
 
 const Display = () => {
   return (
@@ -19,6 +20,7 @@ const Display = () => {
         {/* 로그인한 사용자만 접근하는 페이지 */}
         <Route element={<PrivateRoute/>}>
           <Route path="/admin" element={<AdminMain/>}/>
+          <Route path='/test/exercise' element={<ExerciseTestPage/>}/>
         </Route>
 
         {/* 로그인을 안한 사용자만 접근하는 페이지 */}
