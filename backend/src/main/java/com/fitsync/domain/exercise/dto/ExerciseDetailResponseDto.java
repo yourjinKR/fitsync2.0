@@ -15,6 +15,7 @@ public class ExerciseDetailResponseDto {
     private final String name;
     private final String category;
     private final String description;
+    private final boolean isHidden;
     private final OffsetDateTime createdAt;
     private final List<InstructionInfo> instructions;
 
@@ -38,6 +39,7 @@ public class ExerciseDetailResponseDto {
         this.name = exercise.getName();
         this.category = exercise.getCategory();
         this.description = exercise.getDescription();
+        this.isHidden = exercise.isHidden();
         this.createdAt = exercise.getCreatedAt();
         this.instructions = exercise.getInstructions().stream()
                 .map(InstructionInfo::new)
