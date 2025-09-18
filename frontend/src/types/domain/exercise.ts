@@ -44,4 +44,8 @@ export interface InstructionCreateDto {
   description: string;
 }
 
+// hidden값 수정 요청 DTO
+export interface ExerciseHiddenUpdateDto {
+  exerciseIds : number[];
+}
 

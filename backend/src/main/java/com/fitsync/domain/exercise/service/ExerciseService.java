@@ -1,9 +1,6 @@
 package com.fitsync.domain.exercise.service;
 
-import com.fitsync.domain.exercise.dto.ExerciseCreateRequestDto;
-import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
-import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
-import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
+import com.fitsync.domain.exercise.dto.*;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.repository.ExerciseInstructionRepository;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
@@ -109,5 +106,31 @@ public class ExerciseService {
 
         exercise.show();
     }
+
+    /**
+     * 복수의 운동 정보를 비활성화 하는 메소드
+     * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
+     */
+    @Transactional
+    public void inactivateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+        exerciseRepository.updateHiddenStatusByIds(
+                requestDto.getExerciseIds(),
+                true
+        );
+    }
+
+    /**
+     * 복수의 운동 정보를 활성화 하는 메소드
+     * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
+     */
+    @Transactional
+    public void activateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+        exerciseRepository.updateHiddenStatusByIds(
+                requestDto.getExerciseIds(),
+                false
+        );
+    }
+
+
 
 }

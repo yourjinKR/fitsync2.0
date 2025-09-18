@@ -1,9 +1,6 @@
 package com.fitsync.domain.exercise.controller;
 
-import com.fitsync.domain.exercise.dto.ExerciseCreateRequestDto;
-import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
-import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
-import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
+import com.fitsync.domain.exercise.dto.*;
 import com.fitsync.domain.exercise.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -80,7 +77,7 @@ public class ExerciseController {
      * @param exerciseId pk
      * @return 별도의 응답 본문은 없음을 의미하는 204 No Content 반환
      */
-    @DeleteMapping("/{exerciseId}")
+    @PatchMapping("/{exerciseId}/deactivation")
     public ResponseEntity<Void> inactivateExercise(@PathVariable Long exerciseId) {
         exerciseService.inactivateExercise(exerciseId);
 
@@ -99,4 +96,28 @@ public class ExerciseController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 여러 운동정보를 숨기는 메소드
+     * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
+     * @return empty context
+     */
+    @PostMapping("/deactivations")
+    public ResponseEntity<Void> inactivateExercise(@RequestBody ExerciseIsHiddenUpdateRequestDto requestDto) {
+        exerciseService.inactivateExercises(requestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 여러 운동정보를 숨기기 해제 메소드
+     * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
+     * @return empty context
+     */
+    @PostMapping("/activations")
+    public ResponseEntity<Void> activateExercise(@RequestBody ExerciseIsHiddenUpdateRequestDto requestDto) {
+
+        System.out.println("ids !!!! : " + requestDto.getExerciseIds());
+
+        exerciseService.activateExercises(requestDto);
+        return ResponseEntity.ok().build();
+    }
 }

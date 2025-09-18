@@ -17,10 +17,7 @@ const ExerciseApi = {
   getAllExercises(params: Pageable): Promise<Page<ExerciseSimpleResponseDto>> {
 
     return apiClient.get<Page<ExerciseSimpleResponseDto>>('/api/exercise/all', { params })
-      .then(response => {
-        console.log(response.data);
-        return response.data;
-      });
+      .then(response => response.data);
   },
 
   /**
@@ -59,7 +56,7 @@ const ExerciseApi = {
    */
   inactivateExercise(exerciseId: number): Promise<void> {
 
-    return apiClient.delete(`/api/exercise/${exerciseId}`);
+    return apiClient.patch(`/api/exercise/${exerciseId}/deactivation`);
   },
 
   /**
@@ -70,6 +67,26 @@ const ExerciseApi = {
   activateExercise(exerciseId: number): Promise<void> {
 
     return apiClient.patch(`/api/exercise/${exerciseId}/activation`);
+  },
+  
+  /**
+   * 특정 운동들을 비활성화합니다.
+   * @param exerciseIds 삭제할 운동들의 ID
+   * @returns 
+   */
+  inactivateExercises(exerciseIds: number[]): Promise<void> {
+
+    return apiClient.post(`/api/exercise/deactivations`, {exerciseIds});
+  },
+  
+  /**
+   * 특정 운동들을 활성화합니다.
+   * @param exerciseIds 삭제할 운동들의 ID
+   * @returns 
+   */
+  activateExercises(exerciseIds: number[]): Promise<void> {
+
+    return apiClient.post(`/api/exercise/activations`, {exerciseIds});
   },
 
   
