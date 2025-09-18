@@ -7,6 +7,7 @@ export interface ExerciseSimpleResponseDto {
   id: number;
   name: string;
   category: string;
+  isHidden : boolean;
 }
 
 // 운동정보 상세보기 응답 DTO

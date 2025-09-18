@@ -1,34 +1,178 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import styled from 'styled-components';
 import ExerciseApi from '../api/ExerciseApi';
-import { InstructionCreateDto } from '../types/domain/exercise';
-import { Nullable } from '../types/common';
+import { InstructionCreateDto, ExerciseSimpleResponseDto, ExerciseDetailResponseDto, ExerciseRequestDto } from '../types/domain/exercise';
+import { Page } from '../types/common';
+import { ApiError } from '../types/error';
+
+// --- 폼 데이터 초기 상태 정의 ---
+const INITIAL_FORM_STATE = {
+  name: '새로운 운동',
+  category: '가슴',
+  description: '운동에 대한 간단한 요약 설명입니다.',
+  isHidden: false,
+};
+const INITIAL_INSTRUCTIONS_STATE: InstructionCreateDto[] = [
+  { stepOrder: 1, description: '1단계 설명' },
+];
+
+// ==============================================================================
+// === Styled Components (스타일 정의) ===========================================
+// ==============================================================================
+
+const PageWrapper = styled.div`
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+`;
+
+const Header = styled.header`
+  text-align: center;
+  margin-bottom: var(--space-4);
+  h1 {
+    font-size: var(--fs-2xl);
+    color: var(--text-1);
+  }
+`;
+
+const SectionCard = styled.div`
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+`;
+
+const StyledTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: var(--fs-sm);
+`;
+
+const Th = styled.th`
+  background: var(--bg-elev-2);
+  padding: var(--space-3);
+  border-bottom: 2px solid var(--border-2);
+  color: var(--text-2);
+`;
+
+const Td = styled.td<{ $isHidden?: boolean }>`
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-1);
+  color: ${({ $isHidden }) => ($isHidden ? 'var(--text-3)' : 'var(--text-1)')};
+  background-color: ${({ $isHidden }) => ($isHidden ? 'oklch(23% 0.02 27)' : 'transparent')};
+  transition: background-color 0.2s ease;
+`;
+
+const PaginationControls = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+`;
+
+const ActionGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+`;
+
+const Label = styled.label`
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  font-weight: 500;
+`;
+
+const StyledInput = styled.input`
+  width: 100%;
+`;
+const StyledTextarea = styled.textarea`
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+`;
+
+const InstructionItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+`;
+
+const Button = styled.button<{ variant?: 'primary' | 'danger' | 'ghost' }>`
+  /* 기본 버튼 스타일은 GlobalStyle에서 상속받음 */
+  
+  /* Primary variant */
+  ${({ variant }) => variant === 'primary' && `
+    background: var(--color-primary);
+    color: white;
+    &:hover { background: var(--color-primary-hover); }
+  `}
+
+  /* Danger variant */
+  ${({ variant }) => variant === 'danger' && `
+    background: var(--danger);
+    color: white;
+    &:hover { background: oklch(58% 0.20 27); }
+  `}
+  
+  /* Ghost variant */
+  ${({ variant }) => variant === 'ghost' && `
+    background: transparent;
+    border: 1px solid var(--border-1);
+    &:hover { border-color: var(--color-primary); background: var(--bg-elev-2) }
+  `}
+`;
+
+// ==============================================================================
+// === Component Logic (컴포넌트 로직) ==========================================
+// ==============================================================================
 
 const ExerciseTestPage = () => {
-  // --- 1. 상태(State) 관리 ---
-  // 기본 운동 정보를 관리하는 상태
-  const [exerciseData, setExerciseData] = useState({
-    name: '새로운 운동',
-    category: '가슴',
-    description: '운동에 대한 간단한 요약 설명입니다.',
-    isHidden : false
-  });
+  const [exercisePage, setExercisePage] = useState<Page<ExerciseSimpleResponseDto> | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [targetId, setTargetId] = useState<number | null>(null);
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [instructions, setInstructions] = useState<InstructionCreateDto[]>(INITIAL_INSTRUCTIONS_STATE);
 
-  // 동적인 단계별 설명을 관리하는 상태
-  const [instructions, setInstructions] = useState<InstructionCreateDto[]>([
-    { stepOrder: 1, description: '1단계 설명' },
-    { stepOrder: 2, description: '2단계 설명' },
-  ]);
+  const fetchList = useCallback(async (page: number) => {
+    try {
+      const data = await ExerciseApi.getAllExercises({ page, size: 5, sort: 'id,desc' });
+      setExercisePage(data);
+    } catch (error) {
+      console.error("❌ 전체 조회 실패:", error);
+    }
+  }, []);
 
-  const [targetId, setTargetId] = useState<Nullable<number>>(null);
-
-  // --- 2. 이벤트 핸들러 함수 ---
-  // 기본 정보 입력 필드 변경 핸들러
+  useEffect(() => {
+    fetchList(currentPage);
+  }, [currentPage, fetchList]);
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setExerciseData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const inputValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    setFormData(prev => ({ ...prev, [name]: inputValue }));
   };
 
-  // 단계별 설명 입력 필드 변경 핸들러
   const handleInstructionChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     const newInstructions = [...instructions];
@@ -36,136 +180,161 @@ const ExerciseTestPage = () => {
     setInstructions(newInstructions);
   };
 
-  // 단계별 설명 추가 핸들러
-  const addInstruction = () => {
-    setInstructions([
-      ...instructions,
-      { stepOrder: instructions.length + 1, description: '' },
-    ]);
-  };
+  const addInstruction = () => setInstructions([...instructions, { stepOrder: instructions.length + 1, description: '' }]);
 
-  // 단계별 설명 삭제 핸들러
   const removeInstruction = (index: number) => {
-    const newInstructions = instructions.filter((_, i) => i !== index);
-    // 삭제 후 stepOrder 재정렬
-    const reorderedInstructions = newInstructions.map((inst, i) => ({
-      ...inst,
-      stepOrder: i + 1,
-    }));
-    setInstructions(reorderedInstructions);
+    const newInstructions = instructions.filter((_, i) => i !== index)
+      .map((inst, i) => ({ ...inst, stepOrder: i + 1 }));
+    setInstructions(newInstructions);
   };
-
+  
   const handleLoad = async () => {
-    const idToLoad = prompt("수정할 운동의 ID를 입력하세요:");
+    const idToLoad = prompt("불러올 운동의 ID를 입력하세요:");
     if (!idToLoad) return;
-
     try {
       const id = parseInt(idToLoad, 10);
       const data = await ExerciseApi.getExerciseById(id);
-      console.log('✅ 불러오기 성공:', data);
-      
-      // 불러온 데이터로 폼 상태를 업데이트
       setTargetId(data.id);
-      setExerciseData({
-        name: data.name,
-        category: data.category,
-        description: data.description || '',
-        isHidden: data.isHidden,
-      });
-      // 불러온 instruction 데이터로 상태 업데이트 (id는 제외)
-      setInstructions(data.instructions.map(inst => ({
-        stepOrder: inst.stepOrder,
-        description: inst.description,
-      })));
-
-    } catch (error) {
-      console.error('❌ 불러오기 실패:', error);
-      alert('운동 정보 불러오기에 실패했습니다.');
+      setFormData({ name: data.name, category: data.category, description: data.description || '', isHidden: data.isHidden });
+      setInstructions(data.instructions.map(inst => ({ stepOrder: inst.stepOrder, description: inst.description })));
+    } catch (err) {
+      const error = err as ApiError;
+      alert(`불러오기 실패: ${error.message} (상태 코드: ${error.statusCode})`);
     }
   };
 
-  // 폼 제출 (API 호출) 핸들러
+  const handleDelete = async () => {
+    if (!targetId) return alert("비활성화할 운동을 먼저 불러와주세요.");
+    if (window.confirm(`#${targetId} 운동을 비활성화 하시겠습니까?`)) {
+      try {
+        await ExerciseApi.inactivateExercise(targetId);
+        alert('운동이 비활성화되었습니다.');
+        resetForm();
+        fetchList(currentPage);
+      } catch (error) { console.error('❌ 비활성화 실패:', error); }
+    }
+  };
+
+  const handleActivate = async () => {
+    const idToActivate = prompt("활성화할 운동의 ID를 입력하세요:");
+    if (!idToActivate) return;
+    if (window.confirm(`#${idToActivate} 운동을 활성화 하시겠습니까?`)) {
+      try {
+        await ExerciseApi.activateExercise(parseInt(idToActivate, 10));
+        alert('운동이 활성화되었습니다.');
+        fetchList(currentPage);
+      } catch (error) { console.error('❌ 활성화 실패:', error); }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const requestDto = { ...exerciseData, instructions };
-
+    const requestDto: ExerciseRequestDto = { ...formData, instructions };
     try {
-      if (targetId) { // ID가 있으면 '수정'
-        console.log('API 수정 요청:', targetId, requestDto);
-        const response = await ExerciseApi.updateExercise(targetId, requestDto);
-        console.log('✅ 수정 성공:', response);
+      let response: ExerciseDetailResponseDto;
+      if (targetId) {
+        response = await ExerciseApi.updateExercise(targetId, requestDto);
         alert('운동이 성공적으로 수정되었습니다!');
-        setTargetId(null);
-
-      } else { // ID가 없으면 '생성'
-        console.log('API 생성 요청:', requestDto);
-        const response = await ExerciseApi.createExercise(requestDto);
-        console.log('✅ 생성 성공:', response);
-        alert('운동이 성공적으로 생성되었습니다!');
+      } else {
+        response = await ExerciseApi.createExercise(requestDto);
+        alert('운동이 성공적으로 생성되었습니다!' + response);
       }
-    } catch (error) {
-      console.error('❌ 작업 실패:', error);
-      alert('작업에 실패했습니다.');
-    }
+      resetForm();
+      fetchList(currentPage);
+    } catch (error) { alert('작업에 실패했습니다.' + error); }
   };
   
-
-  // --- 3. UI (JSX) ---
+  const resetForm = () => {
+    setTargetId(null);
+    setFormData(INITIAL_FORM_STATE);
+    setInstructions(INITIAL_INSTRUCTIONS_STATE);
+  };
+  
+  // --- UI (JSX) ---
   return (
-    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <h1>Exercise 테스트</h1>
-      <div>
-        <button onClick={() => ExerciseApi.getExerciseById(2).then(response => console.log(response))}>ID 2번 운동 정보 확인</button>
-        <button onClick={() => ExerciseApi.getAllExercises({ page: 0, size: 10 }).then(response => console.log(response))}>운동 정보 리스트</button>
-      </div>
-      <hr />
-
-      <div style={{ border: '2px solid blue', padding: '10px' }}>
-        <h3>운동 수정 테스트</h3>
-        <button type-="button" onClick={handleLoad}>수정할 운동 불러오기</button>
-        <p>수정 대상 ID: {targetId || '없음'}</p>
-      </div>
+    <PageWrapper>
+      <Header>
+        <h1>Exercise CRUD & 상태 관리</h1>
+      </Header>
       
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <h2>{targetId ? `운동 #${targetId} 수정` : '운동 생성'}</h2>
-        
-        <div>
-          <label>운동 이름: </label>
-          <input type="text" name="name" value={exerciseData.name} onChange={handleInputChange} required />
-        </div>
+      <SectionCard>
+        <h2 className="fs-lg">운동 목록</h2>
+        <StyledTable>
+          <thead>
+            <tr><Th>ID</Th><Th>이름</Th><Th>카테고리</Th><Th>상태</Th></tr>
+          </thead>
+          <tbody>
+            {exercisePage?.content.map(ex => (
+              <tr key={ex.id}>
+                <Td $isHidden={ex.isHidden}>{ex.id}</Td>
+                <Td $isHidden={ex.isHidden}>{ex.name}</Td>
+                <Td $isHidden={ex.isHidden}>{ex.category}</Td>
+                <Td $isHidden={ex.isHidden}>{ex.isHidden ? '비활성화' : '활성화'}</Td>
+              </tr>
+            ))}
+          </tbody>
+        </StyledTable>
+        <PaginationControls>
+          <Button onClick={() => setCurrentPage(p => p - 1)} disabled={exercisePage?.first}>이전</Button>
+          <span>페이지 {exercisePage ? exercisePage.number + 1 : 0} / {exercisePage?.totalPages}</span>
+          <Button onClick={() => setCurrentPage(p => p + 1)} disabled={exercisePage?.last}>다음</Button>
+        </PaginationControls>
+      </SectionCard>
 
-        <div>
-          <label>카테고리: </label>
-          <input type="text" name="category" value={exerciseData.category} onChange={handleInputChange} required />
-        </div>
+      <SectionCard>
+        <h2 className="fs-lg">기능 테스트</h2>
+        <ActionGroup>
+          <Button onClick={handleLoad}>ID로 불러오기</Button>
+          <Button onClick={handleActivate}>ID로 활성화</Button>
+        </ActionGroup>
+      </SectionCard>
 
-        <div>
-          <label>요약 설명: </label>
-          <textarea name="description" value={exerciseData.description} onChange={handleInputChange} />
-        </div>
+      <SectionCard>
+        <Form onSubmit={handleSubmit}>
+          <h2 className="fs-lg">{targetId ? `운동 #${targetId} 수정` : '새로운 운동 생성'}</h2>
+          
+          <FormGroup>
+            <Label htmlFor="name">이름</Label>
+            <StyledInput type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="category">카테고리</Label>
+            <StyledInput type="text" id="category" name="category" value={formData.category} onChange={handleInputChange} required />
+          </FormGroup>
 
-        <div>
-          <h3>단계별 설명</h3>
-          {instructions.map((inst, index) => (
-            <div key={index} style={{ marginBottom: '5px' }}>
-              <span>{inst.stepOrder}. </span>
-              <input
-                type="text"
-                value={inst.description}
-                onChange={(e) => handleInstructionChange(index, e)}
-                style={{ width: '300px' }}
-                required
-              />
-              <button type="button" onClick={() => removeInstruction(index)} style={{ marginLeft: '10px' }}>삭제</button>
-            </div>
-          ))}
-          <button type="button" onClick={addInstruction}>설명 추가</button>
-        </div>
+          <FormGroup>
+            <Label htmlFor="description">요약 설명</Label>
+            <StyledTextarea id="description" name="description" value={formData.description || ''} onChange={handleInputChange} />
+          </FormGroup>
 
-        <button type="submit">{targetId ? '수정하기' : '생성하기'}</button>
-      </form>
-    </div>
+          <FormGroup>
+            <Label>
+              <StyledInput type="checkbox" name="isHidden" checked={formData.isHidden} onChange={handleInputChange} style={{width: 'auto', marginRight: '8px'}} />
+              비활성화 (숨김 처리)
+            </Label>
+          </FormGroup>
+
+          <FormGroup>
+            <Label>단계별 설명</Label>
+            {instructions.map((inst, index) => (
+              <InstructionItem key={index}>
+                <span>{inst.stepOrder}.</span>
+                <StyledInput type="text" value={inst.description} onChange={(e) => handleInstructionChange(index, e)} required />
+                <Button type="button" onClick={() => removeInstruction(index)}>-</Button>
+              </InstructionItem>
+            ))}
+            <Button type="button" onClick={addInstruction} variant="ghost">설명 추가 (+)</Button>
+          </FormGroup>
+
+          <ActionGroup style={{ marginTop: 'var(--space-4)' }}>
+            <Button type="submit" variant="primary">{targetId ? '수정 완료' : '생성하기'}</Button>
+            {targetId && <Button type="button" onClick={handleDelete} variant="danger">삭제(비활성화)</Button>}
+            <Button type="button" onClick={resetForm} variant="ghost">폼 초기화</Button>
+          </ActionGroup>
+        </Form>
+      </SectionCard>
+    </PageWrapper>
   );
 };
 

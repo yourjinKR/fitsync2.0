@@ -9,6 +9,8 @@ import com.fitsync.domain.exercise.repository.ExerciseInstructionRepository;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ExerciseService {
 
+    private static final Logger log = LogManager.getLogger(ExerciseService.class);
     private final ExerciseRepository exerciseRepository;
     private final ExerciseInstructionRepository exerciseInstructionRepository;
 
@@ -53,7 +56,7 @@ public class ExerciseService {
     /**
      * id값에 일치하는 특정 운동 정보를 가져오는 메소드
      * @param exerciseId 운동 정보 PK
-     * @return ExerciseResponseDto
+     * @return <code>ExerciseResponseDto</code>
      */
     public ExerciseDetailResponseDto getExercise(Long exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
@@ -62,7 +65,12 @@ public class ExerciseService {
         return new ExerciseDetailResponseDto(exercise);
     }
 
-    // 운동 정보를 수정하는 메소드
+    /**
+     * 운동 정보를 수정하는 메소드
+     * @param exerciseId pk
+     * @param requestDto <code>ExerciseUpdateRequestDto</code>
+     * @return <code>ExerciseDetailResponseDto</code>
+     */
     @Transactional
     public ExerciseDetailResponseDto updateExercise(Long exerciseId, ExerciseUpdateRequestDto requestDto) {
 
@@ -73,6 +81,33 @@ public class ExerciseService {
 
         return new ExerciseDetailResponseDto(exercise);
 
+    }
+
+    /**
+     * 운동정보를 비활성화 하는 메소드
+     * @param exerciseId pk
+     */
+    @Transactional
+    public void inactivateExercise(Long exerciseId) {
+
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
+
+
+        exercise.hide();
+    }
+
+    /**
+     * 운동정보를 활성화 하는 메소드
+     * @param exerciseId pk
+     */
+    @Transactional
+    public void activateExercise(Long exerciseId) {
+
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
+
+        exercise.show();
     }
 
 }

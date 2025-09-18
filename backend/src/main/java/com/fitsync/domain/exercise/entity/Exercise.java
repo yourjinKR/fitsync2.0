@@ -33,7 +33,7 @@ public class Exercise {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "is_hidden", nullable = false)
     private boolean isHidden;
 
     @CreationTimestamp
@@ -86,6 +86,20 @@ public class Exercise {
         }
     }
 
+
+    /**
+     * 운동정보 비활성화 메소드 (삭제처럼 사용)
+     */
+    public void hide() {
+        this.isHidden = true;
+    }
+
+    /**
+     * 운동정보 활성화 메소드
+     */
+    public void show() {
+        this.isHidden = false;
+    }
 
 
 

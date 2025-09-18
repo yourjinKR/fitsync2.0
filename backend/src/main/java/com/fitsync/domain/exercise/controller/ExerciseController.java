@@ -75,4 +75,28 @@ public class ExerciseController {
         return ResponseEntity.ok(updatedExercise);
     }
 
+    /**
+     * 운동정보 비활성화 메소드 (삭제 기능처럼 사용, 다른 데이터들과 연관성 존재)
+     * @param exerciseId pk
+     * @return 별도의 응답 본문은 없음을 의미하는 204 No Content 반환
+     */
+    @DeleteMapping("/{exerciseId}")
+    public ResponseEntity<Void> inactivateExercise(@PathVariable Long exerciseId) {
+        exerciseService.inactivateExercise(exerciseId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 운동정보 활성화 메소드
+     * @param exerciseId pk
+     * @return 별도의 응답 본문은 없음을 의미하는 204 No Content 반환
+     */
+    @PatchMapping("/{exerciseId}/activation")
+    public ResponseEntity<Void> activateExercise(@PathVariable Long exerciseId) {
+        exerciseService.activateExercise(exerciseId);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }
