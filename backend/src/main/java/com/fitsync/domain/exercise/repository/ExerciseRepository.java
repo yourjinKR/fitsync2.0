@@ -12,7 +12,17 @@ import java.util.Optional;
 
 @Repository
 public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
-    
+
+
+    /**
+     * 상세 조회 시 사용하는 메소드.
+     * LEFT JOIN FETCH를 사용하여 Exercise와 연관된 instructions를 한 번에 가져옵니다.
+     * @param id pk
+     * @return Exercise (with instructions)
+     */
+    @Query("SELECT e FROM Exercise e LEFT JOIN FETCH e.instructions WHERE e.id = :id")
+    public Optional<Exercise> findByIdWithInstructions(@Param("id") Long id);
+
     // 활성화된 특정 운동을 가져오기
     public Optional<Exercise> findByIdAndIsHiddenIsFalse(long id);
 

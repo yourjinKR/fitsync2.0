@@ -19,7 +19,7 @@ public class ExerciseInstruction {
     private Long id;
 
     // 'N:1' 관계 설정. 여러 instruction은 하나의 exercise에 속한다.
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY) // 기본 전략이 EAGER이므로 설정 필요함
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
 

@@ -57,7 +57,7 @@ public class ExerciseService {
      */
     public ExerciseDetailResponseDto getExercise(Long exerciseId) {
 
-        Exercise exercise = exerciseRepository.findById(exerciseId)
+        Exercise exercise = exerciseRepository.findByIdWithInstructions(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
         return new ExerciseDetailResponseDto(exercise);
