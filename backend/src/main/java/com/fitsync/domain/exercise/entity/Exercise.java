@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -30,6 +29,7 @@ public class Exercise {
     @Column(nullable = false, length = 50)
     private String category;
 
+//    @Lob // 왜 사용하지 않는가?
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -37,11 +37,11 @@ public class Exercise {
     private boolean isHidden;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
     @Builder.Default

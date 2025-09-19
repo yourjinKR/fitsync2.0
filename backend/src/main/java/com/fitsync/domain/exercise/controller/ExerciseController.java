@@ -22,13 +22,10 @@ public class ExerciseController {
      * @return <code>ExerciseDetailResponseDto</code>
      */
     @PostMapping
-    public ResponseEntity<ExerciseDetailResponseDto> createExercise(
-            @RequestBody ExerciseCreateRequestDto requestDto
-            ) {
+    public ResponseEntity<ExerciseDetailResponseDto> createExercise(@RequestBody ExerciseCreateRequestDto requestDto) {
         ExerciseDetailResponseDto createdExercise = exerciseService.createExercise(requestDto);
 
-        // 201 return
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdExercise);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdExercise); // return 201
     }
 
     /**
@@ -64,10 +61,9 @@ public class ExerciseController {
     @PutMapping("/{exerciseId}")
     public ResponseEntity<ExerciseDetailResponseDto> updateExercise(@PathVariable Long exerciseId, @RequestBody ExerciseUpdateRequestDto requestDto) {
 
-        System.out.println("id 확인 : " + exerciseId);
-        System.out.println("dto 확인 : " + requestDto);
-
         ExerciseDetailResponseDto updatedExercise = exerciseService.updateExercise(exerciseId, requestDto);
+
+        System.out.println("dto!!! : " + requestDto.toString());
 
         return ResponseEntity.ok(updatedExercise);
     }
@@ -91,6 +87,7 @@ public class ExerciseController {
      */
     @PatchMapping("/{exerciseId}/activation")
     public ResponseEntity<Void> activateExercise(@PathVariable Long exerciseId) {
+
         exerciseService.activateExercise(exerciseId);
 
         return ResponseEntity.noContent().build();
@@ -103,7 +100,9 @@ public class ExerciseController {
      */
     @PostMapping("/deactivations")
     public ResponseEntity<Void> inactivateExercise(@RequestBody ExerciseIsHiddenUpdateRequestDto requestDto) {
+
         exerciseService.inactivateExercises(requestDto);
+
         return ResponseEntity.ok().build();
     }
 
@@ -115,9 +114,19 @@ public class ExerciseController {
     @PostMapping("/activations")
     public ResponseEntity<Void> activateExercise(@RequestBody ExerciseIsHiddenUpdateRequestDto requestDto) {
 
-        System.out.println("ids !!!! : " + requestDto.getExerciseIds());
-
         exerciseService.activateExercises(requestDto);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 운동정보 삭제 메소드
+     */
+    @DeleteMapping("/{exerciseId}")
+    public ResponseEntity<Void> removeExercise(@PathVariable("exerciseId") Long exerciseId) {
+
+        exerciseService.removeExercise(exerciseId);
+
         return ResponseEntity.ok().build();
     }
 }

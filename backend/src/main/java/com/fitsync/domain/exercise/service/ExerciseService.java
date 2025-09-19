@@ -56,6 +56,7 @@ public class ExerciseService {
      * @return <code>ExerciseResponseDto</code>
      */
     public ExerciseDetailResponseDto getExercise(Long exerciseId) {
+
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
@@ -113,6 +114,7 @@ public class ExerciseService {
      */
     @Transactional
     public void inactivateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),
                 true
@@ -125,10 +127,17 @@ public class ExerciseService {
      */
     @Transactional
     public void activateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),
                 false
         );
+    }
+
+    @Transactional
+    public void removeExercise(Long exerciseId) {
+
+        exerciseRepository.deleteById(exerciseId);
     }
 
 

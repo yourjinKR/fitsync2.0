@@ -24,7 +24,7 @@ import java.time.OffsetDateTime;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본키 생성방식을 데이터베이스에게 위임
     private Long id;
 
     // --- 기본 정보 ---
@@ -39,7 +39,7 @@ public class User {
     private SocialProvider socialProvider;
 
     // --- 회원 상태 및 유형 ---
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) // ORDINAL or STRING (STRING을 권장함 : 크기가 크지만 순서 변경과 추가에도 유연함)
     @Column(nullable = false)
     private final UserStatus status = UserStatus.ACTIVE;
 
@@ -48,6 +48,8 @@ public class User {
     private UserType type = UserType.MEMBER;
 
     // --- 개인 정보 ---
+    @Temporal(TemporalType.DATE) // Date, TIME, TIMESTAMP... (미설정시 timestamp로 생성)
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
@@ -76,11 +78,11 @@ public class User {
 
     // --- 타임스탬프 ---
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
 }

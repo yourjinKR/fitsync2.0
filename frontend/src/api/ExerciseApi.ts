@@ -22,7 +22,7 @@ const ExerciseApi = {
 
   /**
    * 특정 ID의 운동 상세 정보를 조회합니다.
-   * @param exerciseId - 조회할 운동의 ID
+   * @param exerciseId - id (pk)
    */
   getExerciseById(exerciseId: number): Promise<ExerciseDetailResponseDto> {
     return apiClient.get<ExerciseDetailResponseDto>(`/api/exercise/${exerciseId}`)
@@ -52,7 +52,7 @@ const ExerciseApi = {
 
   /**
    * 특정 ID의 운동 정보를 삭제(숨김 처리)합니다.
-   * @param exerciseId - 삭제할 운동의 ID
+   * @param exerciseId - id (pk)
    */
   inactivateExercise(exerciseId: number): Promise<void> {
 
@@ -61,7 +61,7 @@ const ExerciseApi = {
 
   /**
    * 특정 ID의 운동 정보를 활성화합니다.
-   * @param exerciseId 삭제할 운동의 ID
+   * @param exerciseId id (pk)
    * @returns 
    */
   activateExercise(exerciseId: number): Promise<void> {
@@ -71,7 +71,7 @@ const ExerciseApi = {
   
   /**
    * 특정 운동들을 비활성화합니다.
-   * @param exerciseIds 삭제할 운동들의 ID
+   * @param exerciseIds id list (pk)
    * @returns 
    */
   inactivateExercises(exerciseIds: number[]): Promise<void> {
@@ -81,13 +81,23 @@ const ExerciseApi = {
   
   /**
    * 특정 운동들을 활성화합니다.
-   * @param exerciseIds 삭제할 운동들의 ID
+   * @param exerciseIds id list (pk)
    * @returns 
    */
   activateExercises(exerciseIds: number[]): Promise<void> {
 
     return apiClient.post(`/api/exercise/activations`, {exerciseIds});
   },
+
+  /**
+   * 특정 운동을 삭제합니다
+   * @param exerciseId id (pk)
+   * @returns 
+   */
+  removeExercise(exerciseId : number) : Promise<void> {
+
+    return apiClient.delete(`/api/exercise/${exerciseId}`);
+  }
 
   
 };

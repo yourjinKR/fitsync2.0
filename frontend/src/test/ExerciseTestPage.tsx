@@ -1,9 +1,9 @@
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import ExerciseApi from '../api/ExerciseApi';
 import { ExerciseRequestDto, InstructionCreateDto, ExerciseSimpleResponseDto, ExerciseDetailResponseDto } from '../types/domain/exercise';
-import { Page } from '../types/api'; // 'api' 폴더에 Page 타입이 있다고 가정
+import { Page } from '../types/api';
 import { ApiError } from '../types/error';
-import { useCallback, useEffect, useState } from 'react';
 
 // --- 폼 데이터 초기 상태 정의 ---
 const INITIAL_FORM_STATE = {
@@ -139,9 +139,21 @@ const ExerciseTestPage = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const inputValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-    setFormData(prev => ({ ...prev, [name]: inputValue }));
+    const { name, type } = e.target;
+
+    // 체크박스와 다른 입력 필드를 명확하게 구분하여 처리합니다.
+    if (type === 'checkbox') {
+      // 체크박스의 경우, boolean 값인 'checked' 속성을 사용해야 합니다.
+      // HTMLInputElement로 타입을 단언하여 'checked' 속성에 접근합니다.
+      const { checked } = e.target as HTMLInputElement;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      // 그 외 텍스트 입력 필드의 경우, 'value' 속성을 사용합니다.
+      const { value } = e.target;
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+
+    
   };
 
   const handleInstructionChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,6 +169,18 @@ const ExerciseTestPage = () => {
     const newInstructions = instructions.filter((_, i) => i !== index)
       .map((inst, i) => ({ ...inst, stepOrder: i + 1 }));
     setInstructions(newInstructions);
+  };
+
+  const handlePermanentDelete = async () => {
+    if (!targetId) return alert("영구 삭제할 운동을 먼저 불러와주세요.");
+    if (window.confirm(`정말로 운동 #${targetId}을(를) 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+      try {
+        await ExerciseApi.removeExercise(targetId);
+        alert('운동이 영구적으로 삭제되었습니다.');
+        resetForm();
+        fetchList(currentPage);
+      } catch (error) { alert('영구 삭제에 실패했습니다.' + error); }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,13 +220,7 @@ const ExerciseTestPage = () => {
         <StyledTable>
           <thead>
             <tr>
-              <Th><input type="checkbox" onChange={(e) => {
-                if(e.target.checked) {
-                    setSelectedIds(exercisePage?.content.map(ex => ex.id) || []);
-                } else {
-                    setSelectedIds([]);
-                }
-              }} /></Th>
+              <Th><input type="checkbox" onChange={(e) => setSelectedIds(e.target.checked ? exercisePage?.content.map(ex => ex.id) || [] : [])} /></Th>
               <Th>ID</Th><Th>이름</Th><Th>카테고리</Th><Th>상태</Th>
             </tr>
           </thead>
@@ -228,7 +246,10 @@ const ExerciseTestPage = () => {
       <SectionCard>
         <h2 className="fs-lg">개별 기능 테스트</h2>
         <ActionGroup>
-          <Button onClick={handleLoad}>ID로 불러오기 (수정용)</Button>
+          <Button onClick={handleLoad}>ID로 불러오기 (수정/삭제용)</Button>
+          <Button onClick={handlePermanentDelete} className="btn-danger" disabled={!targetId}>
+            #{targetId || ''} 영구 삭제
+          </Button>
         </ActionGroup>
       </SectionCard>
 
@@ -253,7 +274,7 @@ const ExerciseTestPage = () => {
 
           <FormGroup>
             <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-              <StyledInput type="checkbox" name="isHidden" checked={formData.isHidden} onChange={handleInputChange} style={{width: 'auto', marginRight: '8px'}} />
+              <StyledInput type="checkbox" name="isHidden" checked={formData.isHidden} onChange={handleInputChange} style={{width: 'auto', marginRight: '8px'}}/>
               비활성화 (숨김 처리)
             </Label>
           </FormGroup>
