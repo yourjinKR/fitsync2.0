@@ -17,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ExerciseService {
 
-    private static final Logger log = LogManager.getLogger(ExerciseService.class);
     private final ExerciseRepository exerciseRepository;
-    private final ExerciseInstructionRepository exerciseInstructionRepository;
-
 
     /**
      * 새로운 운동 정보를 생성하는 메소드

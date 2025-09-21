@@ -1,6 +1,7 @@
 package com.fitsync.domain.exercise.repository;
 
 import com.fitsync.domain.exercise.entity.Exercise;
+import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -34,7 +35,7 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
      * @param exerciseIds pk들
      * @param isHidden true or false 직접 지정
      */
-    @Modifying // 이 쿼리가 INSERT, UPDATE, DELETE 등 상태를 변경하는 쿼리임을 알림
+    @Modifying(clearAutomatically = true, flushAutomatically = true) // 이 쿼리가 INSERT, UPDATE, DELETE 등 상태를 변경하는 쿼리임을 알림
     @Query("UPDATE Exercise e SET e.isHidden = :isHidden WHERE e.id IN :exerciseIds")
     void updateHiddenStatusByIds(@Param("exerciseIds") List<Long> exerciseIds, @Param("isHidden") boolean isHidden);
 
