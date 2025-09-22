@@ -4,6 +4,7 @@ import com.fitsync.domain.jwt.JwtAuthenticationFilter;
 import com.fitsync.domain.oauth.CustomOAuth2UserService;
 import com.fitsync.domain.oauth.OAuth2AuthenticationFailureHandler;
 import com.fitsync.domain.oauth.OAuth2AuthenticationSuccessHandler;
+import com.fitsync.domain.user.entity.UserType;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -80,6 +81,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // PERMIT_ALL_PATTERNS에 정의된 경로는 인증 없이 접근 가능
                         .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
+                        // 어드민만 접근 가능함
+                        .requestMatchers("/api/admin/**","/api/user/all").hasAuthority(UserType.ADMIN.getRole())
                         // /api/** 경로는 인증된 사용자만 접근 가능
                         .requestMatchers("/api/**").authenticated()
                         // 그 외 모든 요청도 인증 필요

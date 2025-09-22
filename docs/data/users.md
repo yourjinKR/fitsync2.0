@@ -33,7 +33,7 @@ DROP TYPE IF EXISTS social_provider CASCADE;
 
 -- ENUM 타입 정의: VARCHAR보다 안전하고 효율적으로 정해진 값만 저장하도록 강제
 CREATE TYPE user_status AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
-CREATE TYPE user_type AS ENUM ('MEMBER', 'TRAINER');
+CREATE TYPE user_type AS ENUM ('MEMBER', 'TRAINER', 'ADMIN');
 CREATE TYPE user_gender AS ENUM ('MALE', 'FEMALE', 'OTHER');
 CREATE TYPE social_provider AS ENUM ('GOOGLE', 'KAKAO', 'NAVER');
 

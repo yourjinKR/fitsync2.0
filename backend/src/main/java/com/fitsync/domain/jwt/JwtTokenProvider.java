@@ -1,5 +1,8 @@
 package com.fitsync.domain.jwt;
 
+import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.user.entity.UserType;
+import com.fitsync.domain.user.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +47,7 @@ public class JwtTokenProvider {
      * 액세스 토큰이 만료되었을 때, 새로운 액세스 토큰을 발급받기 위해 사용됩니다.
      */
     private final long refreshTokenValidityInSeconds;
+    private final UserRepository userRepository;
 
     /**
      * 생성자입니다.
@@ -55,11 +60,12 @@ public class JwtTokenProvider {
     public JwtTokenProvider(
             @Value("${jwt.secret-key}") String secretKey,
             @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityInSeconds,
-            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds) {
+            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds, UserRepository userRepository) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenValidityInSeconds = accessTokenValidityInSeconds * 1000;
         this.refreshTokenValidityInSeconds = refreshTokenValidityInSeconds * 1000;
+        this.userRepository = userRepository;
     }
 
 
@@ -70,12 +76,13 @@ public class JwtTokenProvider {
      * @param email 사용자의 이메일
      * @return 생성된 액세스 토큰 문자열
      */
-    public String createAccessToken(String email) {
+    public String createAccessToken(String email, List<String> roles) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + this.accessTokenValidityInSeconds);
 
         return Jwts.builder()
                 .subject(email)
+                .claim("roles", roles) // 권한 전달
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(key)
@@ -111,8 +118,13 @@ public class JwtTokenProvider {
         if (email == null) {
             throw new IllegalArgumentException("이메일을 찾을 수 없습니다: " + attributes);
         }
-        
-        return createAccessToken(email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
+
+        UserType userType = user.getType(); // 엔티티의 type 필드 (enum UserType)
+        return createAccessToken(email, List.of(userType.name())); // "ADMIN", "MEMBER" 등 문자열 리스트
+
     }
 
     /**
@@ -188,11 +200,18 @@ public class JwtTokenProvider {
      * @return Spring Security가 이해할 수 있는 Authentication 객체
      */
     public Authentication getAuthentication(String token) {
-        String email = getEmail(token);
-        // 실제로는 DB에서 User를 조회하여 권한 정보를 가져와야 하지만,
-        // 여기서는 예시로 "ROLE_USER" 권한을 부여합니다.
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-        // email을 principal로, 비밀번호는 비워두고, 권한 목록을 담아 Authentication 객체를 생성합니다.
+        var claims = Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(token).getPayload();
+
+        String email = claims.getSubject();
+
+        @SuppressWarnings("unchecked")
+        List<String> roles = (List<String>) claims.getOrDefault("roles", List.of()); // ["ADMIN"]
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+
         return new UsernamePasswordAuthenticationToken(email, "", authorities);
     }
 }
