@@ -2,11 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import UserApi from '../api/UserApi';
 import { User } from '../types/domain/users';
+import { useNavigate } from 'react-router-dom';
 
 const AdminMain = () => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
@@ -51,6 +54,9 @@ const AdminMain = () => {
   return (
     <div>
       <h1>관리자 페이지</h1>
+
+      <button onClick={() => navigate('/test/exercise')}>운동 테스트 페이지</button>
+
 
       <h2>유저 수: {users.length}</h2>
 
