@@ -60,6 +60,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 6. 최종적으로 Spring Security가 관리할 사용자 정보를 담은 DefaultOAuth2User 객체를 생성하여 반환합니다.
         //    이 객체는 세션에 저장되어 사용자의 인증 상태를 유지하는 데 사용됩니다.
+        // TODO : 현재 JWT를 통해 잘 전달하고 있으니 일단은 돌아감, 아래 코드는 나중에 수정
         return new DefaultOAuth2User(
                 // 첫 번째 인자: 사용자의 권한 정보. User 엔티티에 Role 필드가 없으므로, 모든 사용자에게 "ROLE_USER" 권한을 부여합니다.
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
