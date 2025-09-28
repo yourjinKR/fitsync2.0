@@ -1,38 +1,56 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import ExerciseApi from '../api/ExerciseApi';
-import { ExerciseRequestDto, InstructionCreateDto, ExerciseSimpleResponseDto, ExerciseDetailResponseDto } from '../types/domain/exercise';
-import { Page } from '../types/api';
+import RoutineApi from '../api/RoutineApi';
+import { ExerciseSimpleResponseDto } from '../types/domain/exercise';
+// --- 타입 임포트 수정 ---
+import { 
+  RoutineCreateRequestDto, 
+  RoutineCreateResponseDto, 
+  RoutineDetailResponseDto 
+} from '../types/domain/routine';
 import { ApiError } from '../types/error';
 
-// --- 폼 데이터 초기 상태 정의 ---
-const INITIAL_FORM_STATE = {
-  name: '새로운 운동',
-  category: '가슴',
-  description: '운동에 대한 간단한 요약 설명입니다.',
-  isHidden: false,
+// --- 타입 정의: 페이지 내부에서 사용하는 '만들고 있는 루틴'의 타입 ---
+type BuildingExercise = {
+  exerciseId: number;
+  name: string; // UI 표시용
+  sets: {
+    displayOrder: number;
+    weightKg: number;
+    reps: number;
+    distanceMeter: number;
+    durationSecond: number;
+  }[];
 };
-const INITIAL_INSTRUCTIONS_STATE: InstructionCreateDto[] = [
-  { stepOrder: 1, description: '1단계 설명' },
-];
+
+// --- 초기 상태 정의 ---
+const INITIAL_ROUTINE_STATE = {
+  name: '나의 새로운 루틴',
+  memo: '이 루틴은...',
+  exercises: [] as BuildingExercise[],
+};
 
 // ==============================================================================
-// === Styled Components (스타일 정의) ===========================================
+// === Styled Components (스타일 정의 - 이전과 동일) ===============================
 // ==============================================================================
 const PageWrapper = styled.div`
   max-width: var(--container-max);
   margin: 0 auto;
   padding: var(--space-8) var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  @media (min-width: 1024px) {
+    grid-template-columns: 400px 1fr;
+  }
 `;
 const Header = styled.header`
+  grid-column: 1 / -1;
   text-align: center;
-  margin-bottom: var(--space-4);
   h1 { font-size: var(--fs-2xl); color: var(--text-1); }
 `;
-const SectionCard = styled.div`
+const SectionCard = styled.section`
   background: var(--bg-elev-1);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-lg);
@@ -41,32 +59,45 @@ const SectionCard = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  align-self: start;
 `;
-const StyledTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  font-size: var(--fs-sm);
-`;
-const Th = styled.th`
-  background: var(--bg-elev-2);
-  padding: var(--space-3);
-  border-bottom: 2px solid var(--border-2);
-  color: var(--text-2);
-`;
-const Td = styled.td<{ $isHidden?: boolean }>`
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--border-1);
-  color: ${({ $isHidden }) => ($isHidden ? 'var(--text-3)' : 'var(--text-1)')};
-  background-color: ${({ $isHidden }) => ($isHidden ? 'oklch(23% 0.02 27 / 0.5)' : 'transparent')};
-  transition: background-color 0.2s ease;
-`;
-const PaginationControls = styled.div`
+const ExerciseList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-2);
+`;
+const ExerciseListItem = styled.li`
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-app);
+  border: 1px solid var(--border-2);
+`;
+const Button = styled.button``;
+const FormGroup = styled.div` display: flex; flex-direction: column; gap: var(--space-2); `;
+const Label = styled.label` font-size: var(--fs-sm); color: var(--text-2); font-weight: 500; `;
+const StyledInput = styled.input` width: 100%; `;
+const StyledTextarea = styled.textarea` width: 100%; min-height: 60px; resize: vertical; `;
+const RoutineBuilder = styled.div` display: flex; flex-direction: column; gap: var(--space-6); `;
+const SelectedExerciseCard = styled.div`
+  background: var(--bg-elev-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-primary);
+`;
+const SetInputGrid = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--fs-sm);
 `;
 const ActionGroup = styled.div`
   display: flex;
@@ -74,232 +105,235 @@ const ActionGroup = styled.div`
   gap: var(--space-3);
   align-items: center;
 `;
-const Form = styled.form` display: flex; flex-direction: column; gap: var(--space-4); `;
-const FormGroup = styled.div` display: flex; flex-direction: column; gap: var(--space-2); `;
-const Label = styled.label` font-size: var(--fs-sm); color: var(--text-2); font-weight: 500; `;
-const StyledInput = styled.input` width: 100%; `;
-const StyledTextarea = styled.textarea` width: 100%; min-height: 80px; resize: vertical; `;
-const InstructionItem = styled.div` display: flex; align-items: center; gap: var(--space-2); `;
-const Button = styled.button` /* GlobalStyle에서 상속 */ `;
+const ResultDisplay = styled.div`
+  background: var(--bg-elev-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 500px;
+  overflow-y: auto;
+`;
 
 // ==============================================================================
 // === Component Logic (컴포넌트 로직) ==========================================
 // ==============================================================================
-const ExerciseTestPage = () => {
-  const [exercisePage, setExercisePage] = useState<Page<ExerciseSimpleResponseDto> | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [targetId, setTargetId] = useState<number | null>(null);
-  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
-  const [instructions, setInstructions] = useState<InstructionCreateDto[]>(INITIAL_INSTRUCTIONS_STATE);
+const RoutineTestPage = () => {
+  const [allExercises, setAllExercises] = useState<ExerciseSimpleResponseDto[]>([]);
+  const [myRoutine, setMyRoutine] = useState(INITIAL_ROUTINE_STATE);
+  // --- 상태 타입 수정 ---
+  const [createdRoutineInfo, setCreatedRoutineInfo] = useState<RoutineCreateResponseDto | null>(null);
+  const [viewRoutineId, setViewRoutineId] = useState('');
+  const [detailedRoutine, setDetailedRoutine] = useState<RoutineDetailResponseDto | null>(null);
 
-  const fetchList = useCallback(async (page: number) => {
+  // 1. 전체 운동 목록 불러오기 (로직 동일)
+  const fetchAllExercises = useCallback(async () => {
     try {
-      const data = await ExerciseApi.getAllExercises({ page, size: 5, sort: 'id,desc' });
-      setExercisePage(data);
-    } catch (error) { console.error("❌ 전체 조회 실패:", error); }
+      const data = await ExerciseApi.getAllExercises({ page: 0, size: 100, sort: 'name,asc' });
+      setAllExercises(data.content);
+    } catch (error) { console.error("❌ 전체 운동 조회 실패:", error); }
   }, []);
 
-  useEffect(() => { fetchList(currentPage); }, [currentPage, fetchList]);
+  useEffect(() => { fetchAllExercises(); }, [fetchAllExercises]);
 
-  const handleCheckboxChange = (id: number, checked: boolean) => {
-    setSelectedIds(prev => checked ? [...prev, id] : prev.filter(selectedId => selectedId !== id));
+  // 2. 루틴 생성기 관련 핸들러 (로직 동일)
+  const handleAddToRoutine = (exercise: ExerciseSimpleResponseDto) => {
+    setMyRoutine(prev => ({
+      ...prev,
+      exercises: [...prev.exercises, {
+        exerciseId: exercise.id,
+        name: exercise.name,
+        sets: [{ displayOrder: 1, weightKg: 60, reps: 10, distanceMeter: 0, durationSecond: 0 }],
+      }],
+    }));
   };
   
-  const handleBulkAction = async (action: 'activate' | 'inactivate') => {
-    if (selectedIds.length === 0) return alert("먼저 항목을 선택해주세요.");
-    const actionText = action === 'activate' ? '활성화' : '비활성화';
-    if (!window.confirm(`선택된 ${selectedIds.length}개의 항목을 ${actionText} 하시겠습니까?`)) return;
-
-    try {
-      if (action === 'activate') {
-        await ExerciseApi.activateExercises(selectedIds);
-      } else {
-        await ExerciseApi.inactivateExercises(selectedIds);
-      }
-      alert(`일괄 ${actionText} 처리가 완료되었습니다.`);
-      setSelectedIds([]);
-      fetchList(currentPage);
-    } catch (error) { alert(`일괄 ${actionText} 처리에 실패했습니다.` + error); }
+  const handleRoutineInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setMyRoutine(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleLoad = async () => {
-    const idToLoad = prompt("불러올 운동의 ID를 입력하세요:");
-    if (!idToLoad) return;
+  const handleSetChange = (exIndex: number, setIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const newExercises = [...myRoutine.exercises];
+    newExercises[exIndex].sets[setIndex] = {
+      ...newExercises[exIndex].sets[setIndex],
+      [name]: Number(value)
+    };
+    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+  };
+
+  const addSet = (exIndex: number) => {
+    const newExercises = [...myRoutine.exercises];
+    const newOrder = newExercises[exIndex].sets.length + 1;
+    newExercises[exIndex].sets.push({ displayOrder: newOrder, weightKg: 0, reps: 0, distanceMeter: 0, durationSecond: 0 });
+    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+  };
+
+  const removeSet = (exIndex: number, setIndex: number) => {
+    const newExercises = [...myRoutine.exercises];
+    newExercises[exIndex].sets.splice(setIndex, 1);
+    newExercises[exIndex].sets.forEach((set, i) => set.displayOrder = i + 1);
+    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+  };
+  
+  const removeExerciseFromRoutine = (exIndex: number) => {
+    const newExercises = myRoutine.exercises.filter((_, i) => i !== exIndex);
+    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+  };
+  
+  // 3. 루틴 생성 API 호출
+  const handleCreateRoutine = async () => {
+    if (!myRoutine.name) return alert('루틴 이름을 입력해주세요.');
+    if (myRoutine.exercises.length === 0) return alert('운동을 하나 이상 추가해주세요.');
+
+    // --- DTO 타입 수정 ---
+    const requestDto: RoutineCreateRequestDto = {
+      ownerId: 1, // 테스트용 하드코딩
+      writerId: 1, // 테스트용 하드코딩
+      name: myRoutine.name,
+      memo: myRoutine.memo,
+      displayOrder: 0, // 미사용
+      exercises: myRoutine.exercises.map((ex, index) => ({
+        exerciseId: ex.exerciseId,
+        displayOrder: index + 1,
+        memo: '', // 미사용
+        sets: ex.sets,
+      })),
+    };
+
     try {
-      const id = parseInt(idToLoad, 10);
-      const data = await ExerciseApi.getExerciseById(id);
-      setTargetId(data.id);
-      setFormData({ name: data.name, category: data.category, description: data.description || '', isHidden: data.isHidden });
-      setInstructions(data.instructions.map(inst => ({ stepOrder: inst.stepOrder, description: inst.description })));
+      const response = await RoutineApi.createRoutine(requestDto);
+      setCreatedRoutineInfo(response);
+      alert(`루틴 생성 성공! ID: ${response.id}`);
+      setMyRoutine(INITIAL_ROUTINE_STATE);
     } catch (err) {
       const error = err as ApiError;
-      alert(`불러오기 실패: ${error.message} (상태 코드: ${error})`);
+      alert(`루틴 생성 실패: ${error.message}`);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, type } = e.target;
-
-    // 체크박스와 다른 입력 필드를 명확하게 구분하여 처리합니다.
-    if (type === 'checkbox') {
-      // 체크박스의 경우, boolean 값인 'checked' 속성을 사용해야 합니다.
-      // HTMLInputElement로 타입을 단언하여 'checked' 속성에 접근합니다.
-      const { checked } = e.target as HTMLInputElement;
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      // 그 외 텍스트 입력 필드의 경우, 'value' 속성을 사용합니다.
-      const { value } = e.target;
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-
-    
-  };
-
-  const handleInstructionChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    const newInstructions = [...instructions];
-    newInstructions[index] = { ...newInstructions[index], description: value };
-    setInstructions(newInstructions);
-  };
-
-  const addInstruction = () => setInstructions([...instructions, { stepOrder: instructions.length + 1, description: '' }]);
-
-  const removeInstruction = (index: number) => {
-    const newInstructions = instructions.filter((_, i) => i !== index)
-      .map((inst, i) => ({ ...inst, stepOrder: i + 1 }));
-    setInstructions(newInstructions);
-  };
-
-  const handlePermanentDelete = async () => {
-    if (!targetId) return alert("영구 삭제할 운동을 먼저 불러와주세요.");
-    if (window.confirm(`정말로 운동 #${targetId}을(를) 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
-      try {
-        await ExerciseApi.removeExercise(targetId);
-        alert('운동이 영구적으로 삭제되었습니다.');
-        resetForm();
-        fetchList(currentPage);
-      } catch (error) { alert('영구 삭제에 실패했습니다.' + error); }
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const requestDto: ExerciseRequestDto = { ...formData, instructions };
+  // 4. 루틴 조회 API 호출 (로직 동일)
+  const handleViewRoutine = async () => {
+    if (!viewRoutineId) return alert('조회할 루틴 ID를 입력하세요.');
     try {
-      let response: ExerciseDetailResponseDto;
-      if (targetId) {
-        response = await ExerciseApi.updateExercise(targetId, requestDto);
-        alert('운동이 성공적으로 수정되었습니다!');
-      } else {
-        response = await ExerciseApi.createExercise(requestDto);
-        alert('운동이 성공적으로 생성되었습니다!' + response);
-      }
-      resetForm();
-      fetchList(currentPage);
-    } catch (error) { alert('작업에 실패했습니다.' + error); }
-  };
-  
-  const resetForm = () => {
-    setTargetId(null);
-    setFormData(INITIAL_FORM_STATE);
-    setInstructions(INITIAL_INSTRUCTIONS_STATE);
+      const id = parseInt(viewRoutineId, 10);
+      const data = await RoutineApi.getRoutine(id);
+      setDetailedRoutine(data);
+    } catch (err) {
+      const error = err as ApiError;
+      alert(`루틴 조회 실패: ${error.message}`);
+      setDetailedRoutine(null);
+    }
   };
 
+  // 5. 렌더링 (로직 동일)
   return (
-    <PageWrapper>
-      <Header><h1>Exercise 관리 테스트</h1></Header>
-      
-      <SectionCard>
-        <h2 className="fs-lg">운동 목록</h2>
-        <ActionGroup>
-            <Button className="btn-primary" onClick={() => handleBulkAction('activate')}>선택 활성화</Button>
-            <Button className="btn-ghost" onClick={() => handleBulkAction('inactivate')}>선택 비활성화</Button>
-            <span>({selectedIds.length}개 선택됨)</span>
-        </ActionGroup>
-        <StyledTable>
-          <thead>
-            <tr>
-              <Th><input type="checkbox" onChange={(e) => setSelectedIds(e.target.checked ? exercisePage?.content.map(ex => ex.id) || [] : [])} /></Th>
-              <Th>ID</Th><Th>이름</Th><Th>카테고리</Th><Th>상태</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {exercisePage?.content.map(ex => (
-              <tr key={ex.id}>
-                <Td><input type="checkbox" checked={selectedIds.includes(ex.id)} onChange={(e) => handleCheckboxChange(ex.id, e.target.checked)} /></Td>
-                <Td $isHidden={ex.isHidden}>{ex.id}</Td>
-                <Td $isHidden={ex.isHidden}>{ex.name}</Td>
-                <Td $isHidden={ex.isHidden}>{ex.category}</Td>
-                <Td $isHidden={ex.isHidden}>{ex.isHidden ? '비활성' : '활성'}</Td>
-              </tr>
-            ))}
-          </tbody>
-        </StyledTable>
-        <PaginationControls>
-          <Button onClick={() => setCurrentPage(p => p - 1)} disabled={exercisePage?.first}>이전</Button>
-          <span>페이지 {exercisePage ? exercisePage.number + 1 : 0} / {exercisePage?.totalPages}</span>
-          <Button onClick={() => setCurrentPage(p => p + 1)} disabled={exercisePage?.last}>다음</Button>
-        </PaginationControls>
-      </SectionCard>
-
-      <SectionCard>
-        <h2 className="fs-lg">개별 기능 테스트</h2>
-        <ActionGroup>
-          <Button onClick={handleLoad}>ID로 불러오기 (수정/삭제용)</Button>
-          <Button onClick={handlePermanentDelete} className="btn-danger" disabled={!targetId}>
-            #{targetId || ''} 영구 삭제
-          </Button>
-        </ActionGroup>
-      </SectionCard>
-
-      <SectionCard>
-        <Form onSubmit={handleSubmit}>
-          <h2 className="fs-lg">{targetId ? `운동 #${targetId} 수정` : '새로운 운동 생성'}</h2>
+    <>
+      <Header><h1>루틴 관리 테스트</h1></Header>
+      <PageWrapper>
+        {/* === Column 1: 운동 목록 & 루틴 조회 === */}
+        <aside>
+          <SectionCard>
+            <h2 className="fs-lg">전체 운동 목록</h2>
+            <ExerciseList>
+              {allExercises.map(ex => (
+                <ExerciseListItem key={ex.id}>
+                  <span>{ex.name} <small>({ex.category})</small></span>
+                  <Button 
+                    onClick={() => handleAddToRoutine(ex)}
+                    disabled={myRoutine.exercises.some(e => e.exerciseId === ex.id)}
+                    className="btn-primary"
+                    style={{padding: '4px 8px', fontSize: 'var(--fs-xs)'}}
+                  >
+                    추가
+                  </Button>
+                </ExerciseListItem>
+              ))}
+            </ExerciseList>
+          </SectionCard>
           
-          <FormGroup>
-            <Label htmlFor="name">이름</Label>
-            <StyledInput type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required />
-          </FormGroup>
-          
-          <FormGroup>
-            <Label htmlFor="category">카테고리</Label>
-            <StyledInput type="text" id="category" name="category" value={formData.category} onChange={handleInputChange} required />
-          </FormGroup>
+          <SectionCard style={{marginTop: 'var(--space-8)'}}>
+            <h2 className="fs-lg">루틴 상세 조회</h2>
+            <FormGroup>
+              <Label htmlFor="viewId">루틴 ID</Label>
+              <StyledInput id="viewId" type="number" value={viewRoutineId} onChange={e => setViewRoutineId(e.target.value)} placeholder="조회할 ID 입력"/>
+            </FormGroup>
+            <Button onClick={handleViewRoutine} className="btn-primary">조회하기</Button>
+            {detailedRoutine && (
+              <ResultDisplay>
+                <h3>{detailedRoutine.name} (ID: {detailedRoutine.id})</h3>
+                <p>메모: {detailedRoutine.memo || '없음'}</p>
+                <hr />
+                {detailedRoutine.exercises.map((ex, i) => (
+                  <div key={i} style={{marginBottom: '12px'}}>
+                    <strong>{ex.displayOrder}. {ex.exercise.name}</strong>
+                    {ex.sets.map((set, j) => (
+                      <div key={j} style={{paddingLeft: '16px', fontSize: '1.3rem'}}>
+                        - {set.displayOrder}세트: {set.weightKg}kg / {set.reps}회
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </ResultDisplay>
+            )}
+          </SectionCard>
+        </aside>
 
-          <FormGroup>
-            <Label htmlFor="description">요약 설명</Label>
-            <StyledTextarea id="description" name="description" value={formData.description || ''} onChange={handleInputChange} />
-          </FormGroup>
+        {/* === Column 2: 루틴 생성기 === */}
+        <main>
+          <SectionCard>
+            <h2 className="fs-lg">루틴 생성기</h2>
+            <RoutineBuilder>
+              <FormGroup>
+                <Label htmlFor="name">루틴 이름</Label>
+                <StyledInput id="name" name="name" value={myRoutine.name} onChange={handleRoutineInputChange} />
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="memo">루틴 메모</Label>
+                <StyledTextarea id="memo" name="memo" value={myRoutine.memo} onChange={handleRoutineInputChange} />
+              </FormGroup>
+              
+              <hr style={{border: 0, borderTop: `1px solid var(--border-1)`}}/>
 
-          <FormGroup>
-            <Label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-              <StyledInput type="checkbox" name="isHidden" checked={formData.isHidden} onChange={handleInputChange} style={{width: 'auto', marginRight: '8px'}}/>
-              비활성화 (숨김 처리)
-            </Label>
-          </FormGroup>
+              {myRoutine.exercises.length === 0 && <p style={{color: 'var(--text-3)', textAlign: 'center'}}>왼쪽 목록에서 운동을 추가해주세요.</p>}
+              
+              {myRoutine.exercises.map((ex, exIndex) => (
+                <SelectedExerciseCard key={ex.exerciseId}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                    <h3 className="fs-md">{exIndex + 1}. {ex.name}</h3>
+                    <Button onClick={() => removeExerciseFromRoutine(exIndex)} style={{background: 'var(--danger)', color: 'white'}}>운동 제외</Button>
+                  </div>
+                  {ex.sets.map((set, setIndex) => (
+                    <SetInputGrid key={setIndex}>
+                      <span>{set.displayOrder}세트</span>
+                      <StyledInput type="number" name="weightKg" value={set.weightKg} onChange={e => handleSetChange(exIndex, setIndex, e)} placeholder="무게(kg)" />
+                      <StyledInput type="number" name="reps" value={set.reps} onChange={e => handleSetChange(exIndex, setIndex, e)} placeholder="횟수" />
+                      <Button onClick={() => removeSet(exIndex, setIndex)} style={{fontSize: 'var(--fs-lg)'}}>-</Button>
+                    </SetInputGrid>
+                  ))}
+                  <Button onClick={() => addSet(exIndex)} className="btn-ghost" style={{width: '100%', marginTop: '12px'}}>세트 추가 (+)</Button>
+                </SelectedExerciseCard>
+              ))}
 
-          <FormGroup>
-            <Label>단계별 설명</Label>
-            {instructions.map((inst, index) => (
-              <InstructionItem key={index}>
-                <span>{inst.stepOrder}.</span>
-                <StyledInput type="text" value={inst.description} onChange={(e) => handleInstructionChange(index, e)} required />
-                <Button type="button" onClick={() => removeInstruction(index)}>-</Button>
-              </InstructionItem>
-            ))}
-            <Button type="button" onClick={addInstruction} className="btn-ghost">설명 추가 (+)</Button>
-          </FormGroup>
+            </RoutineBuilder>
+            <ActionGroup style={{marginTop: 'var(--space-4)'}}>
+              <Button onClick={handleCreateRoutine} className="btn-primary" style={{width: '100%', padding: '16px'}}>루틴 생성하기</Button>
+            </ActionGroup>
 
-          <ActionGroup style={{ marginTop: 'var(--space-4)' }}>
-            <Button type="submit" className="btn-primary">{targetId ? '수정 완료' : '생성하기'}</Button>
-            <Button type="button" onClick={resetForm} className="btn-ghost">폼 초기화</Button>
-          </ActionGroup>
-        </Form>
-      </SectionCard>
-    </PageWrapper>
+            {createdRoutineInfo && (
+              <ResultDisplay>
+                <strong>✅ 생성 성공!</strong>
+                <p>생성된 루틴 ID: {createdRoutineInfo.id}</p>
+                <p>위 ID를 왼쪽 조회 폼에 입력하여 확인할 수 있습니다.</p>
+              </ResultDisplay>
+            )}
+          </SectionCard>
+        </main>
+      </PageWrapper>
+    </>
   );
 };
 
-export default ExerciseTestPage;
-
+export default RoutineTestPage;
