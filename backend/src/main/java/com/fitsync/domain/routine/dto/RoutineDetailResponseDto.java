@@ -4,6 +4,7 @@ import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
+import com.fitsync.domain.user.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,8 +18,9 @@ import java.util.stream.Collectors;
 public class RoutineDetailResponseDto {
 
     // 루틴 기본정보
-    private Long ownerId;
-    private Long writerId;
+    private Long id;
+    private UserDto owner;
+    private UserDto writer;
     private String name;
     private Integer displayOrder;
     private String memo;
@@ -28,8 +30,9 @@ public class RoutineDetailResponseDto {
 
     // 생성자 엔티티 -> DTO
     public RoutineDetailResponseDto(Routine routine) {
-        this.ownerId = routine.getOwnerId();
-        this.writerId = routine.getWriterId();
+        this.id = routine.getId();
+        this.owner = UserDto.from(routine.getOwner());
+        this.writer = UserDto.from(routine.getWriter());
         this.name = routine.getName();
         this.displayOrder = routine.getDisplayOrder();
         this.memo = routine.getMemo();
@@ -96,6 +99,19 @@ public class RoutineDetailResponseDto {
             this.reps = routineSet.getReps();
             this.distanceMeter = routineSet.getDistanceMeter();
             this.durationSecond = routineSet.getDurationSecond();
+        }
+    }
+
+    @Getter
+    private static class UserDto {
+        private Long id;
+
+        public static UserDto from(User user) {
+            return new UserDto(user.getId());
+        }
+
+        private UserDto(Long id) {
+            this.id = id;
         }
     }
 }

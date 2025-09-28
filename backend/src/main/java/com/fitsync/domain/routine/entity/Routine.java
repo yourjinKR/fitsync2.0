@@ -2,6 +2,7 @@ package com.fitsync.domain.routine.entity;
 
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseInstruction;
+import com.fitsync.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,11 +26,15 @@ public class Routine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "owner_id")
-    private Long ownerId;
+    // User 엔티티와 직접 연관 관계를 맺습니다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
-    @Column(name = "writer_id")
-    private Long writerId;
+    // User 엔티티와 직접 연관 관계를 맺습니다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "writer_id")
+    private User writer;
 
     @Column(nullable = false, length = 100)
     private String name;

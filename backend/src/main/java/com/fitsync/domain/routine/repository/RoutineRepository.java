@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface RoutineRepository extends JpaRepository<Routine, Long> {
 
-    @Query("SELECT r FROM Routine r JOIN FETCH r.routineExercises re JOIN FETCH re.sets JOIN FETCH re.exercise WHERE r.id = :id")
-    public Optional<Routine> findRoutineDetailsById(@Param("id") Long id);
+    @Query("SELECT r FROM Routine r JOIN FETCH r.routineExercises re JOIN FETCH re.exercise WHERE r.id = :id")
+    Optional<Routine> findRoutineDetailsById(@Param("id") Long id);
 }
