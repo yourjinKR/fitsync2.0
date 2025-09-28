@@ -2,12 +2,9 @@ package com.fitsync.domain.exercise.service;
 
 import com.fitsync.domain.exercise.dto.*;
 import com.fitsync.domain.exercise.entity.Exercise;
-import com.fitsync.domain.exercise.repository.ExerciseInstructionRepository;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -131,6 +128,10 @@ public class ExerciseService {
         );
     }
 
+    /**
+     * 운동정보 삭제하는 메소드
+     * @param exerciseId pk
+     */
     @Transactional
     public void removeExercise(Long exerciseId) {
 
