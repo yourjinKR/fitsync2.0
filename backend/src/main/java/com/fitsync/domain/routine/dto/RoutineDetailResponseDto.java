@@ -48,6 +48,7 @@ public class RoutineDetailResponseDto {
     // 루틴 내 운동 정보 DTO
     public static class RoutineExerciseDto {
         // 상세보기 응답 DTO에는 운동에 대한 정보가 필요함 (예: Exercise.name... 등등)
+        private Long id;
         private ExerciseSummaryDto exercise;
         private Integer displayOrder;
         private String memo;
@@ -57,6 +58,7 @@ public class RoutineDetailResponseDto {
 
         // 엔티티 -> DTO
         public RoutineExerciseDto(RoutineExercise routineExercise) {
+            this.id = routineExercise.getId();
             this.displayOrder = routineExercise.getDisplayOrder();
             this.memo = routineExercise.getMemo();
 
@@ -86,6 +88,7 @@ public class RoutineDetailResponseDto {
     @NoArgsConstructor
     // 운동 내 세트 정보 DTO
     public static class RoutineSetDto {
+        private Long id;
         private Integer displayOrder;
         private BigDecimal weightKg;
         private Integer reps;
@@ -94,6 +97,7 @@ public class RoutineDetailResponseDto {
 
         // 엔티티 -> DTO
         public RoutineSetDto(RoutineSet routineSet) {
+            this.id = routineSet.getId();
             this.displayOrder = routineSet.getDisplayOrder();
             this.weightKg = routineSet.getWeightKg();
             this.reps = routineSet.getReps();

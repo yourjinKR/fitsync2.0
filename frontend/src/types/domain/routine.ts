@@ -1,3 +1,4 @@
+import { Nullable } from './../common';
 // frontend\src\types\domain\routine.ts
 
 // 루틴 생성 요청
@@ -21,6 +22,7 @@ interface RoutineExerciseDto1 {
 }
 
 interface RoutineSetDto {
+  id : Nullable<number>;
   displayOrder : number;
   weightKg : number;
   reps : number;
@@ -46,6 +48,7 @@ export interface RoutineDetailResponseDto {
 }
 
 interface RoutineExerciseDto2 {
+  id : number;
   displayOrder : number;
   memo : string;
 
