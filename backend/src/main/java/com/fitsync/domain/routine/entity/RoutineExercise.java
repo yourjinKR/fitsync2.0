@@ -25,7 +25,6 @@ public class RoutineExercise {
     @JoinColumn(name = "routine_id", nullable = false)
     private Routine routine;
 
-    // 단방향 연관관계
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
@@ -37,15 +36,21 @@ public class RoutineExercise {
     @Column(name = "memo", columnDefinition = "TEXT")
     private String memo;
 
-    // 1 : N
     @Builder.Default
     @BatchSize(size = 100)
     @OneToMany(mappedBy = "routineExercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC, id ASC")
     private List<RoutineSet> sets = new ArrayList<>();
 
     public void addSet(RoutineSet routineSet) {
         this.sets.add(routineSet);
         routineSet.setRoutineExercise(this);
+    }
+
+    public void updateBasic(Exercise exercise, Integer displayOrder, String memo) {
+        if (exercise != null) this.exercise = exercise;
+        if (displayOrder != null) this.displayOrder = displayOrder;
+        if (memo != null) this.memo = memo;
     }
 
 }

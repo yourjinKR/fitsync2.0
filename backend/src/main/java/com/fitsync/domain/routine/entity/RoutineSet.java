@@ -37,4 +37,15 @@ public class RoutineSet {
     @Column(name = "duration_sec")
     private Integer durationSecond;
 
+    public void updateBasic(Integer displayOrder,
+                            BigDecimal weightKg,
+                            Integer reps,
+                            Integer distanceMeter,
+                            Integer durationSecond) {
+        if (displayOrder != null) this.displayOrder = displayOrder;
+        if (weightKg != null) this.weightKg = weightKg;
+        if (reps != null) this.reps = reps;
+        if (distanceMeter != null) this.distanceMeter = distanceMeter;
+        if (durationSecond != null) this.durationSecond = durationSecond;
+    }
 }

@@ -1,7 +1,5 @@
 package com.fitsync.domain.routine.entity;
 
-import com.fitsync.domain.exercise.entity.Exercise;
-import com.fitsync.domain.exercise.entity.ExerciseInstruction;
 import com.fitsync.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,12 +24,10 @@ public class Routine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User 엔티티와 직접 연관 관계를 맺습니다.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    // User 엔티티와 직접 연관 관계를 맺습니다.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id")
     private User writer;
@@ -55,12 +51,19 @@ public class Routine {
 
     @Builder.Default
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC, id ASC")
     private List<RoutineExercise> routineExercises = new ArrayList<>();
 
     // 자식 데이터 추가 메소드
     public void addExercise(RoutineExercise exercise) {
         this.routineExercises.add(exercise);
         exercise.setRoutine(this);
+    }
+
+    public void updateBasic(String name, Integer displayOrder, String memo) {
+        if (name != null) this.name = name;
+        if (displayOrder != null) this.displayOrder = displayOrder;
+        if (memo != null) this.memo = memo;
     }
 
 }
