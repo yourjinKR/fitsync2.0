@@ -1,6 +1,7 @@
 // frontend\src\api\RoutineApi.ts
 
-import { RoutineCreateRequestDto, RoutineCreateResponseDto, RoutineDetailResponseDto, RoutineUpdateRequestDto } from "../types/domain/routine";
+import { Page, Pageable } from "../types/api";
+import { RoutineCreateRequestDto, RoutineCreateResponseDto, RoutineDetailResponseDto, RoutineSummaryResponseDto, RoutineUpdateRequestDto } from "../types/domain/routine";
 import apiClient from "./apiClient";
 
 const RoutineApi = {
@@ -8,6 +9,15 @@ const RoutineApi = {
   createRoutine(requestDto : RoutineCreateRequestDto): Promise<RoutineCreateResponseDto> {
     return apiClient.post('/api/routine', requestDto)
       .then(response => response.data);
+  },
+
+  getRoutineList(userId : number, params : Pageable): Promise<Page<RoutineSummaryResponseDto>> {
+    return apiClient.get(`/api/routine/user/${userId}`, { params })
+    // .then(response => response.data);
+      .then(response => {
+        console.log(response.data);
+        return response.data;
+      });
   },
 
   getRoutine(id : number) : Promise<RoutineDetailResponseDto> {

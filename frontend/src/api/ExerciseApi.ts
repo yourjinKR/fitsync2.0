@@ -1,13 +1,13 @@
-import { Page } from "../types/api";
+import { Page, Pageable } from "../types/api";
 import { ExerciseRequestDto, ExerciseDetailResponseDto, ExerciseSimpleResponseDto } from "../types/domain/exercise";
 import apiClient from "./apiClient";
 
 // 페이지네이션 요청을 위한 파라미터 타입
-interface Pageable {
-  page: number;
-  size: number;
-  sort?: string; // 예: 'name,asc'
-}
+// interface Pageable {
+//   page: number;
+//   size: number;
+//   sort?: string; // 예: 'name,asc'
+// }
 
 const ExerciseApi = {
   /**

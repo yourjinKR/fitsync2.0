@@ -2,10 +2,7 @@ package com.fitsync.domain.routine.service;
 
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
-import com.fitsync.domain.routine.dto.RoutineCreateRequestDto;
-import com.fitsync.domain.routine.dto.RoutineCreateResponseDto;
-import com.fitsync.domain.routine.dto.RoutineDetailResponseDto;
-import com.fitsync.domain.routine.dto.RoutineUpdateRequestDto;
+import com.fitsync.domain.routine.dto.*;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
@@ -14,6 +11,8 @@ import com.fitsync.domain.user.entity.User;
 import com.fitsync.global.util.LoginUserProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +81,13 @@ public class RoutineService {
         Routine savedRoutine = routineRepository.save(routine);
 
         return new RoutineCreateResponseDto(savedRoutine.getId());
+    }
+
+    // 사용자가 자신의 루틴 목록을 확인
+    @Transactional
+    public Page<RoutineSummaryResponseDto> getMyRoutineList(Long ownerId, Pageable  pageable) {
+
+        return routineRepository.findMyRoutineList(ownerId, pageable);
     }
 
     // 루틴 확인

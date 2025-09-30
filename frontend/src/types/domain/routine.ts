@@ -35,6 +35,18 @@ export interface RoutineCreateResponseDto {
   id : number;
 }
 
+// 루틴 리스트 조회 응답
+export interface RoutineSummaryResponseDto {
+  id : number;
+  ownerId : number;
+  writerId : number;
+  name : string;
+  displayOrder : number;
+  memo : string;
+  createdAt : string; // ISO 8601 문자열
+  updatedAt : string;
+}
+
 // 특정 루틴 조회 응답
 export interface RoutineDetailResponseDto {
   id : number;
