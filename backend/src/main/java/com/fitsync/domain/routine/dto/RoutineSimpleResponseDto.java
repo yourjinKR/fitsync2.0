@@ -1,6 +1,5 @@
 package com.fitsync.domain.routine.dto;
 
-import com.fitsync.domain.routine.entity.Routine;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import java.time.OffsetDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoutineSummaryResponseDto {
+public class RoutineSimpleResponseDto {
 
     private Long id;
     private Long ownerId;

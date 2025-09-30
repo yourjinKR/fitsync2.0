@@ -36,7 +36,7 @@ export interface RoutineCreateResponseDto {
 }
 
 // 루틴 리스트 조회 응답
-export interface RoutineSummaryResponseDto {
+export interface RoutineSimpleResponseDto {
   id : number;
   ownerId : number;
   writerId : number;

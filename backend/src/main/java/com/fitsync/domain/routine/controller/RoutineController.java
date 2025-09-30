@@ -33,7 +33,7 @@ public class RoutineController {
 
     // 사용자 루틴 목록
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<RoutineSummaryResponseDto>> getRoutineList(
+    public ResponseEntity<Page<RoutineSimpleResponseDto>> getRoutineList(
             @PathVariable Long userId,
             @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
@@ -43,7 +43,7 @@ public class RoutineController {
 
         // 현재 유저와 동일할 경우 나의 루틴을 조회
         if (userId.equals(currentUser.getId())) {
-            Page<RoutineSummaryResponseDto> result = routineService.getMyRoutineList(userId, pageable);
+            Page<RoutineSimpleResponseDto> result = routineService.getMyRoutineList(userId, pageable);
             return ResponseEntity.ok(result);
         }
 

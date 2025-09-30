@@ -85,7 +85,7 @@ public class RoutineService {
 
     // 사용자가 자신의 루틴 목록을 확인
     @Transactional
-    public Page<RoutineSummaryResponseDto> getMyRoutineList(Long ownerId, Pageable  pageable) {
+    public Page<RoutineSimpleResponseDto> getMyRoutineList(Long ownerId, Pageable  pageable) {
 
         return routineRepository.findMyRoutineList(ownerId, pageable);
     }

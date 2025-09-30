@@ -10,7 +10,7 @@ import {
   RoutineCreateResponseDto,
   RoutineDetailResponseDto,
   RoutineUpdateRequestDto,
-  RoutineSummaryResponseDto,
+  RoutineSimpleResponseDto,
 } from '../types/domain/routine';
 import { ApiError } from '../types/error';
 
@@ -193,7 +193,7 @@ const RoutineTestPage = () => {
 
   // 루틴 리스트(사용자)
   const [userIdForList, setUserIdForList] = useState('3'); // 테스트용 default
-  const [routinePage, setRoutinePage] = useState<Page<RoutineSummaryResponseDto> | null>(null);
+  const [routinePage, setRoutinePage] = useState<Page<RoutineSimpleResponseDto> | null>(null);
   const [pageParams, setPageParams] = useState({ page: 0, size: 20, sort: 'displayOrder,asc' });
   const [isLoadingList, setIsLoadingList] = useState(false);
 
