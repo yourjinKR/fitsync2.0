@@ -11,6 +11,7 @@ import {
   RoutineDetailResponseDto,
   RoutineUpdateRequestDto,
   RoutineSimpleResponseDto,
+  RoutineDeleteRequestDto,
 } from '../types/domain/routine';
 import { ApiError } from '../types/error';
 
@@ -553,6 +554,58 @@ const RoutineTestPage = () => {
     setEditState({ ...editState, routineExercises: exercises });
   };
 
+  // ----------------- 삭제: 리스트 항목에서 사용 -----------------
+  const deleteRoutineFromList = async (r: RoutineSimpleResponseDto) => {
+    if (!confirm(`정말로 삭제할까요?\n[${r.name}] (ID: ${r.id})`)) return;
+    try {
+      const req: RoutineDeleteRequestDto = { id: r.id, ownerId: r.ownerId };
+      await RoutineApi.deleteRoutine(r.id, req);
+
+      // 리스트에서 제거 + displayOrder 재정렬
+      setRoutinePage(prev => {
+        if (!prev) return prev;
+        const next = prev.content.filter(item => item.id !== r.id);
+        return { ...prev, content: reorderWithDisplayOrder(next) };
+      });
+
+      // 현재 상세/편집 중이던 루틴이면 비워주기
+      if (String(r.id) === viewRoutineId) {
+        setViewRoutineId('');
+        setViewedRoutine(null);
+        setEditState(null);
+      }
+
+      alert('삭제 완료되었습니다.');
+    } catch (e) {
+      console.error('❌ 루틴 삭제 실패:', e);
+      alert('루틴 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // ----------------- 삭제: 상세/편집 화면에서 사용 -----------------
+  const deleteViewedRoutine = async () => {
+    if (!viewedRoutine) return;
+    if (!confirm(`정말로 삭제할까요?\n[${viewedRoutine.name}] (ID: ${viewedRoutine.id})`)) return;
+    try {
+      const req: RoutineDeleteRequestDto = { id: viewedRoutine.id, ownerId: viewedRoutine.owner.id };
+      console.log("data check : ", viewedRoutine);
+      await RoutineApi.deleteRoutine(viewedRoutine.id, req);
+
+      // 리스트 최신화 시도
+      await fetchRoutineList();
+
+      // 상세/편집 상태 초기화
+      setViewRoutineId('');
+      setViewedRoutine(null);
+      setEditState(null);
+
+      alert('삭제 완료되었습니다.');
+    } catch (e) {
+      console.error('❌ 루틴 삭제 실패:', e);
+      alert('루틴 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   /* ------------------ 렌더링 ------------------ */
   return (
     <>
@@ -613,6 +666,7 @@ const RoutineTestPage = () => {
                                   <div style={{ display:'flex', gap:8 }}>
                                     <Button onClick={() => setViewRoutineId(String(r.id))} className="btn-ghost">상세 조회</Button>
                                     <Button onClick={loadToEdit} disabled={String(r.id) !== viewRoutineId} className="btn-primary">편집 모드</Button>
+                                    <Button onClick={() => deleteRoutineFromList(r)} style={{ background: 'var(--danger)', color: '#fff' }} title="이 루틴을 삭제합니다">삭제</Button>
                                   </div>
                                 </div>
                               </div>
@@ -702,21 +756,28 @@ const RoutineTestPage = () => {
             </ActionGroup>
 
             {viewedRoutine && (
-              <ResultDisplay>
-                <h3>{viewedRoutine.name} (ID: {viewedRoutine.id})</h3>
-                <p>메모: {viewedRoutine.memo || '없음'}</p>
-                <hr />
-                {viewedRoutine.exercises.map((ex, i) => (
-                  <div key={i} style={{ marginBottom: '12px' }}>
-                    <strong>{ex.displayOrder}. {ex.exercise.name}</strong>
-                    {ex.sets.map((set, j) => (
-                      <div key={j} style={{ paddingLeft: '16px', fontSize: '1.3rem' }}>
-                        - {set.displayOrder}세트: {set.weightKg}kg / {set.reps}회
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </ResultDisplay>
+              <>
+                <ResultDisplay>
+                  <h3>{viewedRoutine.name} (ID: {viewedRoutine.id})</h3>
+                  <p>메모: {viewedRoutine.memo || '없음'}</p>
+                  <hr />
+                  {viewedRoutine.exercises.map((ex, i) => (
+                    <div key={i} style={{ marginBottom: '12px' }}>
+                      <strong>{ex.displayOrder}. {ex.exercise.name}</strong>
+                      {ex.sets.map((set, j) => (
+                        <div key={j} style={{ paddingLeft: '16px', fontSize: '1.3rem' }}>
+                          - {set.displayOrder}세트: {set.weightKg}kg / {set.reps}회
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </ResultDisplay>
+                <ActionGroup>
+                  <Button onClick={deleteViewedRoutine} style={{ background: 'var(--danger)', color: '#fff', width: '100%' }}>
+                    이 루틴 삭제
+                  </Button>
+                </ActionGroup>
+              </>
             )}
           </SectionCard>
         </aside>

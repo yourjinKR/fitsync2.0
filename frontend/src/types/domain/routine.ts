@@ -50,8 +50,8 @@ export interface RoutineSimpleResponseDto {
 // 특정 루틴 조회 응답
 export interface RoutineDetailResponseDto {
   id : number;
-  ownerId : number;
-  writerId : number;
+  owner : {id : number};
+  writer : {id : number};
   name : string;
   displayOrder : number;
   memo : string;
@@ -101,4 +101,9 @@ export interface RoutineSimpleRequestDto {
   memo : string;
 }
 
+// 루틴 삭제 요청 DTO
+export interface RoutineDeleteRequestDto{
+  id : number;
+  ownerId : number;
+}
 

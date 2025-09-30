@@ -1,7 +1,7 @@
 // frontend\src\api\RoutineApi.ts
 
 import { Page, Pageable } from "../types/api";
-import { RoutineCreateRequestDto, RoutineCreateResponseDto, RoutineDetailResponseDto, RoutineSimpleRequestDto, RoutineSimpleResponseDto, RoutineUpdateRequestDto } from "../types/domain/routine";
+import { RoutineCreateRequestDto, RoutineCreateResponseDto, RoutineDeleteRequestDto, RoutineDetailResponseDto, RoutineSimpleRequestDto, RoutineSimpleResponseDto, RoutineUpdateRequestDto } from "../types/domain/routine";
 import apiClient from "./apiClient";
 
 const RoutineApi = {
@@ -36,6 +36,11 @@ const RoutineApi = {
 
   sortRoutine(requestDto : RoutineSimpleRequestDto[]) : Promise<void> {
     return apiClient.patch(`/api/routine/displayOrder`, requestDto)
+      .then(response => response.data);
+  },
+
+  deleteRoutine(id : number, requestDto : RoutineDeleteRequestDto) : Promise<void> {
+    return apiClient.delete(`/api/routine/${id}`, {data : requestDto}) // delete는 data를 붙여줘야 함. 왤까? 나중에 알아보자...
       .then(response => response.data);
   },
 }
