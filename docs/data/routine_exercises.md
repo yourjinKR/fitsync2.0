@@ -11,7 +11,7 @@
 - `routine_id`: 소속된 루틴의 ID (`routines.id` 참조)
 - `exercise_id`: 수행할 운동의 ID (`exercises.id` 참조)
 - `display_order`: 루틴 내에서 운동이 표시될 순서 (0부터 시작)
-- `notes`: 해당 운동에 대한 추가적인 메모 (예: '마지막 세트는 드롭세트로 진행')
+- `memo`: 해당 운동에 대한 추가적인 메모 (예: '마지막 세트는 드롭세트로 진행')
 
 ## 3. 관계 (Relations)
 - **`routines` (N:1)**: `routine_id` 컬럼을 통해 `routines` 테이블을 참조합니다.
@@ -34,7 +34,7 @@ CREATE TABLE routine_exercises (
     routine_id BIGINT NOT NULL,
     exercise_id BIGINT NOT NULL,
     display_order SMALLINT NOT NULL DEFAULT 0,
-    notes TEXT,
+    memo TEXT,
     CONSTRAINT fk_re_routine FOREIGN KEY(routine_id) REFERENCES routines(id) ON DELETE CASCADE,
     CONSTRAINT fk_re_exercise FOREIGN KEY(exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
 );
@@ -47,3 +47,4 @@ COMMENT ON TABLE routine_exercises IS '루틴과 운동을 연결하고, 루틴 
 COMMENT ON COLUMN routine_exercises.routine_id IS '소속된 루틴의 ID (routines.id 참조)';
 COMMENT ON COLUMN routine_exercises.exercise_id IS '수행할 운동의 ID (exercises.id 참조)';
 COMMENT ON COLUMN routine_exercises.display_order IS '루틴 내 운동 순서 (0부터 시작)';
+```

@@ -168,6 +168,7 @@ public class OAuthAttributes {
                 .name(name)
                 .email(email)
                 .socialProvider(socialProvider)
+                // TODO : 회원타입 강제지정
                 .type(UserType.MEMBER)
                 .build();
     }
