@@ -86,4 +86,13 @@ public class RoutineController {
 
         return ResponseEntity.ok().build();
     }
+
+    // 루틴 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRoutine(@PathVariable Long id, @RequestBody RoutineDeleteRequestDto requestDto) {
+
+        routineService.deleteRoutine(id, requestDto);
+
+        return ResponseEntity.ok().build();
+    }
 }

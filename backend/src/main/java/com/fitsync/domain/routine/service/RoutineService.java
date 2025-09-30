@@ -8,7 +8,9 @@ import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
 import com.fitsync.domain.routine.repository.RoutineRepository;
 import com.fitsync.domain.user.entity.User;
+import com.fitsync.global.error.exception.BadRequestException;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
+import com.fitsync.global.error.exception.UnauthorizedAccessException;
 import com.fitsync.global.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -98,6 +101,28 @@ public class RoutineService {
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
         return new RoutineDetailResponseDto(routine);
+    }
+
+    // 루틴 삭제
+    @Transactional
+    public void deleteRoutine(Long id, RoutineDeleteRequestDto requestDto) {
+
+        if (!id.equals(requestDto.getId())) {
+            throw new BadRequestException("id가 일치하지 않습니다.");
+        }
+
+        Routine routine = routineRepository.findRoutineDetailsById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
+
+        User currentUser = loginUserProvider.getCurrentUser();
+
+        if (currentUser.getId().equals(requestDto.getOwnerId())) {
+            routineRepository.deleteById(id);
+        } else {
+            // 삭제 권한이 없는 에러 처리
+            throw new UnauthorizedAccessException("해당 루틴을 삭제할 권한이 없습니다. ");
+        }
+
     }
 
     // 루틴 기본정보 수정
