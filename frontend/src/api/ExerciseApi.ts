@@ -17,7 +17,11 @@ const ExerciseApi = {
   getAllExercises(params: Pageable): Promise<Page<ExerciseSimpleResponseDto>> {
 
     return apiClient.get<Page<ExerciseSimpleResponseDto>>('/api/exercise/all', { params })
-      .then(response => response.data);
+      // .then(response => response.data);
+      .then(response => {
+        console.log(response.data);
+        return response.data;
+      })
   },
 
   /**

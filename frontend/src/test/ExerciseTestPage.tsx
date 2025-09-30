@@ -10,12 +10,30 @@ import {
   RoutineCreateResponseDto,
   RoutineDetailResponseDto,
   RoutineUpdateRequestDto,
+  RoutineSummaryResponseDto,
 } from '../types/domain/routine';
 import { ApiError } from '../types/error';
 
+// dnd
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd';
+import { Pageable } from '../types/api';
+
 /* ------------------------------------------------------------------ */
-/* 1) 이 페이지에서만 쓰는 편집용 타입                                 */
+/* 1) 이 페이지에서만 쓰는 타입                                         */
 /* ------------------------------------------------------------------ */
+type Page<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number; // zero-based page index
+  size: number;
+};
+
 type BuildingExercise = {
   exerciseId: number;
   name: string; // UI 표시용
@@ -39,7 +57,7 @@ type EditingSet = {
 
 type EditingExercise = {
   // routine_exercises.id
-  routineExerciseId: number; // 조회 응답의 ex.id
+  routineExerciseId: number; // 조회 응답의 ex.id (신규는 0으로 표시)
   exerciseId: number;        // 실제 운동 id
   name: string;              // UI 표시용
   displayOrder: number;
@@ -67,7 +85,13 @@ const INITIAL_CREATE_STATE = {
 const INITIAL_EDIT_STATE: EditingRoutine | null = null;
 
 /* ------------------------------------------------------------------ */
-/* 3) 스타일들 (기존 유지)                                             */
+/* 3) 유틸                                                             */
+/* ------------------------------------------------------------------ */
+const reorderWithDisplayOrder = <T extends { displayOrder: number }>(items: T[]) =>
+  items.map((it, i) => ({ ...it, displayOrder: i + 1 }));
+
+/* ------------------------------------------------------------------ */
+/* 4) 스타일                                                            */
 /* ------------------------------------------------------------------ */
 const PageWrapper = styled.div`
   max-width: var(--container-max);
@@ -126,6 +150,7 @@ const SelectedExerciseCard = styled.div`
   padding: var(--space-4);
   border-radius: var(--radius-md);
   border-left: 4px solid var(--color-primary);
+  transition: background .15s ease, box-shadow .15s ease;
 `;
 const SetInputGrid = styled.div`
   display: grid;
@@ -152,7 +177,7 @@ const ResultDisplay = styled.div`
 `;
 
 /* ------------------------------------------------------------------ */
-/* 4) 컴포넌트                                                         */
+/* 5) 컴포넌트                                                         */
 /* ------------------------------------------------------------------ */
 const RoutineTestPage = () => {
   const [allExercises, setAllExercises] = useState<ExerciseSimpleResponseDto[]>([]);
@@ -166,6 +191,12 @@ const RoutineTestPage = () => {
   const [viewedRoutine, setViewedRoutine] = useState<RoutineDetailResponseDto | null>(null);
   const [editState, setEditState] = useState<EditingRoutine | null>(INITIAL_EDIT_STATE);
 
+  // 루틴 리스트(사용자)
+  const [userIdForList, setUserIdForList] = useState('3'); // 테스트용 default
+  const [routinePage, setRoutinePage] = useState<Page<RoutineSummaryResponseDto> | null>(null);
+  const [pageParams, setPageParams] = useState({ page: 0, size: 20, sort: 'displayOrder,asc' });
+  const [isLoadingList, setIsLoadingList] = useState(false);
+
   /* ------------------ 전체 운동 목록 ------------------ */
   const fetchAllExercises = useCallback(async () => {
     try {
@@ -177,6 +208,78 @@ const RoutineTestPage = () => {
   }, []);
 
   useEffect(() => { fetchAllExercises(); }, [fetchAllExercises]);
+
+  /* ------------------ 루틴 리스트 조회 ------------------ */
+  const fetchRoutineList = useCallback(async () => {
+    try {
+      setIsLoadingList(true);
+      const uid = parseInt(userIdForList, 10);
+      const data = await RoutineApi.getRoutineList(uid, pageParams as Pageable);
+      setRoutinePage(data);
+    } catch (e) {
+      console.error('❌ 루틴 리스트 조회 실패:', e);
+      alert('루틴 리스트 조회에 실패했습니다.');
+    } finally {
+      setIsLoadingList(false);
+    }
+  }, [userIdForList, pageParams]);
+
+  useEffect(() => { fetchRoutineList(); }, [fetchRoutineList]);
+
+  // 루틴 리스트 drag end (routine 간 displayOrder 정렬)
+  const onRoutineDragEnd = (result: DropResult) => {
+    if (!routinePage) return;
+    const { destination, source } = result;
+    if (!destination || destination.index === source.index) return;
+
+    const newContent = Array.from(routinePage.content);
+    const [removed] = newContent.splice(source.index, 1);
+    newContent.splice(destination.index, 0, removed);
+
+    const normalized = reorderWithDisplayOrder(newContent);
+    setRoutinePage({ ...routinePage, content: normalized });
+  };
+
+  // 루틴 리스트의 displayOrder를 서버에 저장 (개별 PUT)
+  const saveRoutineOrder = async () => {
+    if (!routinePage) return;
+    try {
+      for (const r of routinePage.content) {
+        // 1) 상세 조회
+        const detail = await RoutineApi.getRoutine(r.id);
+        // 2) 리스트에서 조정한 displayOrder 반영, 내부는 유지
+        const dto: RoutineUpdateRequestDto = {
+          id: detail.id,
+          name: detail.name,
+          displayOrder: r.displayOrder ?? 0,
+          memo: detail.memo ?? '',
+          routineExercises: detail.exercises
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map(ex => ({
+              id: ex.id,
+              exerciseId: ex.exercise.id,
+              displayOrder: ex.displayOrder,
+              memo: ex.memo ?? '',
+              sets: ex.sets
+                .sort((s1, s2) => s1.displayOrder - s2.displayOrder)
+                .map(s => ({
+                  id: s.id ?? null,
+                  displayOrder: s.displayOrder,
+                  weightKg: s.weightKg,
+                  reps: s.reps,
+                  distanceMeter: s.distanceMeter,
+                  durationSecond: s.durationSecond,
+                })),
+            })),
+        };
+        await RoutineApi.updateRoutine(detail.id, dto);
+      }
+      alert('루틴 displayOrder가 저장되었습니다.');
+    } catch (e) {
+      console.error('❌ 루틴 순서 저장 실패:', e);
+      alert('루틴 순서 저장 중 오류가 발생했습니다.');
+    }
+  };
 
   /* ------------------ 생성기 핸들러 ------------------ */
   const handleAddToCreate = (exercise: ExerciseSimpleResponseDto) => {
@@ -332,21 +435,17 @@ const RoutineTestPage = () => {
     const nextOrder = editState.routineExercises.length + 1;
 
     const newExercise: EditingExercise = {
-      routineExerciseId: 0,            // 신규 항목 표시용(클라이언트 내부 식별). 서버 전송 시 id:null 처리
+      routineExerciseId: 0, // 신규 표시용(서버 전송 시 id:null)
       exerciseId: exercise.id,
       name: exercise.name,
       displayOrder: nextOrder,
       memo: '',
-      sets: [
-        { id: null, displayOrder: 1, weightKg: 0, reps: 0, distanceMeter: 0, durationSecond: 0 },
-      ],
+      sets: [{ id: null, displayOrder: 1, weightKg: 0, reps: 0, distanceMeter: 0, durationSecond: 0 }],
     };
 
-    setEditState(prev => prev
-      ? { ...prev, routineExercises: [...prev.routineExercises, newExercise] }
-      : prev
-    );
+    setEditState(prev => prev ? { ...prev, routineExercises: [...prev.routineExercises, newExercise] } : prev);
   };
+
 
   const handleEditSetChange =
     (exIndex: number, setIndex: number, field: SetEditableField) =>
@@ -386,8 +485,7 @@ const RoutineTestPage = () => {
   const removeEditExercise = (exIndex: number) => {
     if (!editState) return;
     const newExercises = editState.routineExercises.filter((_, i) => i !== exIndex);
-    newExercises.forEach((ex, i) => (ex.displayOrder = i + 1));
-    setEditState({ ...editState, routineExercises: newExercises });
+    setEditState({ ...editState, routineExercises: reorderWithDisplayOrder(newExercises) });
   };
 
   const handleUpdateRoutine = async () => {
@@ -395,20 +493,18 @@ const RoutineTestPage = () => {
     if (!editState.name) return alert('루틴 이름을 입력해주세요.');
     if (editState.routineExercises.length === 0) return alert('최소 1개의 운동이 필요합니다.');
 
-    // 권장 타입 수정(Nullable<number>)을 적용했다면 아래처럼 간단히:
     const dto: RoutineUpdateRequestDto = {
       id: editState.id,
       name: editState.name,
       displayOrder: editState.displayOrder ?? 0,
       memo: editState.memo ?? '',
       routineExercises: editState.routineExercises.map(ex => ({
-        // 신규: routineExerciseId === 0 → id:null
         id: ex.routineExerciseId === 0 ? null : ex.routineExerciseId,
         exerciseId: ex.exerciseId,
         displayOrder: ex.displayOrder,
         memo: ex.memo ?? '',
         sets: ex.sets.map(s => ({
-          id: s.id, // null이면 신규
+          id: s.id,
           displayOrder: s.displayOrder,
           weightKg: s.weightKg,
           reps: s.reps,
@@ -418,32 +514,6 @@ const RoutineTestPage = () => {
       })),
     };
 
-    /* 만약 타입을 못 바꾼다면(여전히 id: number) — 조건부 속성 주입 우회안:
-    const dto = {
-      id: editState.id,
-      name: editState.name,
-      displayOrder: editState.displayOrder ?? 0,
-      memo: editState.memo ?? '',
-      routineExercises: editState.routineExercises.map(ex => {
-        const base = {
-          exerciseId: ex.exerciseId,
-          displayOrder: ex.displayOrder,
-          memo: ex.memo ?? '',
-          sets: ex.sets.map(s => ({
-            id: s.id,
-            displayOrder: s.displayOrder,
-            weightKg: s.weightKg,
-            reps: s.reps,
-            distanceMeter: s.distanceMeter,
-            durationSecond: s.durationSecond,
-          })),
-        };
-        return ex.routineExerciseId === 0
-          ? (base as any)                  // id를 아예 빼서 전송(백엔드에서 허용되는 경우에만)
-          : ({ id: ex.routineExerciseId, ...base } as any);
-      }),
-    } as unknown as RoutineUpdateRequestDto;
-    */
     try {
       const updated = await RoutineApi.updateRoutine(editState.id, dto);
       setViewedRoutine(updated);
@@ -454,14 +524,123 @@ const RoutineTestPage = () => {
     }
   };
 
+  /* ------------------ 편집기: 드래그 정렬 ------------------ */
+  // 운동 카드 드래그 종료
+  const onEditExerciseDragEnd = (result: DropResult) => {
+    if (!editState) return;
+    const { destination, source } = result;
+    if (!destination || destination.droppableId !== 'edit-exercise-list' || destination.index === source.index) return;
+
+    const newExercises = Array.from(editState.routineExercises);
+    const [removed] = newExercises.splice(source.index, 1);
+    newExercises.splice(destination.index, 0, removed);
+
+    setEditState({ ...editState, routineExercises: reorderWithDisplayOrder(newExercises) });
+  };
+
+  // 세트 드래그 종료(운동별로 별도 컨텍스트를 씀)
+  const onEditSetDragEnd = (exIndex: number) => (result: DropResult) => {
+    if (!editState) return;
+    const { destination, source } = result;
+    if (!destination || destination.index === source.index) return;
+
+    const exercises = [...editState.routineExercises];
+    const sets = Array.from(exercises[exIndex].sets);
+    const [removed] = sets.splice(source.index, 1);
+    sets.splice(destination.index, 0, removed);
+
+    exercises[exIndex] = { ...exercises[exIndex], sets: reorderWithDisplayOrder(sets) };
+    setEditState({ ...editState, routineExercises: exercises });
+  };
 
   /* ------------------ 렌더링 ------------------ */
   return (
     <>
       <Header><h1>루틴 관리 테스트</h1></Header>
       <PageWrapper>
-        {/* === Column 1: 운동 목록 & 루틴 조회 === */}
+        {/* === Column 1: 운동 목록 / 사용자 루틴 리스트 / 루틴 조회 === */}
         <aside>
+
+          {/* 사용자 루틴 리스트 + 드래그 정렬 */}
+          <SectionCard>
+            <h2 className="fs-lg">사용자 루틴 리스트</h2>
+            <FormGroup>
+              <Label htmlFor="uid">User ID</Label>
+              <StyledInput id="uid" type="number" value={userIdForList} onChange={e => setUserIdForList(e.target.value)} />
+            </FormGroup>
+            <ActionGroup>
+              <Button onClick={fetchRoutineList} className="btn-ghost">다시 불러오기</Button>
+            </ActionGroup>
+
+            {isLoadingList && <p style={{ color: 'var(--text-3)' }}>불러오는 중…</p>}
+
+            {routinePage && (
+              <>
+                <DragDropContext onDragEnd={onRoutineDragEnd}>
+                  <Droppable droppableId="routine-list" type="ROUTINE">
+                    {(dp) => (
+                      <div ref={dp.innerRef} {...dp.droppableProps} style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                        {routinePage.content.map((r, index) => (
+                          <Draggable key={r.id.toString()} draggableId={r.id.toString()} index={index}>
+                            {(drag, snap) => (
+                              <div
+                                ref={drag.innerRef}
+                                {...drag.draggableProps}
+                                {...drag.dragHandleProps}
+                                className="card"
+                                style={{
+                                  padding:'12px',
+                                  borderLeft:'4px solid var(--color-primary)',
+                                  boxShadow: snap.isDragging ? 'var(--shadow-2)' : 'var(--shadow-1)',
+                                  ...drag.draggableProps.style,
+                                }}
+                              >
+                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                                  <div>
+                                    <strong>{r.displayOrder || index + 1}. {r.name}</strong>
+                                    <div className="fs-sm" style={{ color:'var(--text-3)' }}>
+                                      ID: {r.id} / updated: {new Date(r.updatedAt).toLocaleString()}
+                                    </div>
+                                  </div>
+                                  <div style={{ display:'flex', gap:8 }}>
+                                    <Button onClick={() => setViewRoutineId(String(r.id))} className="btn-ghost">상세 조회</Button>
+                                    <Button onClick={loadToEdit} disabled={String(r.id) !== viewRoutineId} className="btn-primary">편집 모드</Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {dp.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+
+                {/* 간단 페이지네이션 */}
+                <ActionGroup style={{ marginTop: 12 }}>
+                  <Button
+                    disabled={routinePage.number <= 0}
+                    onClick={() => setPageParams(p => ({ ...p, page: p.page - 1 }))}
+                  >이전</Button>
+                  <span className="fs-sm">페이지 {routinePage.number + 1} / {routinePage.totalPages}</span>
+                  <Button
+                    disabled={routinePage.number + 1 >= routinePage.totalPages}
+                    onClick={() => setPageParams(p => ({ ...p, page: p.page + 1 }))}
+                  >다음</Button>
+                </ActionGroup>
+
+                {/* 루틴 순서 저장 */}
+                <ActionGroup>
+                  <Button onClick={saveRoutineOrder} className="btn-primary" style={{ width:'100%' }}>
+                    루틴 displayOrder 저장
+                  </Button>
+                </ActionGroup>
+              </>
+            )}
+          </SectionCard>
+
+          {/* 전체 운동 목록 */}
           <SectionCard>
             <h2 className="fs-lg">전체 운동 목록</h2>
             <ExerciseList>
@@ -469,7 +648,7 @@ const RoutineTestPage = () => {
                 <ExerciseListItem key={ex.id}>
                   <span>{ex.name} <small>({ex.category})</small></span>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {/* 기존: 생성용 추가 */}
+                    {/* 생성용 추가 */}
                     <Button
                       onClick={() => handleAddToCreate(ex)}
                       disabled={createState.exercises.some(e => e.exerciseId === ex.id)}
@@ -478,8 +657,7 @@ const RoutineTestPage = () => {
                     >
                       생성용 추가
                     </Button>
-
-                    {/* 신규: 편집에 추가 (편집 모드일 때만 활성화) */}
+                    {/* 편집에 추가 */}
                     <Button
                       onClick={() => addExerciseToEdit(ex)}
                       disabled={!editState || (editState?.routineExercises.some(e => e.exerciseId === ex.id))}
@@ -495,6 +673,7 @@ const RoutineTestPage = () => {
             </ExerciseList>
           </SectionCard>
 
+          {/* 루틴 상세 조회 */}
           <SectionCard style={{ marginTop: 'var(--space-8)' }}>
             <h2 className="fs-lg">루틴 상세 조회</h2>
             <FormGroup>
@@ -509,11 +688,7 @@ const RoutineTestPage = () => {
             </FormGroup>
             <ActionGroup>
               <Button onClick={handleViewRoutine} className="btn-primary">조회하기</Button>
-              <Button
-                onClick={loadToEdit}
-                disabled={!viewedRoutine}
-                className="btn-ghost"
-              >
+              <Button onClick={loadToEdit} disabled={!viewedRoutine} className="btn-ghost">
                 편집 모드로 불러오기
               </Button>
             </ActionGroup>
@@ -601,7 +776,7 @@ const RoutineTestPage = () => {
             )}
           </SectionCard>
 
-          {/* 편집기 */}
+          {/* 편집기 (운동/세트 드래그 정렬) */}
           <SectionCard>
             <h2 className="fs-lg">루틴 수정기</h2>
             {!editState && <p style={{ color: 'var(--text-3)' }}>왼쪽에서 루틴을 조회한 뒤, “편집 모드로 불러오기”를 클릭하세요.</p>}
@@ -623,33 +798,107 @@ const RoutineTestPage = () => {
                     <p style={{ color: 'var(--text-3)', textAlign: 'center' }}>현재 편집 중인 운동이 없습니다.</p>
                   )}
 
-                  {editState.routineExercises.map((ex, exIndex) => (
-                    <SelectedExerciseCard key={`${ex.routineExerciseId}-${ex.exerciseId}`}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <h3 className="fs-md">{ex.displayOrder}. {ex.name}</h3>
-                        <Button onClick={() => removeEditExercise(exIndex)} style={{ background: 'var(--danger)', color: 'white' }}>운동 제거</Button>
-                      </div>
-                      {ex.sets.map((set, setIndex) => (
-                        <SetInputGrid key={`${set.id ?? 'new'}-${setIndex}`}>
-                          <span>{set.displayOrder}세트</span>
-                          <StyledInput
-                            type="number"
-                            value={set.weightKg}
-                            onChange={handleEditSetChange(exIndex, setIndex, 'weightKg')}
-                            placeholder="무게(kg)"
-                          />
-                          <StyledInput
-                            type="number"
-                            value={set.reps}
-                            onChange={handleEditSetChange(exIndex, setIndex, 'reps')}
-                            placeholder="횟수"
-                          />
-                          <Button onClick={() => removeEditSet(exIndex, setIndex)} style={{ fontSize: 'var(--fs-lg)' }}>-</Button>
-                        </SetInputGrid>
-                      ))}
-                      <Button onClick={() => addEditSet(exIndex)} className="btn-ghost" style={{ width: '100%', marginTop: '12px' }}>세트 추가 (+)</Button>
-                    </SelectedExerciseCard>
-                  ))}
+                  {/* 운동 카드 드래그 컨텍스트 */}
+                  <DragDropContext onDragEnd={onEditExerciseDragEnd}>
+                    <Droppable droppableId="edit-exercise-list" type="EXERCISE">
+                      {(dp) => (
+                        <div ref={dp.innerRef} {...dp.droppableProps} style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                          {editState.routineExercises.map((ex, exIndex) => (
+                            <Draggable
+                              key={`${ex.routineExerciseId}-${ex.exerciseId}`}
+                              draggableId={`${ex.routineExerciseId}-${ex.exerciseId}`}
+                              index={exIndex}
+                            >
+                              {(drag, snap) => (
+                                <SelectedExerciseCard
+                                  ref={drag.innerRef}
+                                  {...drag.draggableProps}
+                                  style={{
+                                    ...drag.draggableProps.style,
+                                    boxShadow: snap.isDragging ? 'var(--shadow-2)' : 'var(--shadow-1)',
+                                  }}
+                                >
+                                  {/* 드래그 핸들: 제목 바 전체 */}
+                                  <div
+                                    {...drag.dragHandleProps}
+                                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, cursor: 'grab' }}
+                                  >
+                                    <h3 className="fs-md">
+                                      {ex.displayOrder}. {ex.name}
+                                      {ex.routineExerciseId === 0 && <small style={{ marginLeft: 8, color: 'var(--text-3)' }}>(신규)</small>}
+                                    </h3>
+                                    <Button onClick={() => removeEditExercise(exIndex)} style={{ background: 'var(--danger)', color: 'white' }}>
+                                      운동 제거
+                                    </Button>
+                                  </div>
+
+                                  {/* 세트 드래그 컨텍스트 (운동별로 분리) */}
+                                  <DragDropContext onDragEnd={onEditSetDragEnd(exIndex)}>
+                                    <Droppable droppableId={`set-list-${exIndex}`} type={`SET-${exIndex}`}>
+                                      {(dpSet) => (
+                                        <div ref={dpSet.innerRef} {...dpSet.droppableProps}>
+                                          {ex.sets.map((set, setIndex) => (
+                                            <Draggable
+                                              key={`${set.id ?? 'new'}-${setIndex}`}
+                                              draggableId={`set-${exIndex}-${set.id ?? 'new'}-${setIndex}`}
+                                              index={setIndex}
+                                            >
+                                              {(dragSet, snapSet) => (
+                                                <div
+                                                  ref={dragSet.innerRef}
+                                                  {...dragSet.draggableProps}
+                                                  style={{
+                                                    ...dragSet.draggableProps.style,
+                                                    border: '1px dashed var(--border-2)',
+                                                    padding: '8px',
+                                                    marginBottom: '8px',
+                                                    borderRadius: '8px',
+                                                    boxShadow: snapSet.isDragging ? 'var(--shadow-2)' : undefined,
+                                                  }}
+                                                >
+                                                  {/* 핸들 */}
+                                                  <div {...dragSet.dragHandleProps} style={{ cursor:'grab', opacity:.8, marginBottom:8 }}>
+                                                    ⋮⋮
+                                                  </div>
+
+                                                  <SetInputGrid>
+                                                    <span>{set.displayOrder}세트</span>
+                                                    <StyledInput
+                                                      type="number"
+                                                      value={set.weightKg}
+                                                      onChange={handleEditSetChange(exIndex, setIndex, 'weightKg')}
+                                                      placeholder="무게(kg)"
+                                                    />
+                                                    <StyledInput
+                                                      type="number"
+                                                      value={set.reps}
+                                                      onChange={handleEditSetChange(exIndex, setIndex, 'reps')}
+                                                      placeholder="횟수"
+                                                    />
+                                                    <Button onClick={() => removeEditSet(exIndex, setIndex)} style={{ fontSize:'var(--fs-lg)' }}>-</Button>
+                                                  </SetInputGrid>
+                                                </div>
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                          {dpSet.placeholder}
+                                        </div>
+                                      )}
+                                    </Droppable>
+                                  </DragDropContext>
+
+                                  <Button onClick={() => addEditSet(exIndex)} className="btn-ghost" style={{ width: '100%', marginTop: '12px' }}>
+                                    세트 추가 (+)
+                                  </Button>
+                                </SelectedExerciseCard>
+                              )}
+                            </Draggable>
+                          ))}
+                          {dp.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </DragDropContext>
                 </RoutineBuilder>
 
                 <ActionGroup style={{ marginTop: 'var(--space-4)' }}>

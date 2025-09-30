@@ -13,11 +13,7 @@ const RoutineApi = {
 
   getRoutineList(userId : number, params : Pageable): Promise<Page<RoutineSummaryResponseDto>> {
     return apiClient.get(`/api/routine/user/${userId}`, { params })
-    // .then(response => response.data);
-      .then(response => {
-        console.log(response.data);
-        return response.data;
-      });
+    .then(response => response.data);
   },
 
   getRoutine(id : number) : Promise<RoutineDetailResponseDto> {
