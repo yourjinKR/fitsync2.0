@@ -93,4 +93,12 @@ interface RoutineExerciseDto3 {
   sets : RoutineSetDto[];
 }
 
+// 루틴 정렬 수정 DTO
+export interface RoutineSimpleRequestDto {
+  id : number;
+  name : string;
+  displayOrder : number;
+  memo : string;
+}
+
 

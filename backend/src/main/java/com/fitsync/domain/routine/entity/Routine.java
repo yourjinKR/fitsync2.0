@@ -1,5 +1,6 @@
 package com.fitsync.domain.routine.entity;
 
+import com.fitsync.domain.routine.dto.RoutineSimpleRequestDto;
 import com.fitsync.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -60,10 +61,18 @@ public class Routine {
         exercise.setRoutine(this);
     }
 
+    // PUT UPDATE
     public void updateBasic(String name, Integer displayOrder, String memo) {
         if (name != null) this.name = name;
         if (displayOrder != null) this.displayOrder = displayOrder;
         if (memo != null) this.memo = memo;
+    }
+
+    // PATCH UPDATE
+    public void updateBasic(RoutineSimpleRequestDto requestDto) {
+        if (name != null) this.name = requestDto.getName();
+        if (displayOrder != null) this.displayOrder = requestDto.getDisplayOrder();
+        if (memo != null) this.memo = requestDto.getMemo();
     }
 
 }

@@ -557,6 +557,14 @@ const RoutineTestPage = () => {
   return (
     <>
       <Header><h1>루틴 관리 테스트</h1></Header>
+      {/* TODO : 추후 삭제 필요 */}
+      <button onClick={
+        () => {
+          RoutineApi.updateRoutineHeader(11, {id : 11, name : "직접 수정 테스트123", displayOrder : 1, memo : "무야호!!!"})
+        }
+      }>
+        테스트
+      </button>
       <PageWrapper>
         {/* === Column 1: 운동 목록 / 사용자 루틴 리스트 / 루틴 조회 === */}
         <aside>

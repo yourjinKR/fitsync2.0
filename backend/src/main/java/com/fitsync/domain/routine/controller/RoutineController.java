@@ -10,8 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -71,13 +69,21 @@ public class RoutineController {
         return ResponseEntity.ok(result);
     }
 
-    // 루틴명 수정
+    // 루틴 기본 정보 수정 (이름, 메모)
+    @PatchMapping("/header/{id}")
+    public ResponseEntity<Void> updateRoutineHeader(@PathVariable("id") Long id, @RequestBody RoutineSimpleRequestDto requestDto) {
 
+        routineService.updateRoutineHeader(id, requestDto);
 
+        return ResponseEntity.ok().build();
+    }
 
+    // 루틴간 정렬 변경
+    @PatchMapping("/displayOrder")
+    public ResponseEntity<Void> sortRoutine(@RequestBody List<RoutineSimpleRequestDto> requestDtos) {
 
-    // 루틴 정렬 변경
+        routineService.sortRoutine(requestDtos);
 
-
-
+        return ResponseEntity.ok().build();
+    }
 }

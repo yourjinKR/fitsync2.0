@@ -8,8 +8,8 @@ import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
 import com.fitsync.domain.routine.repository.RoutineRepository;
 import com.fitsync.domain.user.entity.User;
+import com.fitsync.global.error.exception.ResourceNotFoundException;
 import com.fitsync.global.util.LoginUserProvider;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +50,7 @@ public class RoutineService {
 
                 // 3-1. exerciseId로 Exercise 엔티티 조회
                 Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
-                        .orElseThrow(() -> new EntityNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
 
                 // 3-2. RoutineExercise 엔티티 생성
                 RoutineExercise routineExercise = RoutineExercise.builder()
@@ -95,9 +95,34 @@ public class RoutineService {
     public RoutineDetailResponseDto getRoutine(Long id) {
 
         Routine routine = routineRepository.findRoutineDetailsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("해당 루틴을 찾지 못함 : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
         return new RoutineDetailResponseDto(routine);
+    }
+
+    // 루틴 기본정보 수정
+    @Transactional
+    public void updateRoutineHeader(Long id, RoutineSimpleRequestDto requestDto) {
+
+        Routine routine = routineRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
+
+        routine.updateBasic(requestDto);
+    }
+
+    // 루틴 순서 정렬
+    @Transactional
+    public void sortRoutine(List<RoutineSimpleRequestDto> requestDtos) {
+
+        // 각각의 id로 entity 조회 후 업데이트
+        requestDtos.forEach(dto -> {
+            Long id = dto.getId();
+            Routine routine = routineRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
+
+            routine.updateBasic(dto);
+        });
+
     }
 
 
@@ -110,7 +135,7 @@ public class RoutineService {
     public RoutineDetailResponseDto updateRoutine(Long id, RoutineUpdateRequestDto requestDto) {
         // 1) 루틴 + 운동까지 로딩 (세트는 @BatchSize 로 효율적 로딩)
         Routine routine = routineRepository.findRoutineDetailsById(id)
-                .orElseThrow(() -> new EntityNotFoundException("해당 루틴을 찾지 못했습니다. id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못했습니다. id=" + id));
 
         // 2) 루틴 기본정보 업데이트 (null 값은 무시)
         routine.updateBasic(
@@ -172,14 +197,14 @@ public class RoutineService {
                 // 수정
                 RoutineExercise target = existingMap.get(dto.getId());
                 if (target == null) {
-                    throw new EntityNotFoundException("수정 대상 RoutineExercise 를 찾지 못했습니다. id=" + dto.getId());
+                    throw new ResourceNotFoundException("수정 대상 RoutineExercise 를 찾지 못했습니다. id=" + dto.getId());
                 }
 
                 Exercise newExercise = null;
                 if (dto.getExerciseId() != null) {
                     newExercise = exerciseRef.get(dto.getExerciseId());
                     if (newExercise == null) {
-                        throw new EntityNotFoundException("운동 정보를 찾지 못했습니다. exerciseId=" + dto.getExerciseId());
+                        throw new ResourceNotFoundException("운동 정보를 찾지 못했습니다. exerciseId=" + dto.getExerciseId());
                     }
                 }
 
@@ -221,7 +246,7 @@ public class RoutineService {
             } else {
                 RoutineSet target = existingMap.get(s.getId());
                 if (target == null) {
-                    throw new EntityNotFoundException("수정 대상 RoutineSet 을 찾지 못했습니다. id=" + s.getId());
+                    throw new ResourceNotFoundException("수정 대상 RoutineSet 을 찾지 못했습니다. id=" + s.getId());
                 }
                 target.updateBasic(
                         s.getDisplayOrder(),
@@ -236,14 +261,17 @@ public class RoutineService {
 
     // ===== 팩토리/헬퍼 =====
 
-    private RoutineExercise buildRoutineExercise(RoutineUpdateRequestDto.RoutineExerciseDto dto,
-                                                 Map<Long, Exercise> exerciseRef) {
+    // DTO -> Entity
+    private RoutineExercise buildRoutineExercise(
+            RoutineUpdateRequestDto.RoutineExerciseDto dto,
+            Map<Long, Exercise> exerciseRef) {
+
         if (dto.getExerciseId() == null) {
-            throw new IllegalArgumentException("신규 RoutineExercise 생성 시 exerciseId 는 필수입니다.");
+            throw new ResourceNotFoundException("신규 RoutineExercise 생성 시 exerciseId 는 필수입니다.");
         }
         Exercise exercise = exerciseRef.get(dto.getExerciseId());
         if (exercise == null) {
-            throw new EntityNotFoundException("운동 정보를 찾지 못했습니다. exerciseId=" + dto.getExerciseId());
+            throw new ResourceNotFoundException("운동 정보를 찾지 못했습니다. exerciseId=" + dto.getExerciseId());
         }
         return RoutineExercise.builder()
                 .exercise(exercise)
@@ -252,6 +280,7 @@ public class RoutineService {
                 .build();
     }
 
+    // DTO -> Entity
     private RoutineSet buildRoutineSet(RoutineUpdateRequestDto.RoutineSetDto s) {
         return RoutineSet.builder()
                 .displayOrder(nullSafe(s.getDisplayOrder(), 0))
@@ -262,12 +291,15 @@ public class RoutineService {
                 .build();
     }
 
+    // ID 목록을 받고 Map으로 변환
     private Map<Long, Exercise> loadExercisesAsMap(Set<Long> ids) {
         if (ids.isEmpty()) return Collections.emptyMap();
         return exerciseRepository.findAllById(ids).stream()
+                // identity는 i -> i와 동일, 가독성/일관성을 위해 사용
                 .collect(Collectors.toMap(Exercise::getId, Function.identity()));
     }
 
+    // 기본값 타입 강화
     private int nullSafe(Integer v, int defaultVal) {
         return v != null ? v : defaultVal;
     }
