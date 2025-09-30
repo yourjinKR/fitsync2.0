@@ -1,17 +1,21 @@
+// src/pages/RoutineTestPage.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import ExerciseApi from '../api/ExerciseApi';
 import RoutineApi from '../api/RoutineApi';
 import { ExerciseSimpleResponseDto } from '../types/domain/exercise';
-// --- 타입 임포트 수정 ---
-import { 
-  RoutineCreateRequestDto, 
-  RoutineCreateResponseDto, 
-  RoutineDetailResponseDto 
+import {
+  RoutineCreateRequestDto,
+  RoutineCreateResponseDto,
+  RoutineDetailResponseDto,
+  RoutineUpdateRequestDto,
 } from '../types/domain/routine';
 import { ApiError } from '../types/error';
 
-// --- 타입 정의: 페이지 내부에서 사용하는 '만들고 있는 루틴'의 타입 ---
+/* ------------------------------------------------------------------ */
+/* 1) 이 페이지에서만 쓰는 편집용 타입                                 */
+/* ------------------------------------------------------------------ */
 type BuildingExercise = {
   exerciseId: number;
   name: string; // UI 표시용
@@ -24,16 +28,47 @@ type BuildingExercise = {
   }[];
 };
 
-// --- 초기 상태 정의 ---
-const INITIAL_ROUTINE_STATE = {
+type EditingSet = {
+  id: number | null; // RoutineSetDto.id
+  displayOrder: number;
+  weightKg: number;
+  reps: number;
+  distanceMeter: number;
+  durationSecond: number;
+};
+
+type EditingExercise = {
+  // routine_exercises.id
+  routineExerciseId: number; // 조회 응답의 ex.id
+  exerciseId: number;        // 실제 운동 id
+  name: string;              // UI 표시용
+  displayOrder: number;
+  memo: string;
+  sets: EditingSet[];
+};
+
+type EditingRoutine = {
+  id: number;
+  name: string;
+  displayOrder: number;
+  memo: string;
+  routineExercises: EditingExercise[];
+};
+
+/* ------------------------------------------------------------------ */
+/* 2) 초기 상태                                                        */
+/* ------------------------------------------------------------------ */
+const INITIAL_CREATE_STATE = {
   name: '나의 새로운 루틴',
   memo: '이 루틴은...',
   exercises: [] as BuildingExercise[],
 };
 
-// ==============================================================================
-// === Styled Components (스타일 정의 - 이전과 동일) ===============================
-// ==============================================================================
+const INITIAL_EDIT_STATE: EditingRoutine | null = null;
+
+/* ------------------------------------------------------------------ */
+/* 3) 스타일들 (기존 유지)                                             */
+/* ------------------------------------------------------------------ */
 const PageWrapper = styled.div`
   max-width: var(--container-max);
   margin: 0 auto;
@@ -116,90 +151,112 @@ const ResultDisplay = styled.div`
   overflow-y: auto;
 `;
 
-// ==============================================================================
-// === Component Logic (컴포넌트 로직) ==========================================
-// ==============================================================================
+/* ------------------------------------------------------------------ */
+/* 4) 컴포넌트                                                         */
+/* ------------------------------------------------------------------ */
 const RoutineTestPage = () => {
   const [allExercises, setAllExercises] = useState<ExerciseSimpleResponseDto[]>([]);
-  const [myRoutine, setMyRoutine] = useState(INITIAL_ROUTINE_STATE);
-  // --- 상태 타입 수정 ---
-  const [createdRoutineInfo, setCreatedRoutineInfo] = useState<RoutineCreateResponseDto | null>(null);
-  const [viewRoutineId, setViewRoutineId] = useState('');
-  const [detailedRoutine, setDetailedRoutine] = useState<RoutineDetailResponseDto | null>(null);
 
-  // 1. 전체 운동 목록 불러오기 (로직 동일)
+  // 생성용 상태
+  const [createState, setCreateState] = useState(INITIAL_CREATE_STATE);
+  const [createdRoutineInfo, setCreatedRoutineInfo] = useState<RoutineCreateResponseDto | null>(null);
+
+  // 조회/수정용 상태
+  const [viewRoutineId, setViewRoutineId] = useState('');
+  const [viewedRoutine, setViewedRoutine] = useState<RoutineDetailResponseDto | null>(null);
+  const [editState, setEditState] = useState<EditingRoutine | null>(INITIAL_EDIT_STATE);
+
+  /* ------------------ 전체 운동 목록 ------------------ */
   const fetchAllExercises = useCallback(async () => {
     try {
       const data = await ExerciseApi.getAllExercises({ page: 0, size: 100, sort: 'name,asc' });
       setAllExercises(data.content);
-    } catch (error) { console.error("❌ 전체 운동 조회 실패:", error); }
+    } catch (error) {
+      console.error('❌ 전체 운동 조회 실패:', error);
+    }
   }, []);
 
   useEffect(() => { fetchAllExercises(); }, [fetchAllExercises]);
 
-  // 2. 루틴 생성기 관련 핸들러 (로직 동일)
-  const handleAddToRoutine = (exercise: ExerciseSimpleResponseDto) => {
-    setMyRoutine(prev => ({
+  /* ------------------ 생성기 핸들러 ------------------ */
+  const handleAddToCreate = (exercise: ExerciseSimpleResponseDto) => {
+    setCreateState(prev => ({
       ...prev,
-      exercises: [...prev.exercises, {
-        exerciseId: exercise.id,
-        name: exercise.name,
-        sets: [{ displayOrder: 1, weightKg: 60, reps: 10, distanceMeter: 0, durationSecond: 0 }],
-      }],
+      exercises: [
+        ...prev.exercises,
+        {
+          exerciseId: exercise.id,
+          name: exercise.name,
+          sets: [{ displayOrder: 1, weightKg: 60, reps: 10, distanceMeter: 0, durationSecond: 0 }],
+        },
+      ],
     }));
   };
-  
-  const handleRoutineInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+  const handleCreateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setMyRoutine(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSetChange = (exIndex: number, setIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const newExercises = [...myRoutine.exercises];
-    newExercises[exIndex].sets[setIndex] = {
-      ...newExercises[exIndex].sets[setIndex],
-      [name]: Number(value)
-    };
-    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+    setCreateState(prev => ({ ...prev, [name]: value }));
   };
 
-  const addSet = (exIndex: number) => {
-    const newExercises = [...myRoutine.exercises];
+  type SetEditableField = 'weightKg' | 'reps' | 'distanceMeter' | 'durationSecond';
+
+  const handleCreateSetChange =
+    (exIndex: number, setIndex: number, field: SetEditableField) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const valueNum = Number(e.target.value);
+      setCreateState(prev => {
+        const exercises = [...prev.exercises];
+        const targetSet = { ...exercises[exIndex].sets[setIndex], [field]: valueNum };
+        exercises[exIndex].sets = [
+          ...exercises[exIndex].sets.slice(0, setIndex),
+          targetSet,
+          ...exercises[exIndex].sets.slice(setIndex + 1),
+        ];
+        return { ...prev, exercises };
+      });
+    };
+
+  const addCreateSet = (exIndex: number) => {
+    const newExercises = [...createState.exercises];
     const newOrder = newExercises[exIndex].sets.length + 1;
     newExercises[exIndex].sets.push({ displayOrder: newOrder, weightKg: 0, reps: 0, distanceMeter: 0, durationSecond: 0 });
-    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+    setCreateState(prev => ({ ...prev, exercises: newExercises }));
   };
 
-  const removeSet = (exIndex: number, setIndex: number) => {
-    const newExercises = [...myRoutine.exercises];
+  const removeCreateSet = (exIndex: number, setIndex: number) => {
+    const newExercises = [...createState.exercises];
     newExercises[exIndex].sets.splice(setIndex, 1);
-    newExercises[exIndex].sets.forEach((set, i) => set.displayOrder = i + 1);
-    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
+    newExercises[exIndex].sets.forEach((s, i) => (s.displayOrder = i + 1));
+    setCreateState(prev => ({ ...prev, exercises: newExercises }));
   };
-  
-  const removeExerciseFromRoutine = (exIndex: number) => {
-    const newExercises = myRoutine.exercises.filter((_, i) => i !== exIndex);
-    setMyRoutine(prev => ({ ...prev, exercises: newExercises }));
-  };
-  
-  // 3. 루틴 생성 API 호출
-  const handleCreateRoutine = async () => {
-    if (!myRoutine.name) return alert('루틴 이름을 입력해주세요.');
-    if (myRoutine.exercises.length === 0) return alert('운동을 하나 이상 추가해주세요.');
 
-    // --- DTO 타입 수정 ---
+  const removeCreateExercise = (exIndex: number) => {
+    const newExercises = createState.exercises.filter((_, i) => i !== exIndex);
+    setCreateState(prev => ({ ...prev, exercises: newExercises }));
+  };
+
+  const handleCreateRoutine = async () => {
+    if (!createState.name) return alert('루틴 이름을 입력해주세요.');
+    if (createState.exercises.length === 0) return alert('운동을 하나 이상 추가해주세요.');
+
     const requestDto: RoutineCreateRequestDto = {
-      ownerId: 1, // 테스트용 하드코딩
-      writerId: 1, // 테스트용 하드코딩
-      name: myRoutine.name,
-      memo: myRoutine.memo,
-      displayOrder: 0, // 미사용
-      exercises: myRoutine.exercises.map((ex, index) => ({
+      ownerId: 1, // 테스트용
+      writerId: 1, // 테스트용
+      name: createState.name,
+      memo: createState.memo,
+      displayOrder: 0,
+      exercises: createState.exercises.map((ex, index) => ({
         exerciseId: ex.exerciseId,
         displayOrder: index + 1,
-        memo: '', // 미사용
-        sets: ex.sets,
+        memo: '',
+        sets: ex.sets.map(set => ({
+          id: null,
+          displayOrder: set.displayOrder,
+          weightKg: set.weightKg,
+          reps: set.reps,
+          distanceMeter: set.distanceMeter,
+          durationSecond: set.durationSecond,
+        })),
       })),
     };
 
@@ -207,28 +264,148 @@ const RoutineTestPage = () => {
       const response = await RoutineApi.createRoutine(requestDto);
       setCreatedRoutineInfo(response);
       alert(`루틴 생성 성공! ID: ${response.id}`);
-      setMyRoutine(INITIAL_ROUTINE_STATE);
+      setCreateState(INITIAL_CREATE_STATE);
     } catch (err) {
       const error = err as ApiError;
       alert(`루틴 생성 실패: ${error.message}`);
     }
   };
 
-  // 4. 루틴 조회 API 호출 (로직 동일)
+  /* ------------------ 조회 & 편집 상태로 변환 ------------------ */
   const handleViewRoutine = async () => {
     if (!viewRoutineId) return alert('조회할 루틴 ID를 입력하세요.');
     try {
       const id = parseInt(viewRoutineId, 10);
       const data = await RoutineApi.getRoutine(id);
-      setDetailedRoutine(data);
+      setViewedRoutine(data);
     } catch (err) {
       const error = err as ApiError;
       alert(`루틴 조회 실패: ${error.message}`);
-      setDetailedRoutine(null);
+      setViewedRoutine(null);
     }
   };
 
-  // 5. 렌더링 (로직 동일)
+  // 조회된 루틴을 편집 모드로 불러오기
+  const loadToEdit = () => {
+    if (!viewedRoutine) return;
+    const mapped: EditingRoutine = {
+      id: viewedRoutine.id,
+      name: viewedRoutine.name,
+      displayOrder: viewedRoutine.displayOrder ?? 0,
+      memo: viewedRoutine.memo ?? '',
+      routineExercises: viewedRoutine.exercises
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((ex, idx) => ({
+          routineExerciseId: ex.id,
+          exerciseId: ex.exercise.id,
+          name: ex.exercise.name,
+          displayOrder: idx + 1,
+          memo: ex.memo ?? '',
+          sets: ex.sets
+            .sort((s1, s2) => s1.displayOrder - s2.displayOrder)
+            .map(s => ({
+              id: s.id ?? null,
+              displayOrder: s.displayOrder,
+              weightKg: s.weightKg,
+              reps: s.reps,
+              distanceMeter: s.distanceMeter,
+              durationSecond: s.durationSecond,
+            })),
+        })),
+    };
+    setEditState(mapped);
+    alert('편집 모드로 불러왔습니다.');
+  };
+
+  /* ------------------ 편집기 핸들러 ------------------ */
+  const handleEditHeaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!editState) return;
+    const { name, value } = e.target;
+    setEditState({ ...editState, [name]: value } as EditingRoutine);
+  };
+
+  const handleEditSetChange =
+    (exIndex: number, setIndex: number, field: SetEditableField) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!editState) return;
+      const valueNum = Number(e.target.value);
+      const newExercises = [...editState.routineExercises];
+      const sets = [...newExercises[exIndex].sets];
+      sets[setIndex] = { ...sets[setIndex], [field]: valueNum };
+      newExercises[exIndex] = { ...newExercises[exIndex], sets };
+      setEditState({ ...editState, routineExercises: newExercises });
+    };
+
+  const addEditSet = (exIndex: number) => {
+    if (!editState) return;
+    const newExercises = [...editState.routineExercises];
+    const nextOrder = newExercises[exIndex].sets.length + 1;
+    newExercises[exIndex].sets.push({
+      id: null,
+      displayOrder: nextOrder,
+      weightKg: 0,
+      reps: 0,
+      distanceMeter: 0,
+      durationSecond: 0,
+    });
+    setEditState({ ...editState, routineExercises: newExercises });
+  };
+
+  const removeEditSet = (exIndex: number, setIndex: number) => {
+    if (!editState) return;
+    const newExercises = [...editState.routineExercises];
+    newExercises[exIndex].sets.splice(setIndex, 1);
+    newExercises[exIndex].sets.forEach((s, i) => (s.displayOrder = i + 1));
+    setEditState({ ...editState, routineExercises: newExercises });
+  };
+
+  const removeEditExercise = (exIndex: number) => {
+    if (!editState) return;
+    const newExercises = editState.routineExercises.filter((_, i) => i !== exIndex);
+    newExercises.forEach((ex, i) => (ex.displayOrder = i + 1));
+    setEditState({ ...editState, routineExercises: newExercises });
+  };
+
+  const handleUpdateRoutine = async () => {
+    if (!editState) return alert('편집할 루틴이 없습니다.');
+    if (!editState.name) return alert('루틴 이름을 입력해주세요.');
+    if (editState.routineExercises.length === 0) return alert('최소 1개의 운동이 필요합니다.');
+
+    // 서버가 "DTO에 없는 id는 삭제" 로직을 갖고 있다고 하셨으므로,
+    // 현재 편집 상태 그대로 매핑합니다.
+    const dto: RoutineUpdateRequestDto = {
+      id: editState.id,
+      name: editState.name,
+      displayOrder: editState.displayOrder ?? 0,
+      memo: editState.memo ?? '',
+      routineExercises: editState.routineExercises.map(ex => ({
+        id: ex.routineExerciseId,
+        exerciseId: ex.exerciseId,
+        displayOrder: ex.displayOrder,
+        memo: ex.memo ?? '',
+        sets: ex.sets.map(s => ({
+          id: s.id, // null이면 신규, 값 있으면 유지/수정
+          displayOrder: s.displayOrder,
+          weightKg: s.weightKg,
+          reps: s.reps,
+          distanceMeter: s.distanceMeter,
+          durationSecond: s.durationSecond,
+        })),
+      })),
+    };
+
+    try {
+      const updated = await RoutineApi.updateRoutine(editState.id, dto);
+      // 성공 시, 최신 상태로 화면 갱신
+      setViewedRoutine(updated);
+      alert('루틴 수정 성공!');
+    } catch (err) {
+      const error = err as ApiError;
+      alert(`루틴 수정 실패: ${error.message}`);
+    }
+  };
+
+  /* ------------------ 렌더링 ------------------ */
   return (
     <>
       <Header><h1>루틴 관리 테스트</h1></Header>
@@ -241,36 +418,52 @@ const RoutineTestPage = () => {
               {allExercises.map(ex => (
                 <ExerciseListItem key={ex.id}>
                   <span>{ex.name} <small>({ex.category})</small></span>
-                  <Button 
-                    onClick={() => handleAddToRoutine(ex)}
-                    disabled={myRoutine.exercises.some(e => e.exerciseId === ex.id)}
+                  <Button
+                    onClick={() => handleAddToCreate(ex)}
+                    disabled={createState.exercises.some(e => e.exerciseId === ex.id)}
                     className="btn-primary"
-                    style={{padding: '4px 8px', fontSize: 'var(--fs-xs)'}}
+                    style={{ padding: '4px 8px', fontSize: 'var(--fs-xs)' }}
                   >
-                    추가
+                    생성용 추가
                   </Button>
                 </ExerciseListItem>
               ))}
             </ExerciseList>
           </SectionCard>
-          
-          <SectionCard style={{marginTop: 'var(--space-8)'}}>
+
+          <SectionCard style={{ marginTop: 'var(--space-8)' }}>
             <h2 className="fs-lg">루틴 상세 조회</h2>
             <FormGroup>
               <Label htmlFor="viewId">루틴 ID</Label>
-              <StyledInput id="viewId" type="number" value={viewRoutineId} onChange={e => setViewRoutineId(e.target.value)} placeholder="조회할 ID 입력"/>
+              <StyledInput
+                id="viewId"
+                type="number"
+                value={viewRoutineId}
+                onChange={e => setViewRoutineId(e.target.value)}
+                placeholder="조회할 ID 입력"
+              />
             </FormGroup>
-            <Button onClick={handleViewRoutine} className="btn-primary">조회하기</Button>
-            {detailedRoutine && (
+            <ActionGroup>
+              <Button onClick={handleViewRoutine} className="btn-primary">조회하기</Button>
+              <Button
+                onClick={loadToEdit}
+                disabled={!viewedRoutine}
+                className="btn-ghost"
+              >
+                편집 모드로 불러오기
+              </Button>
+            </ActionGroup>
+
+            {viewedRoutine && (
               <ResultDisplay>
-                <h3>{detailedRoutine.name} (ID: {detailedRoutine.id})</h3>
-                <p>메모: {detailedRoutine.memo || '없음'}</p>
+                <h3>{viewedRoutine.name} (ID: {viewedRoutine.id})</h3>
+                <p>메모: {viewedRoutine.memo || '없음'}</p>
                 <hr />
-                {detailedRoutine.exercises.map((ex, i) => (
-                  <div key={i} style={{marginBottom: '12px'}}>
+                {viewedRoutine.exercises.map((ex, i) => (
+                  <div key={i} style={{ marginBottom: '12px' }}>
                     <strong>{ex.displayOrder}. {ex.exercise.name}</strong>
                     {ex.sets.map((set, j) => (
-                      <div key={j} style={{paddingLeft: '16px', fontSize: '1.3rem'}}>
+                      <div key={j} style={{ paddingLeft: '16px', fontSize: '1.3rem' }}>
                         - {set.displayOrder}세트: {set.weightKg}kg / {set.reps}회
                       </div>
                     ))}
@@ -281,53 +474,126 @@ const RoutineTestPage = () => {
           </SectionCard>
         </aside>
 
-        {/* === Column 2: 루틴 생성기 === */}
+        {/* === Column 2: 생성기 + 편집기 === */}
         <main>
+          {/* 생성기 */}
           <SectionCard>
             <h2 className="fs-lg">루틴 생성기</h2>
             <RoutineBuilder>
               <FormGroup>
-                <Label htmlFor="name">루틴 이름</Label>
-                <StyledInput id="name" name="name" value={myRoutine.name} onChange={handleRoutineInputChange} />
+                <Label htmlFor="createName">루틴 이름</Label>
+                <StyledInput id="createName" name="name" value={createState.name} onChange={handleCreateInputChange} />
               </FormGroup>
               <FormGroup>
-                <Label htmlFor="memo">루틴 메모</Label>
-                <StyledTextarea id="memo" name="memo" value={myRoutine.memo} onChange={handleRoutineInputChange} />
+                <Label htmlFor="createMemo">루틴 메모</Label>
+                <StyledTextarea id="createMemo" name="memo" value={createState.memo} onChange={handleCreateInputChange} />
               </FormGroup>
-              
-              <hr style={{border: 0, borderTop: `1px solid var(--border-1)`}}/>
 
-              {myRoutine.exercises.length === 0 && <p style={{color: 'var(--text-3)', textAlign: 'center'}}>왼쪽 목록에서 운동을 추가해주세요.</p>}
-              
-              {myRoutine.exercises.map((ex, exIndex) => (
+              <hr style={{ border: 0, borderTop: `1px solid var(--border-1)` }} />
+
+              {createState.exercises.length === 0 && (
+                <p style={{ color: 'var(--text-3)', textAlign: 'center' }}>왼쪽 목록에서 운동을 추가해주세요.</p>
+              )}
+
+              {createState.exercises.map((ex, exIndex) => (
                 <SelectedExerciseCard key={ex.exerciseId}>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <h3 className="fs-md">{exIndex + 1}. {ex.name}</h3>
-                    <Button onClick={() => removeExerciseFromRoutine(exIndex)} style={{background: 'var(--danger)', color: 'white'}}>운동 제외</Button>
+                    <Button onClick={() => removeCreateExercise(exIndex)} style={{ background: 'var(--danger)', color: 'white' }}>운동 제외</Button>
                   </div>
                   {ex.sets.map((set, setIndex) => (
                     <SetInputGrid key={setIndex}>
                       <span>{set.displayOrder}세트</span>
-                      <StyledInput type="number" name="weightKg" value={set.weightKg} onChange={e => handleSetChange(exIndex, setIndex, e)} placeholder="무게(kg)" />
-                      <StyledInput type="number" name="reps" value={set.reps} onChange={e => handleSetChange(exIndex, setIndex, e)} placeholder="횟수" />
-                      <Button onClick={() => removeSet(exIndex, setIndex)} style={{fontSize: 'var(--fs-lg)'}}>-</Button>
+                      <StyledInput
+                        type="number"
+                        value={set.weightKg}
+                        onChange={handleCreateSetChange(exIndex, setIndex, 'weightKg')}
+                        placeholder="무게(kg)"
+                      />
+                      <StyledInput
+                        type="number"
+                        value={set.reps}
+                        onChange={handleCreateSetChange(exIndex, setIndex, 'reps')}
+                        placeholder="횟수"
+                      />
+                      <Button onClick={() => removeCreateSet(exIndex, setIndex)} style={{ fontSize: 'var(--fs-lg)' }}>-</Button>
                     </SetInputGrid>
                   ))}
-                  <Button onClick={() => addSet(exIndex)} className="btn-ghost" style={{width: '100%', marginTop: '12px'}}>세트 추가 (+)</Button>
+                  <Button onClick={() => addCreateSet(exIndex)} className="btn-ghost" style={{ width: '100%', marginTop: '12px' }}>세트 추가 (+)</Button>
                 </SelectedExerciseCard>
               ))}
-
             </RoutineBuilder>
-            <ActionGroup style={{marginTop: 'var(--space-4)'}}>
-              <Button onClick={handleCreateRoutine} className="btn-primary" style={{width: '100%', padding: '16px'}}>루틴 생성하기</Button>
+
+            <ActionGroup style={{ marginTop: 'var(--space-4)' }}>
+              <Button onClick={handleCreateRoutine} className="btn-primary" style={{ width: '100%', padding: '16px' }}>루틴 생성하기</Button>
             </ActionGroup>
 
             {createdRoutineInfo && (
               <ResultDisplay>
                 <strong>✅ 생성 성공!</strong>
                 <p>생성된 루틴 ID: {createdRoutineInfo.id}</p>
-                <p>위 ID를 왼쪽 조회 폼에 입력하여 확인할 수 있습니다.</p>
+                <p>왼쪽 조회 폼에 입력하여 확인할 수 있습니다.</p>
               </ResultDisplay>
+            )}
+          </SectionCard>
+
+          {/* 편집기 */}
+          <SectionCard>
+            <h2 className="fs-lg">루틴 수정기</h2>
+            {!editState && <p style={{ color: 'var(--text-3)' }}>왼쪽에서 루틴을 조회한 뒤, “편집 모드로 불러오기”를 클릭하세요.</p>}
+            {editState && (
+              <>
+                <RoutineBuilder>
+                  <FormGroup>
+                    <Label htmlFor="editName">루틴 이름</Label>
+                    <StyledInput id="editName" name="name" value={editState.name} onChange={handleEditHeaderChange} />
+                  </FormGroup>
+                  <FormGroup>
+                    <Label htmlFor="editMemo">루틴 메모</Label>
+                    <StyledTextarea id="editMemo" name="memo" value={editState.memo} onChange={handleEditHeaderChange} />
+                  </FormGroup>
+
+                  <hr style={{ border: 0, borderTop: `1px solid var(--border-1)` }} />
+
+                  {editState.routineExercises.length === 0 && (
+                    <p style={{ color: 'var(--text-3)', textAlign: 'center' }}>현재 편집 중인 운동이 없습니다.</p>
+                  )}
+
+                  {editState.routineExercises.map((ex, exIndex) => (
+                    <SelectedExerciseCard key={`${ex.routineExerciseId}-${ex.exerciseId}`}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <h3 className="fs-md">{ex.displayOrder}. {ex.name}</h3>
+                        <Button onClick={() => removeEditExercise(exIndex)} style={{ background: 'var(--danger)', color: 'white' }}>운동 제거</Button>
+                      </div>
+                      {ex.sets.map((set, setIndex) => (
+                        <SetInputGrid key={`${set.id ?? 'new'}-${setIndex}`}>
+                          <span>{set.displayOrder}세트</span>
+                          <StyledInput
+                            type="number"
+                            value={set.weightKg}
+                            onChange={handleEditSetChange(exIndex, setIndex, 'weightKg')}
+                            placeholder="무게(kg)"
+                          />
+                          <StyledInput
+                            type="number"
+                            value={set.reps}
+                            onChange={handleEditSetChange(exIndex, setIndex, 'reps')}
+                            placeholder="횟수"
+                          />
+                          <Button onClick={() => removeEditSet(exIndex, setIndex)} style={{ fontSize: 'var(--fs-lg)' }}>-</Button>
+                        </SetInputGrid>
+                      ))}
+                      <Button onClick={() => addEditSet(exIndex)} className="btn-ghost" style={{ width: '100%', marginTop: '12px' }}>세트 추가 (+)</Button>
+                    </SelectedExerciseCard>
+                  ))}
+                </RoutineBuilder>
+
+                <ActionGroup style={{ marginTop: 'var(--space-4)' }}>
+                  <Button onClick={handleUpdateRoutine} className="btn-primary" style={{ width: '100%', padding: '16px' }}>
+                    루틴 수정 저장하기
+                  </Button>
+                </ActionGroup>
+              </>
             )}
           </SectionCard>
         </main>
