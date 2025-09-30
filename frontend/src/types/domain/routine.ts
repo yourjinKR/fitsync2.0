@@ -62,3 +62,23 @@ interface ExerciseSummaryDto {
   name : string;
 }
 
+// 루틴 수정 DTO
+export interface RoutineUpdateRequestDto {
+  id : number;
+  name : string;
+  displayOrder : number;
+  memo : string;
+
+  routineExercises : RoutineExerciseDto3[]
+}
+
+interface RoutineExerciseDto3 {
+  id : Nullable<number>;
+  exerciseId : number;
+  displayOrder : number;
+  memo : string;
+
+  sets : RoutineSetDto[];
+}
+
+
