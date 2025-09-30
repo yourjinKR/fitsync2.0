@@ -22,7 +22,7 @@ public class RoutineUpdateRequestDto {
     @Getter
     @NoArgsConstructor
     public static class RoutineExerciseDto {
-        private Long id;
+        private Long id; // 운동을 추가했을 경우에는 null일 수 있음
         private Long exerciseId;
         private Integer displayOrder;
         private String memo;

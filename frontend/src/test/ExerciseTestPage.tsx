@@ -324,6 +324,30 @@ const RoutineTestPage = () => {
     setEditState({ ...editState, [name]: value } as EditingRoutine);
   };
 
+  const addExerciseToEdit = (exercise: ExerciseSimpleResponseDto) => {
+    if (!editState) {
+      alert('왼쪽에서 루틴을 조회 후, "편집 모드로 불러오기"를 먼저 눌러주세요.');
+      return;
+    }
+    const nextOrder = editState.routineExercises.length + 1;
+
+    const newExercise: EditingExercise = {
+      routineExerciseId: 0,            // 신규 항목 표시용(클라이언트 내부 식별). 서버 전송 시 id:null 처리
+      exerciseId: exercise.id,
+      name: exercise.name,
+      displayOrder: nextOrder,
+      memo: '',
+      sets: [
+        { id: null, displayOrder: 1, weightKg: 0, reps: 0, distanceMeter: 0, durationSecond: 0 },
+      ],
+    };
+
+    setEditState(prev => prev
+      ? { ...prev, routineExercises: [...prev.routineExercises, newExercise] }
+      : prev
+    );
+  };
+
   const handleEditSetChange =
     (exIndex: number, setIndex: number, field: SetEditableField) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -371,20 +395,20 @@ const RoutineTestPage = () => {
     if (!editState.name) return alert('루틴 이름을 입력해주세요.');
     if (editState.routineExercises.length === 0) return alert('최소 1개의 운동이 필요합니다.');
 
-    // 서버가 "DTO에 없는 id는 삭제" 로직을 갖고 있다고 하셨으므로,
-    // 현재 편집 상태 그대로 매핑합니다.
+    // 권장 타입 수정(Nullable<number>)을 적용했다면 아래처럼 간단히:
     const dto: RoutineUpdateRequestDto = {
       id: editState.id,
       name: editState.name,
       displayOrder: editState.displayOrder ?? 0,
       memo: editState.memo ?? '',
       routineExercises: editState.routineExercises.map(ex => ({
-        id: ex.routineExerciseId,
+        // 신규: routineExerciseId === 0 → id:null
+        id: ex.routineExerciseId === 0 ? null : ex.routineExerciseId,
         exerciseId: ex.exerciseId,
         displayOrder: ex.displayOrder,
         memo: ex.memo ?? '',
         sets: ex.sets.map(s => ({
-          id: s.id, // null이면 신규, 값 있으면 유지/수정
+          id: s.id, // null이면 신규
           displayOrder: s.displayOrder,
           weightKg: s.weightKg,
           reps: s.reps,
@@ -394,9 +418,34 @@ const RoutineTestPage = () => {
       })),
     };
 
+    /* 만약 타입을 못 바꾼다면(여전히 id: number) — 조건부 속성 주입 우회안:
+    const dto = {
+      id: editState.id,
+      name: editState.name,
+      displayOrder: editState.displayOrder ?? 0,
+      memo: editState.memo ?? '',
+      routineExercises: editState.routineExercises.map(ex => {
+        const base = {
+          exerciseId: ex.exerciseId,
+          displayOrder: ex.displayOrder,
+          memo: ex.memo ?? '',
+          sets: ex.sets.map(s => ({
+            id: s.id,
+            displayOrder: s.displayOrder,
+            weightKg: s.weightKg,
+            reps: s.reps,
+            distanceMeter: s.distanceMeter,
+            durationSecond: s.durationSecond,
+          })),
+        };
+        return ex.routineExerciseId === 0
+          ? (base as any)                  // id를 아예 빼서 전송(백엔드에서 허용되는 경우에만)
+          : ({ id: ex.routineExerciseId, ...base } as any);
+      }),
+    } as unknown as RoutineUpdateRequestDto;
+    */
     try {
       const updated = await RoutineApi.updateRoutine(editState.id, dto);
-      // 성공 시, 최신 상태로 화면 갱신
       setViewedRoutine(updated);
       alert('루틴 수정 성공!');
     } catch (err) {
@@ -404,6 +453,7 @@ const RoutineTestPage = () => {
       alert(`루틴 수정 실패: ${error.message}`);
     }
   };
+
 
   /* ------------------ 렌더링 ------------------ */
   return (
@@ -418,14 +468,28 @@ const RoutineTestPage = () => {
               {allExercises.map(ex => (
                 <ExerciseListItem key={ex.id}>
                   <span>{ex.name} <small>({ex.category})</small></span>
-                  <Button
-                    onClick={() => handleAddToCreate(ex)}
-                    disabled={createState.exercises.some(e => e.exerciseId === ex.id)}
-                    className="btn-primary"
-                    style={{ padding: '4px 8px', fontSize: 'var(--fs-xs)' }}
-                  >
-                    생성용 추가
-                  </Button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {/* 기존: 생성용 추가 */}
+                    <Button
+                      onClick={() => handleAddToCreate(ex)}
+                      disabled={createState.exercises.some(e => e.exerciseId === ex.id)}
+                      className="btn-primary"
+                      style={{ padding: '4px 8px', fontSize: 'var(--fs-xs)' }}
+                    >
+                      생성용 추가
+                    </Button>
+
+                    {/* 신규: 편집에 추가 (편집 모드일 때만 활성화) */}
+                    <Button
+                      onClick={() => addExerciseToEdit(ex)}
+                      disabled={!editState || (editState?.routineExercises.some(e => e.exerciseId === ex.id))}
+                      className="btn-ghost"
+                      style={{ padding: '4px 8px', fontSize: 'var(--fs-xs)' }}
+                      title={editState ? '현재 편집 중인 루틴에 이 운동을 추가합니다' : '편집 모드가 아닙니다'}
+                    >
+                      편집에 추가
+                    </Button>
+                  </div>
                 </ExerciseListItem>
               ))}
             </ExerciseList>
