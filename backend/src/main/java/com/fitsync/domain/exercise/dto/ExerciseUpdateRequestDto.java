@@ -24,6 +24,7 @@ public class ExerciseUpdateRequestDto {
     @Getter
     @NoArgsConstructor
     public static class InstructionRequestDto {
+        private Long id;
         private Integer stepOrder;
         private String description;
     }

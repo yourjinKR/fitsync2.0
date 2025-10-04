@@ -28,21 +28,34 @@ export interface InstructionInfo {
   description: string;
 }
 
-// TODO : 이거 나중에 요청 DTO 수정해야될 수도 있음
-// 운동정보 생성 요청 DTO
-export interface ExerciseRequestDto {
+// 재사용 인터페이스
+interface ExerciseBasicRequestDto {
   name: string;
   category: string;
   description: Nullable<string>;
   isHidden : boolean;
+}
 
+// TODO : 이거 나중에 요청 DTO 수정해야될 수도 있음
+// 운동정보 생성 요청 DTO
+export interface ExerciseRequestDto extends ExerciseBasicRequestDto {
   instructions: InstructionCreateDto[];
 }
 
-export interface InstructionCreateDto {
+interface InstructionCreateDto {
   stepOrder: number;
   description: string;
 }
+
+// 운동정보 업데이트
+export interface ExerciseUpdateRequestDto extends ExerciseBasicRequestDto {
+  instructions : InstructionUpdateDto[];
+}
+
+interface InstructionUpdateDto extends InstructionCreateDto {
+  id : number;
+}
+
 
 // hidden값 수정 요청 DTO
 export interface ExerciseHiddenUpdateDto {
