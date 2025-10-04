@@ -19,13 +19,27 @@ export interface ExerciseDetailResponseDto {
   isHidden : boolean;
   createdAt: string; // OffsetDateTime은 string으로 받습니다.
 
-  instructions: InstructionInfo[];
+  instructions: InstructionResponseDto[];
+  metricRequirement : MetricRequireDto;
 }
 
-export interface InstructionInfo {
+interface InstructionResponseDto {
   id: number;
   stepOrder: number;
   description: string;
+}
+
+interface MetricRequireDto {
+  weightKgStatus : MetricRequirement;
+  repsStatus : MetricRequirement;
+  distanceMeterStatus : MetricRequirement;
+  durationSecondStatus : MetricRequirement;
+}
+
+export enum MetricRequirement {
+  FORBIDDEN,
+  OPTIONAL,
+  REQUIRED
 }
 
 // 재사용 인터페이스
@@ -38,11 +52,12 @@ interface ExerciseBasicRequestDto {
 
 // TODO : 이거 나중에 요청 DTO 수정해야될 수도 있음
 // 운동정보 생성 요청 DTO
-export interface ExerciseRequestDto extends ExerciseBasicRequestDto {
-  instructions: InstructionCreateDto[];
+export interface ExerciseCreateRequestDto extends ExerciseBasicRequestDto {
+  instructions: InstructionBasicDto[];
+  metricRequirement : MetricRequireDto;
 }
 
-interface InstructionCreateDto {
+export interface InstructionBasicDto {
   stepOrder: number;
   description: string;
 }
@@ -52,7 +67,7 @@ export interface ExerciseUpdateRequestDto extends ExerciseBasicRequestDto {
   instructions : InstructionUpdateDto[];
 }
 
-interface InstructionUpdateDto extends InstructionCreateDto {
+interface InstructionUpdateDto extends InstructionBasicDto {
   id : number;
 }
 

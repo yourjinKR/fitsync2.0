@@ -29,10 +29,10 @@ public class WorkoutSet {
     private Integer reps;
 
     @Column(name = "distance_m")
-    private Integer distanceM;
+    private Integer distanceMeter;
 
     @Column(name = "duration_sec")
-    private Integer durationSec;
+    private Integer durationSecond;
 
     public void attachTo(WorkoutExercise workoutExercise) {
         this.workoutExercise = workoutExercise;

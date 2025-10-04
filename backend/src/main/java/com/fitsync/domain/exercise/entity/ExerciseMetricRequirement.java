@@ -1,9 +1,15 @@
 package com.fitsync.domain.exercise.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "exercise_metric_requirements")
 public class ExerciseMetricRequirement {
@@ -32,5 +38,9 @@ public class ExerciseMetricRequirement {
     @Enumerated(EnumType.STRING)
     @Column(name = "duration_sec_status")
     private MetricRequirement durationSecondStatus =  MetricRequirement.FORBIDDEN;
+
+    void setExercise(Exercise exercise) {
+        this.exercise = exercise;
+    }
 
 }

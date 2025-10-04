@@ -72,7 +72,6 @@ public class ExerciseService {
         exercise.update(requestDto);
 
         return new ExerciseDetailResponseDto(exercise);
-
     }
 
     /**

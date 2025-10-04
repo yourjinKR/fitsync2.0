@@ -1,9 +1,8 @@
 package com.fitsync.domain.exercise.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fitsync.domain.exercise.entity.Exercise;
-import com.fitsync.domain.exercise.entity.ExerciseInstruction;
-import lombok.Data;
+import com.fitsync.domain.exercise.entity.MetricRequirement;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +10,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-@Data
 public class ExerciseUpdateRequestDto {
 
     private String name;
@@ -20,13 +18,22 @@ public class ExerciseUpdateRequestDto {
     private boolean isHidden;
 
     private List<InstructionRequestDto> instructions;
+    private MetricRequestDto metricRequirement;
 
     @Getter
-    @NoArgsConstructor
     public static class InstructionRequestDto {
         private Long id;
         private Integer stepOrder;
         private String description;
+    }
+
+    @Getter
+    @Builder
+    public static class MetricRequestDto {
+        private MetricRequirement weightKgStatus;
+        private MetricRequirement repsStatus;
+        private MetricRequirement distanceMeterStatus;
+        private MetricRequirement durationSecondStatus;
     }
 
     @JsonProperty("isHidden")

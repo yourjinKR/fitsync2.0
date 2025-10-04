@@ -62,11 +62,11 @@ public class Exercise {
     // 해당 운동이 어떤 값들을 지닐 수 있는지 (중량, 횟수, 거리, 시간)
     @Builder.Default
     @OneToOne(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ExerciseMetricRequirement requirements = new ExerciseMetricRequirement();
+    private ExerciseMetricRequirement metricRequirement = new ExerciseMetricRequirement();
 
-    public void setRequirements(ExerciseMetricRequirement requirements) {
-        this.requirements = requirements;
-        requirements.setExercise(this);
+    public void setRequirement(ExerciseMetricRequirement metricRequirement) {
+        this.metricRequirement = metricRequirement;
+        metricRequirement.setExercise(this);
     }
 
     public void update(ExerciseUpdateRequestDto dto) {
@@ -77,6 +77,7 @@ public class Exercise {
         this.isHidden = dto.isHidden();
 
         this.instructions.clear();
+        Long metricId = this.metricRequirement.getId();
 
         if (dto.getInstructions() != null) {
             dto.getInstructions().forEach(inst -> {
@@ -86,6 +87,20 @@ public class Exercise {
                         .build();
                 this.addInstruction(instruction);
             });
+        }
+
+        if (dto.getMetricRequirement() != null) {
+            ExerciseUpdateRequestDto.MetricRequestDto metricDto = dto.getMetricRequirement();
+
+            ExerciseMetricRequirement newMetric = ExerciseMetricRequirement.builder()
+                    .id(metricId)
+                    .weightKgStatus(metricDto.getWeightKgStatus())
+                    .repsStatus(metricDto.getRepsStatus())
+                    .distanceMeterStatus(metricDto.getDistanceMeterStatus())
+                    .durationSecondStatus(metricDto.getDurationSecondStatus())
+                    .build();
+
+            this.setRequirement(newMetric);
         }
     }
 
@@ -97,30 +112,4 @@ public class Exercise {
     public void show() {
         this.isHidden = false;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

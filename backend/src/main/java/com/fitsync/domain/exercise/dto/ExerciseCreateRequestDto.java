@@ -2,17 +2,16 @@ package com.fitsync.domain.exercise.dto;
 
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseInstruction;
+import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
+import com.fitsync.domain.exercise.entity.MetricRequirement;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+// TODO : 이미지 URL 추가 (추후에 진행)
 @Getter
 @NoArgsConstructor
-/**
- * 관리자가 운동을 추가할때 사용하는 dto이다.
- * TODO : 이미지 URL 추가 (추후에 진행)
- */
 public class ExerciseCreateRequestDto {
     
     // id 필요없음
@@ -22,19 +21,38 @@ public class ExerciseCreateRequestDto {
     private boolean isHidden;
 
     private List<InstructionRequestDto> instructions;
+    private MetricRequestDto metricRequirement;
 
+    // 운동 설명
     @Getter
     @NoArgsConstructor
     public static class InstructionRequestDto {
-        // id 필요없음
         private Integer stepOrder;
         private String description;
 
-        // Instruction DTO를 Instruction 엔티티로 변환
         public ExerciseInstruction toEntity() {
             return ExerciseInstruction.builder()
                     .stepOrder(this.stepOrder)
                     .description(this.description)
+                    .build();
+        }
+    }
+
+    // 운동 입력 가능 여부
+    @Getter
+    @NoArgsConstructor
+    public static class MetricRequestDto {
+        private MetricRequirement weightKgStatus;
+        private MetricRequirement repsStatus;
+        private MetricRequirement distanceMeterStatus;
+        private MetricRequirement durationSecondStatus;
+
+        public ExerciseMetricRequirement toEntity() {
+            return ExerciseMetricRequirement.builder()
+                    .weightKgStatus(this.weightKgStatus)
+                    .repsStatus(this.repsStatus)
+                    .distanceMeterStatus(this.distanceMeterStatus)
+                    .durationSecondStatus(this.durationSecondStatus)
                     .build();
         }
     }
@@ -53,6 +71,10 @@ public class ExerciseCreateRequestDto {
                     .map(InstructionRequestDto::toEntity)
                     .toList();
             instructionEntities.forEach(exercise::addInstruction);
+        }
+
+        if (this.metricRequirement != null) {
+            exercise.setRequirement(this.metricRequirement.toEntity());
         }
 
         return exercise;
