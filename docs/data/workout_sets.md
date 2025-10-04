@@ -72,3 +72,4 @@ COMMENT ON COLUMN workout_sets.weight_kg IS '근력 운동용: 세트 중량 (kg
 COMMENT ON COLUMN workout_sets.reps IS '근력 운동용: 반복 횟수';
 COMMENT ON COLUMN workout_sets.distance_m IS '유산소 운동용: 세트 거리 (m)';
 COMMENT ON COLUMN workout_sets.duration_sec IS '유산소 운동용: 세트 시간 (초)';
+```

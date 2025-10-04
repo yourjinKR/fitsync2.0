@@ -63,3 +63,4 @@ CREATE INDEX idx_wex_workout_order ON workout_exercises(workout_id, display_orde
 -- 주석 추가
 COMMENT ON TABLE  workout_exercises IS 'workouts(세션) 내 개별 운동 단위';
 COMMENT ON COLUMN workout_exercises.exercise_name IS '운동 이름 스냅샷 (원본 이름 변경 대비)';
+```

@@ -29,7 +29,6 @@ public class Exercise {
     @Column(nullable = false, length = 50)
     private String category;
 
-//    @Lob // 왜 사용하지 않는가?
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -48,23 +47,28 @@ public class Exercise {
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExerciseInstruction> instructions = new ArrayList<>();
 
-    // 자식 데이터 추가 메소드
     public void addInstruction(ExerciseInstruction instruction) {
         this.instructions.add(instruction);
         instruction.setExercise(this);
+        this.updatedAt = OffsetDateTime.now();
     }
 
-    /**
-     * 특정 운동정보를 수정하는 메소드<br>
-     * <p>
-     *  해당 로직 내에 id가 없음에도 불구하고
-     *  특정 운동을 수정할 수 있는 이유는<br>
-     *  사전에 findById()메소드를 통해 id를 찾고
-     *  해당 엔티티를 수정하기 때문이다.<br>
-     *  추가로 자식 요소들은 삭제 후 다시 생성함.
-     * </p>
-     * @param dto ExerciseUpdateRequestDto
-     */
+    public void removeInstruction(ExerciseInstruction instruction) {
+        this.instructions.remove(instruction);
+        instruction.setExercise(null);
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    // 해당 운동이 어떤 값들을 지닐 수 있는지 (중량, 횟수, 거리, 시간)
+    @Builder.Default
+    @OneToOne(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ExerciseMetricRequirement requirements = new ExerciseMetricRequirement();
+
+    public void setRequirements(ExerciseMetricRequirement requirements) {
+        this.requirements = requirements;
+        requirements.setExercise(this);
+    }
+
     public void update(ExerciseUpdateRequestDto dto) {
 
         this.name = dto.getName();
@@ -82,21 +86,14 @@ public class Exercise {
                         .build();
                 this.addInstruction(instruction);
             });
-
         }
     }
 
 
-    /**
-     * 운동정보 비활성화 메소드 (삭제처럼 사용)
-     */
     public void hide() {
         this.isHidden = true;
     }
 
-    /**
-     * 운동정보 활성화 메소드
-     */
     public void show() {
         this.isHidden = false;
     }

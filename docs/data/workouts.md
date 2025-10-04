@@ -54,6 +54,8 @@ CREATE TABLE workouts (
     title VARCHAR(120),                    -- 예: "가슴/삼두 Day"
     memo TEXT,
 
+    -- 운동기록 인증샷도 필요할수도? attach 테이블을 활용
+
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_workouts_owner FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -72,3 +74,4 @@ COMMENT ON COLUMN workouts.routine_snapshot IS '기록 시점의 루틴 스냅�
 COMMENT ON COLUMN workouts.title IS '운동 기록 제목 (예: 가슴/삼두 Day)';
 COMMENT ON COLUMN workouts.memo IS '운동 기록에 대한 메모';
 COMMENT ON COLUMN workouts.created_at IS '운동 기록 생성 시각';
+```
