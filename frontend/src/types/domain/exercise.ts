@@ -18,12 +18,13 @@ export interface ExerciseDetailResponseDto {
   description: Nullable<string>;
   isHidden : boolean;
   createdAt: string; // OffsetDateTime은 string으로 받습니다.
+  updatedAt : string;
 
   instructions: InstructionResponseDto[];
   metricRequirement : MetricRequireDto;
 }
 
-interface InstructionResponseDto {
+export interface InstructionResponseDto {
   id: number;
   stepOrder: number;
   description: string;
@@ -37,9 +38,9 @@ interface MetricRequireDto {
 }
 
 export enum MetricRequirement {
-  FORBIDDEN,
-  OPTIONAL,
-  REQUIRED
+  FORBIDDEN = 'FORBIDDEN',
+  OPTIONAL = 'OPTIONAL',
+  REQUIRED = 'REQUIRED'
 }
 
 // 재사용 인터페이스
