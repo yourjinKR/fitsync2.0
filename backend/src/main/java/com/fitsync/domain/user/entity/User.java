@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "users") // 클래스 이름과 테이블 이름이 같으면 생략 가능합니다.

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -35,15 +34,12 @@ public class Workout {
 //    @OnDelete(action = OnDeleteAction.CASCADE)
     private User writer;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    @Column(name = "title", length = 120)
+    private String title;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "routine_snapshot", columnDefinition = "jsonb")
     private Map<String, Object> routineSnapshot;
-
-    @Column(name = "title", length = 120)
-    private String title;
 
     @Column(name = "memo", columnDefinition = "TEXT")
     private String memo;

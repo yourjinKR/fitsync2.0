@@ -1,8 +1,11 @@
 package com.fitsync.domain.workout.controller;
 
+import com.fitsync.domain.workout.dto.WorkoutCreateRequestDto;
+import com.fitsync.domain.workout.dto.WorkoutDetailResponseDto;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.service.WorkoutService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,15 +25,19 @@ public class WorkoutController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getWorkoutById(@PathVariable String id) {
+    public ResponseEntity<WorkoutDetailResponseDto> getWorkoutById(@PathVariable Long id) {
 
-        return null;
+        WorkoutDetailResponseDto responseDto = workoutService.getWorkoutById(id);
+
+        return ResponseEntity.ok(responseDto);
     }
 
     @PostMapping
-    public ResponseEntity<?> createWorkout(@RequestBody Workout workout) {
+    public ResponseEntity<?> createWorkout(@RequestBody WorkoutCreateRequestDto requestDto) {
 
-        return null;
+        Long id = workoutService.createWorkout(requestDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     @PatchMapping("/{id}/memo")
