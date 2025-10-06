@@ -69,7 +69,7 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
-        exercise.update(requestDto);
+        exercise.update(exerciseId, requestDto);
 
         return new ExerciseDetailResponseDto(exercise);
     }

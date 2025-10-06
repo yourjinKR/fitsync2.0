@@ -1,12 +1,11 @@
 package com.fitsync.domain.exercise.entity;
 
+import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
+@Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,7 +17,7 @@ public class ExerciseMetricRequirement {
     @Column(name = "exercise_id")
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
@@ -41,6 +40,19 @@ public class ExerciseMetricRequirement {
 
     void setExercise(Exercise exercise) {
         this.exercise = exercise;
+    }
+
+    public static ExerciseMetricRequirement createFor(Exercise exercise) {
+        ExerciseMetricRequirement exerciseMetricRequirement = new ExerciseMetricRequirement();
+        exerciseMetricRequirement.setExercise(exercise);
+        return exerciseMetricRequirement;
+    }
+
+    public void applyFrom(ExerciseUpdateRequestDto.MetricRequestDto requestDto) {
+        this.setWeightKgStatus(requestDto.getWeightKgStatus());
+        this.setRepsStatus(requestDto.getRepsStatus());
+        this.setDistanceMeterStatus(requestDto.getDistanceMeterStatus());
+        this.setDurationSecondStatus(requestDto.getDurationSecondStatus());
     }
 
 }

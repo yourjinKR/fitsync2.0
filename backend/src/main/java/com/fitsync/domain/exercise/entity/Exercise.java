@@ -61,7 +61,7 @@ public class Exercise {
 
     // 해당 운동이 어떤 값들을 지닐 수 있는지 (중량, 횟수, 거리, 시간)
     @Builder.Default
-    @OneToOne(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ExerciseMetricRequirement metricRequirement = new ExerciseMetricRequirement();
 
     public void setRequirement(ExerciseMetricRequirement metricRequirement) {
@@ -69,7 +69,16 @@ public class Exercise {
         metricRequirement.setExercise(this);
     }
 
-    public void update(ExerciseUpdateRequestDto dto) {
+    public void applyMetric(ExerciseUpdateRequestDto.MetricRequestDto dto) {
+        if (dto == null) return;
+
+        if (this.metricRequirement == null) {
+            this.metricRequirement = ExerciseMetricRequirement.createFor(this); // 팩토리
+        }
+        this.metricRequirement.applyFrom(dto); // 제자리 갱신
+    }
+
+    public void update(Long exerciseId, ExerciseUpdateRequestDto dto) {
 
         this.name = dto.getName();
         this.category = dto.getCategory();
@@ -77,7 +86,7 @@ public class Exercise {
         this.isHidden = dto.isHidden();
 
         this.instructions.clear();
-        Long metricId = this.metricRequirement.getId();
+        System.out.println("exerciseId !!!! : " + exerciseId);
 
         if (dto.getInstructions() != null) {
             dto.getInstructions().forEach(inst -> {
@@ -90,17 +99,7 @@ public class Exercise {
         }
 
         if (dto.getMetricRequirement() != null) {
-            ExerciseUpdateRequestDto.MetricRequestDto metricDto = dto.getMetricRequirement();
-
-            ExerciseMetricRequirement newMetric = ExerciseMetricRequirement.builder()
-                    .id(metricId)
-                    .weightKgStatus(metricDto.getWeightKgStatus())
-                    .repsStatus(metricDto.getRepsStatus())
-                    .distanceMeterStatus(metricDto.getDistanceMeterStatus())
-                    .durationSecondStatus(metricDto.getDurationSecondStatus())
-                    .build();
-
-            this.setRequirement(newMetric);
+            this.applyMetric(dto.getMetricRequirement());
         }
     }
 
