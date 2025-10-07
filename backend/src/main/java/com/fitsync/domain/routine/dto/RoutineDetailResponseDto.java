@@ -1,6 +1,7 @@
 package com.fitsync.domain.routine.dto;
 
 import com.fitsync.domain.exercise.entity.Exercise;
+import com.fitsync.domain.exercise.entity.MetricRequirement;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
@@ -27,21 +28,6 @@ public class RoutineDetailResponseDto {
 
     // 루틴 내 운동정보
     private List<RoutineExerciseDto> exercises;
-
-    // 생성자 엔티티 -> DTO
-    public RoutineDetailResponseDto(Routine routine) {
-        this.id = routine.getId();
-        this.owner = UserDto.from(routine.getOwner());
-        this.writer = UserDto.from(routine.getWriter());
-        this.name = routine.getName();
-        this.displayOrder = routine.getDisplayOrder();
-        this.memo = routine.getMemo();
-
-        // 하위 요소도 변환
-        this.exercises = routine.getRoutineExercises().stream()
-                .map(RoutineExerciseDto::new)
-                .collect(Collectors.toList());
-    }
 
     @Getter
     @NoArgsConstructor
@@ -77,10 +63,23 @@ public class RoutineDetailResponseDto {
     public static class ExerciseSummaryDto {
         private Long id;
         private String name;
+        private String category;
+
+        // 루틴을 볼때 어떤게 값이 입력 불가인지 알 수 있어야 함
+        private MetricRequirement weightKgStatus;
+        private MetricRequirement repsStatus;
+        private MetricRequirement distanceMeterStatus;
+        private MetricRequirement durationSecondStatus;
 
         public ExerciseSummaryDto(Exercise exercise) {
             this.id = exercise.getId();
             this.name = exercise.getName();
+            this.category = exercise.getCategory();
+
+            this.weightKgStatus = exercise.getMetricRequirement().getWeightKgStatus();
+            this.repsStatus = exercise.getMetricRequirement().getRepsStatus();
+            this.distanceMeterStatus = exercise.getMetricRequirement().getDistanceMeterStatus();
+            this.durationSecondStatus = exercise.getMetricRequirement().getDurationSecondStatus();
         }
     }
 
@@ -117,5 +116,20 @@ public class RoutineDetailResponseDto {
         private UserDto(Long id) {
             this.id = id;
         }
+    }
+
+    // 생성자 엔티티 -> DTO
+    public RoutineDetailResponseDto(Routine routine) {
+        this.id = routine.getId();
+        this.owner = UserDto.from(routine.getOwner());
+        this.writer = UserDto.from(routine.getWriter());
+        this.name = routine.getName();
+        this.displayOrder = routine.getDisplayOrder();
+        this.memo = routine.getMemo();
+
+        // 하위 요소도 변환
+        this.exercises = routine.getRoutineExercises().stream()
+                .map(RoutineExerciseDto::new)
+                .collect(Collectors.toList());
     }
 }
