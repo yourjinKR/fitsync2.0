@@ -48,10 +48,8 @@ CREATE TABLE workouts (
     owner_id BIGINT,
     writer_id BIGINT,
 
-    "name" VARCHAR(100) NOT NULL,
-    routine_snapshot JSONB,                -- 당시 루틴 스냅샷(표시/회귀용)
-
     title VARCHAR(120),                    -- 예: "가슴/삼두 Day"
+    routine_snapshot JSONB,                -- 당시 루틴 스냅샷(표시/회귀용)
     memo TEXT,
 
     -- 운동기록 인증샷도 필요할수도? attach 테이블을 활용

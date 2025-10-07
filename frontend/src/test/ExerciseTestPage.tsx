@@ -30,7 +30,7 @@ const ExerciseTestPage = () => {
 
   const fetchAllExercises = useCallback(async () => {
     try {
-      const data = await ExerciseApi.getAllExercises({ page: 0, size: 50, sort: 'id,desc' });
+      const data = await ExerciseApi.getAllExercises({ page: 0, size: 30, sort: 'id,desc' });
       setAllExercises(data.content);
     } catch (error) {
       console.error('❌ 전체 운동 조회 실패:', error);

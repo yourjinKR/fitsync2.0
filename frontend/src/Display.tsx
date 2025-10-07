@@ -8,6 +8,7 @@ import ErrorPage from './pages/ErrorPage';
 import AuthCallBack from './pages/AuthCallback';
 import RoutineTestPage from './test/RoutineTestPage';
 import ExerciseTestPage from './test/ExerciseTestPage';
+import WorkoutTestPage from './test/WorkoutTestPage';
 
 const Display = () => {
   return (
@@ -23,6 +24,7 @@ const Display = () => {
           <Route path="/admin" element={<AdminMain/>}/>
           <Route path='/test/exercise' element={<ExerciseTestPage/>}/>
           <Route path='/test/routine' element={<RoutineTestPage/>}/>
+          <Route path='/test/workout' element={<WorkoutTestPage/>}/>
         </Route>
 
         {/* 로그인을 안한 사용자만 접근하는 페이지 */}
