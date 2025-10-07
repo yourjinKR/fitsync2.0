@@ -24,11 +24,11 @@ public class RoutineController {
 
     // 루틴 생성
     @PostMapping
-    public ResponseEntity<RoutineCreateResponseDto> createRoutine(@RequestBody RoutineCreateRequestDto requestDto) {
+    public ResponseEntity<Long> createRoutine(@RequestBody RoutineCreateRequestDto requestDto) {
 
-        RoutineCreateResponseDto responseDto =  routineService.createRoutine(requestDto);
+        Long id =  routineService.createRoutine(requestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     // 사용자 루틴 목록

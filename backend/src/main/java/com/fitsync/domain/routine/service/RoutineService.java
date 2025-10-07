@@ -33,7 +33,7 @@ public class RoutineService {
 
     // 루틴 생성하기
     @Transactional
-    public RoutineCreateResponseDto createRoutine(RoutineCreateRequestDto requestDto) {
+    public Long createRoutine(RoutineCreateRequestDto requestDto) {
 
         // 1. 현재 사용자 조회
         User currentUser = loginUserProvider.getCurrentUser();
@@ -83,7 +83,7 @@ public class RoutineService {
         // 4. 최상위 엔티티인 Routine 저장 (Cascade 옵션으로 자식 엔티티들도 함께 저장됨)
         Routine savedRoutine = routineRepository.save(routine);
 
-        return new RoutineCreateResponseDto(savedRoutine.getId());
+        return savedRoutine.getId();
     }
 
     // 사용자가 자신의 루틴 목록을 확인

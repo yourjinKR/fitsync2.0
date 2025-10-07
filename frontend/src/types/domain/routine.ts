@@ -13,11 +13,9 @@ export interface RoutineCreateRequestDto {
 }
 
 interface RoutineExerciseDto1 {
+  exerciseId : number;
   displayOrder : number;
   memo : string;
-
-  exerciseId : number;
-
   sets : RoutineSetDto[];
 }
 

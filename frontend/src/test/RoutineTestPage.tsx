@@ -185,7 +185,7 @@ const RoutineTestPage = () => {
 
   // 생성용 상태
   const [createState, setCreateState] = useState(INITIAL_CREATE_STATE);
-  const [createdRoutineInfo, setCreatedRoutineInfo] = useState<RoutineCreateResponseDto | null>(null);
+  const [createdRoutineInfo, setCreatedRoutineInfo] = useState<number | null>(null);
 
   // 조회/수정용 상태
   const [viewRoutineId, setViewRoutineId] = useState('');
@@ -195,13 +195,13 @@ const RoutineTestPage = () => {
   // 루틴 리스트(사용자)
   const [userIdForList, setUserIdForList] = useState('3'); // 테스트용 default
   const [routinePage, setRoutinePage] = useState<Page<RoutineSimpleResponseDto> | null>(null);
-  const [pageParams, setPageParams] = useState({ page: 0, size: 20, sort: 'displayOrder,asc' });
+  const [pageParams, setPageParams] = useState({ page: 0, size: 20, sort: 'id,asc' });
   const [isLoadingList, setIsLoadingList] = useState(false);
 
   /* ------------------ 전체 운동 목록 ------------------ */
   const fetchAllExercises = useCallback(async () => {
     try {
-      const data = await ExerciseApi.getAllExercises({ page: 0, size: 100, sort: 'name,asc' });
+      const data = await ExerciseApi.getAllExercises({ page: 0, size: 30, sort: 'id,desc' });
       setAllExercises(data.content);
     } catch (error) {
       console.error('❌ 전체 운동 조회 실패:', error);
@@ -291,6 +291,7 @@ const RoutineTestPage = () => {
         {
           exerciseId: exercise.id,
           name: exercise.name,
+          memo : '',
           sets: [{ displayOrder: 1, weightKg: 60, reps: 10, distanceMeter: 0, durationSecond: 0 }],
         },
       ],
@@ -367,7 +368,7 @@ const RoutineTestPage = () => {
     try {
       const response = await RoutineApi.createRoutine(requestDto);
       setCreatedRoutineInfo(response);
-      alert(`루틴 생성 성공! ID: ${response.id}`);
+      alert(`루틴 생성 성공! ID: ${response}`);
       setCreateState(INITIAL_CREATE_STATE);
     } catch (err) {
       const error = err as ApiError;
