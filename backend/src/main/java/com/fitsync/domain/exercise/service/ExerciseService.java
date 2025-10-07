@@ -38,10 +38,7 @@ public class ExerciseService {
      * 모든 운동 정보를 가져오는 메소드
      */
     public Page<ExerciseSimpleResponseDto> getAllExercises(Pageable pageable) {
-
-        Page<Exercise> exercisePage = exerciseRepository.findAll(pageable);
-
-        return exercisePage.map(ExerciseSimpleResponseDto::new);
+        return exerciseRepository.findAllSimple(pageable);
     }
 
     /**

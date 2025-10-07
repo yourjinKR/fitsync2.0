@@ -2,6 +2,7 @@ package com.fitsync.domain.exercise.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fitsync.domain.exercise.entity.Exercise;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -9,20 +10,13 @@ import lombok.Getter;
  * id, name, category
  */
 @Getter
+@AllArgsConstructor
 public class ExerciseSimpleResponseDto {
 
     private final Long id;
     private final String name;
     private final String category;
     private final boolean isHidden;
-
-    // 엔티티 -> DTO
-    public ExerciseSimpleResponseDto(Exercise exercise) {
-        this.id = exercise.getId();
-        this.name = exercise.getName();
-        this.category = exercise.getCategory();
-        this.isHidden = exercise.isHidden();
-    }
 
     //  Lombok이 생성하는 isHidden() 메소드 대신,
     //  직접 getter를 만들고 @JsonProperty를 붙여줍니다.

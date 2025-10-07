@@ -1,7 +1,9 @@
 package com.fitsync.domain.exercise.repository;
 
+import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
 import com.fitsync.domain.exercise.entity.Exercise;
-import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,10 +17,15 @@ import java.util.Optional;
 public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
 
 
+    @Query("""
+    select new com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto(e.id, e.name, e.category, e.isHidden)
+            from  Exercise e
+    """)
+    Page<ExerciseSimpleResponseDto> findAllSimple(Pageable pageable);
+
     /**
      * 상세 조회 시 사용하는 메소드.
      * LEFT JOIN FETCH를 사용하여 Exercise와 연관된 instructions를 한 번에 가져옵니다.
-     * @param id pk
      * @return Exercise (with instructions)
      */
     @Query("SELECT e FROM Exercise e LEFT JOIN FETCH e.instructions WHERE e.id = :id")
