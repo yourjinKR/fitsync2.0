@@ -1,5 +1,6 @@
 package com.fitsync.domain.exercise.entity;
 
+import com.fitsync.domain.exercise.mapper.InstructionSetting;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,6 +35,15 @@ public class ExerciseInstruction {
 
      void setExercise(Exercise exercise) {
          this.exercise = exercise;
+    }
+
+    void reorder(Integer newOrder) {
+         this.stepOrder = newOrder;
+    }
+
+    void update(InstructionSetting s) {
+         this.stepOrder = s.stepOrder();
+         this.description = s.description();
     }
 
 }

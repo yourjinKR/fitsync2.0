@@ -1,6 +1,7 @@
 package com.fitsync.domain.exercise.entity;
 
 import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
+import com.fitsync.domain.exercise.mapper.MetricRequirementSetting;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -57,6 +58,13 @@ public class ExerciseMetricRequirement {
         this.setRepsStatus(requestDto.getRepsStatus());
         this.setDistanceMeterStatus(requestDto.getDistanceMeterStatus());
         this.setDurationSecondStatus(requestDto.getDurationSecondStatus());
+    }
+
+    public void update(MetricRequirementSetting s) {
+        this.weightKgStatus = s.weightKgStatus();
+        this.repsStatus = s.repsStatus();
+        this.distanceMeterStatus = s.distanceMeterStatus();
+        this.durationSecondStatus = s.durationSecondStatus();
     }
 
 }

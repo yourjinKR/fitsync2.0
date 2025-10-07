@@ -2,6 +2,7 @@ package com.fitsync.domain.exercise.service;
 
 import com.fitsync.domain.exercise.dto.*;
 import com.fitsync.domain.exercise.entity.Exercise;
+import com.fitsync.domain.exercise.mapper.ExerciseMapper;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
+    private final ExerciseMapper exerciseMapper;
 
     /**
      * 새로운 운동 정보를 생성하는 메소드
@@ -66,7 +68,8 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
-        exercise.update(exerciseId, requestDto);
+        // dto, entity 분리하기
+        exerciseMapper.applyUpdateFrom(exercise, requestDto);
 
         return new ExerciseDetailResponseDto(exercise);
     }
