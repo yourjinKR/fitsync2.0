@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 public class LoginUserProvider {
 
     private final UserRepository userRepository;
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
             throw new IllegalStateException("인증 정보가 없습니다.");
         }
