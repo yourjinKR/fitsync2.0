@@ -30,7 +30,8 @@ public class ExerciseService {
             throw new IllegalArgumentException("이미 동일한 이름의 운동이 존재합니다 :  " + requestDto.getName());
         }
 
-        Exercise exercise = requestDto.toEntity();
+//        Exercise exercise = requestDto.toEntity();
+        Exercise exercise = exerciseMapper.toEntity(requestDto);
         Exercise savedExercise = exerciseRepository.save(exercise);
 
         return new ExerciseDetailResponseDto(savedExercise);
