@@ -6,6 +6,7 @@ import com.fitsync.domain.routine.dto.*;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
+import com.fitsync.domain.routine.mapper.RoutineMapper;
 import com.fitsync.domain.routine.repository.RoutineRepository;
 import com.fitsync.domain.user.entity.User;
 import com.fitsync.global.error.exception.BadRequestException;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class RoutineService {
 
     private final RoutineRepository routineRepository;
+    private final RoutineMapper routineMapper;
     private final ExerciseRepository exerciseRepository;
     private final LoginUserProvider loginUserProvider;
 
@@ -39,13 +41,8 @@ public class RoutineService {
         User currentUser = loginUserProvider.getCurrentUser();
 
         // 2. 최상위 Routine 엔티티 생성
-        Routine routine = Routine.builder()
-                .owner(currentUser)
-                .writer(currentUser)
-                .name(requestDto.getName())
-                .displayOrder(requestDto.getDisplayOrder())
-                .memo(requestDto.getMemo())
-                .build();
+        Routine routine = routineMapper.toEntity(requestDto);
+        routine.forMe(currentUser);
 
         // 3. DTO의 운동 목록을 순회하며 RoutineExercise 엔티티 생성 및 연결
         if (requestDto.getExercises() != null) {
@@ -56,23 +53,13 @@ public class RoutineService {
                         .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
 
                 // 3-2. RoutineExercise 엔티티 생성
-                RoutineExercise routineExercise = RoutineExercise.builder()
-                        .exercise(exercise) // 조회한 Exercise 엔티티 설정
-                        .displayOrder(exerciseDto.getDisplayOrder())
-                        .memo(exerciseDto.getMemo())
-                        .build();
+                RoutineExercise routineExercise = routineMapper.toEntity(exerciseDto);
+                routineExercise.selectExercise(exercise);
 
                 // 3-3. DTO의 세트 목록을 순회하며 RoutineSet 엔티티 생성 및 연결
                 if (exerciseDto.getSets() != null) {
                     for (RoutineCreateRequestDto.RoutineSetDto setDto : exerciseDto.getSets()) {
-                        RoutineSet routineSet = RoutineSet.builder()
-                                .displayOrder(setDto.getDisplayOrder())
-                                .weightKg(setDto.getWeightKg())
-                                .reps(setDto.getReps())
-                                .distanceMeter(setDto.getDistanceMeter())
-                                .durationSecond(setDto.getDurationSecond())
-                                // ... 나머지 세트 정보 ...
-                                .build();
+                        RoutineSet routineSet = routineMapper.toEntity(setDto);
                         routineExercise.addSet(routineSet); // RoutineExercise에 세트 추가
                     }
                 }
@@ -111,7 +98,7 @@ public class RoutineService {
             throw new BadRequestException("id가 일치하지 않습니다.");
         }
 
-        Routine routine = routineRepository.findRoutineDetailsById(id)
+        Routine routine = routineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
         User currentUser = loginUserProvider.getCurrentUser();

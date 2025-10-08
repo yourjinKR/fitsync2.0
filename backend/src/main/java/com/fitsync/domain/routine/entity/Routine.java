@@ -61,6 +61,12 @@ public class Routine {
         exercise.setRoutine(this);
     }
 
+    // 자신의 루틴 직접 작성
+    public void forMe(User user) {
+        this.owner = user;
+        this.writer = user;
+    }
+
     // PUT UPDATE
     public void updateBasic(String name, Integer displayOrder, String memo) {
         if (name != null) this.name = name;
