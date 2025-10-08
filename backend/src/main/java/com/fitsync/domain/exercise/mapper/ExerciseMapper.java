@@ -1,6 +1,7 @@
 package com.fitsync.domain.exercise.mapper;
 
 import com.fitsync.domain.exercise.dto.ExerciseCreateRequestDto;
+import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
 import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseInstruction;
@@ -14,18 +15,11 @@ public class ExerciseMapper {
 
     // create
     public Exercise toEntity(ExerciseCreateRequestDto dto) {
-
-        List<ExerciseInstruction> instructions = dto.getInstructions().stream()
-                .map(this::toEntity)
-                .toList();
-
         return Exercise.builder()
                 .name(dto.getName())
                 .category(dto.getCategory())
                 .description(dto.getDescription())
                 .isHidden(dto.isHidden())
-                .instructions(instructions)
-                .metricRequirement(toEntity(dto.getMetricRequirement()))
                 .build();
     }
 
@@ -42,6 +36,38 @@ public class ExerciseMapper {
                 .repsStatus(dto.getRepsStatus())
                 .distanceMeterStatus(dto.getDistanceMeterStatus())
                 .durationSecondStatus(dto.getDurationSecondStatus())
+                .build();
+    }
+
+
+    // read detail
+    public ExerciseDetailResponseDto toDto(Exercise entity) {
+        return ExerciseDetailResponseDto.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .category(entity.getCategory())
+                .description(entity.getDescription())
+                .isHidden(entity.isHidden())
+                .createdAt(entity.getCreatedAt())
+                .instructions(entity.getInstructions().stream().map(this::toDto).toList())
+                .metricRequirement(toDto(entity.getMetricRequirement()))
+                .build();
+    }
+
+    public ExerciseDetailResponseDto.InstructionResponseDto toDto(ExerciseInstruction entity) {
+        return ExerciseDetailResponseDto.InstructionResponseDto.builder()
+                .id(entity.getId())
+                .stepOrder(entity.getStepOrder())
+                .description(entity.getDescription())
+                .build();
+    }
+
+    public ExerciseDetailResponseDto.MetricResponseDto toDto(ExerciseMetricRequirement entity) {
+        return ExerciseDetailResponseDto.MetricResponseDto.builder()
+                .weightKgStatus(entity.getWeightKgStatus())
+                .repsStatus(entity.getRepsStatus())
+                .distanceMeterStatus(entity.getDistanceMeterStatus())
+                .durationSecondStatus(entity.getDurationSecondStatus())
                 .build();
     }
 

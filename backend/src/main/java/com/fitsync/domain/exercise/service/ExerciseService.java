@@ -2,6 +2,7 @@ package com.fitsync.domain.exercise.service;
 
 import com.fitsync.domain.exercise.dto.*;
 import com.fitsync.domain.exercise.entity.Exercise;
+import com.fitsync.domain.exercise.entity.ExerciseInstruction;
 import com.fitsync.domain.exercise.mapper.ExerciseMapper;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +33,16 @@ public class ExerciseService {
             throw new IllegalArgumentException("이미 동일한 이름의 운동이 존재합니다 :  " + requestDto.getName());
         }
 
-//        Exercise exercise = requestDto.toEntity();
         Exercise exercise = exerciseMapper.toEntity(requestDto);
-        Exercise savedExercise = exerciseRepository.save(exercise);
 
+        List<ExerciseInstruction> instructions = requestDto.getInstructions().stream()
+                .map(exerciseMapper::toEntity)
+                .toList();
+        instructions.forEach(exercise::addInstruction);
+
+        exercise.setRequirement(exerciseMapper.toEntity(requestDto.getMetricRequirement()));
+
+        Exercise savedExercise = exerciseRepository.save(exercise);
         return new ExerciseDetailResponseDto(savedExercise);
     }
 
@@ -54,7 +63,7 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.findByIdWithInstructions(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
-        return new ExerciseDetailResponseDto(exercise);
+        return exerciseMapper.toDto(exercise);
     }
 
     /**

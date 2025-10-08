@@ -5,6 +5,8 @@ import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseInstruction;
 import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
 import com.fitsync.domain.exercise.entity.MetricRequirement;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Builder
+@AllArgsConstructor
 public class ExerciseDetailResponseDto {
 
     private final Long id;
@@ -27,6 +31,8 @@ public class ExerciseDetailResponseDto {
 
     // 단계별 설명을 위한 내부 DTO
     @Getter
+    @Builder
+    @AllArgsConstructor
     public static class InstructionResponseDto {
         private final Long id;
         private final Integer stepOrder;
@@ -41,6 +47,8 @@ public class ExerciseDetailResponseDto {
 
     // 세트값 입력 허용을 위한 내부 DTO
     @Getter
+    @Builder
+    @AllArgsConstructor
     public static class MetricResponseDto {
         private MetricRequirement weightKgStatus;
         private MetricRequirement repsStatus;
