@@ -43,7 +43,7 @@ public class ExerciseService {
         exercise.setRequirement(exerciseMapper.toEntity(requestDto.getMetricRequirement()));
 
         Exercise savedExercise = exerciseRepository.save(exercise);
-        return new ExerciseDetailResponseDto(savedExercise);
+        return exerciseMapper.toDto(savedExercise);
     }
 
     /**
@@ -81,7 +81,7 @@ public class ExerciseService {
         // dto, entity 분리하기
         exerciseMapper.applyUpdateFrom(exercise, requestDto);
 
-        return new ExerciseDetailResponseDto(exercise);
+        return exerciseMapper.toDto(exercise);
     }
 
     /**
