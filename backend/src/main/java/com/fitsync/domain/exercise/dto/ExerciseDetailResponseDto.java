@@ -1,18 +1,13 @@
 package com.fitsync.domain.exercise.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fitsync.domain.exercise.entity.Exercise;
-import com.fitsync.domain.exercise.entity.ExerciseInstruction;
-import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
 import com.fitsync.domain.exercise.entity.MetricRequirement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Builder

@@ -1,8 +1,5 @@
 package com.fitsync.domain.exercise.dto;
 
-import com.fitsync.domain.exercise.entity.Exercise;
-import com.fitsync.domain.exercise.entity.ExerciseInstruction;
-import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
 import com.fitsync.domain.exercise.entity.MetricRequirement;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
