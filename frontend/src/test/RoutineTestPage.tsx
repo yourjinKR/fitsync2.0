@@ -7,7 +7,6 @@ import RoutineApi from '../api/RoutineApi';
 import { ExerciseSimpleResponseDto } from '../types/domain/exercise';
 import {
   RoutineCreateRequestDto,
-  RoutineCreateResponseDto,
   RoutineDetailResponseDto,
   RoutineUpdateRequestDto,
   RoutineSimpleResponseDto,
@@ -258,7 +257,7 @@ const RoutineTestPage = () => {
             .sort((a, b) => a.displayOrder - b.displayOrder)
             .map(ex => ({
               id: ex.id,
-              exerciseId: ex.exercise.id,
+              exerciseId: ex.exerciseId,
               displayOrder: ex.displayOrder,
               memo: ex.memo ?? '',
               sets: ex.sets
@@ -402,8 +401,8 @@ const RoutineTestPage = () => {
         .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((ex, idx) => ({
           routineExerciseId: ex.id,
-          exerciseId: ex.exercise.id,
-          name: ex.exercise.name,
+          exerciseId: ex.exerciseId,
+          name: ex.exerciseName,
           displayOrder: idx + 1,
           memo: ex.memo ?? '',
           sets: ex.sets
@@ -588,7 +587,7 @@ const RoutineTestPage = () => {
     if (!viewedRoutine) return;
     if (!confirm(`정말로 삭제할까요?\n[${viewedRoutine.name}] (ID: ${viewedRoutine.id})`)) return;
     try {
-      const req: RoutineDeleteRequestDto = { id: viewedRoutine.id, ownerId: viewedRoutine.owner.id };
+      const req: RoutineDeleteRequestDto = { id: viewedRoutine.id, ownerId: viewedRoutine.ownerId };
       console.log("data check : ", viewedRoutine);
       await RoutineApi.deleteRoutine(viewedRoutine.id, req);
 
@@ -764,7 +763,7 @@ const RoutineTestPage = () => {
                   <hr />
                   {viewedRoutine.exercises.map((ex, i) => (
                     <div key={i} style={{ marginBottom: '12px' }}>
-                      <strong>{ex.displayOrder}. {ex.exercise.name}</strong>
+                      <strong>{ex.displayOrder}. {ex.exerciseName}</strong>
                       {ex.sets.map((set, j) => (
                         <div key={j} style={{ paddingLeft: '16px', fontSize: '1.3rem' }}>
                           - {set.displayOrder}세트: {set.weightKg}kg / {set.reps}회
@@ -840,7 +839,7 @@ const RoutineTestPage = () => {
             {createdRoutineInfo && (
               <ResultDisplay>
                 <strong>✅ 생성 성공!</strong>
-                <p>생성된 루틴 ID: {createdRoutineInfo.id}</p>
+                <p>생성된 루틴 ID: {createdRoutineInfo}</p>
                 <p>왼쪽 조회 폼에 입력하여 확인할 수 있습니다.</p>
               </ResultDisplay>
             )}

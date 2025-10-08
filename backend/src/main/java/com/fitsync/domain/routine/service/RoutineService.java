@@ -87,7 +87,7 @@ public class RoutineService {
         Routine routine = routineRepository.findRoutineDetailsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
-        return new RoutineDetailResponseDto(routine);
+        return routineMapper.toDto(routine);
     }
 
     // 루틴 삭제

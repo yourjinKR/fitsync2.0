@@ -1,4 +1,5 @@
 import { Nullable } from './../common';
+import { MetricRequirement } from './exercise';
 // frontend\src\types\domain\routine.ts
 
 // 루틴 생성 요청
@@ -48,8 +49,8 @@ export interface RoutineSimpleResponseDto {
 // 특정 루틴 조회 응답
 export interface RoutineDetailResponseDto {
   id : number;
-  owner : {id : number};
-  writer : {id : number};
+  ownerId : number;
+  writerId : number;
   name : string;
   displayOrder : number;
   memo : string;
@@ -62,14 +63,15 @@ interface RoutineExerciseDto2 {
   displayOrder : number;
   memo : string;
 
-  exercise : ExerciseSummaryDto;
+  exerciseId : number;
+  exerciseName : string;
+  exerciseCategory : string;
+  weightKgStatus : MetricRequirement;
+  repsStatus : MetricRequirement;
+  distanceMeterStatus : MetricRequirement;
+  durationSecondStatus : MetricRequirement;
 
   sets : RoutineSetDto[];
-}
-
-interface ExerciseSummaryDto {
-  id : number;
-  name : string;
 }
 
 // 루틴 수정 DTO
