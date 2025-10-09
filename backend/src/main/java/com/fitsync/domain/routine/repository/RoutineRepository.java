@@ -1,6 +1,6 @@
 package com.fitsync.domain.routine.repository;
 
-import com.fitsync.domain.routine.dto.RoutineSimpleResponseDto;
+import com.fitsync.domain.routine.dto.RoutineSimpleResponse;
 import com.fitsync.domain.routine.entity.Routine;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +35,7 @@ public interface RoutineRepository extends JpaRepository<Routine, Long> {
        where (:ownerId is null or o.id = :ownerId)
            order by r.displayOrder
     """)
-    Page<RoutineSimpleResponseDto> findMyRoutineList(
+    Page<RoutineSimpleResponse> findMyRoutineList(
             @Param("ownerId") Long ownerId,
             Pageable pageable
     );

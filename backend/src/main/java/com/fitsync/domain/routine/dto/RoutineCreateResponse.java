@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class RoutineCreateResponseDto {
+public class RoutineCreateResponse {
     private Long id;
 }

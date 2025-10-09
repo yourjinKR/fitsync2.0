@@ -8,29 +8,26 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class RoutineUpdateRequestDto {
-    private Long id;
+public class RoutineCreateRequest {
+
     private String name;
     private Integer displayOrder;
     private String memo;
 
-    private List<RoutineExerciseDto> routineExercises;
+    private List<RoutineExerciseRequest> exercises;
 
     @Getter
     @NoArgsConstructor
-    public static class RoutineExerciseDto {
-        private Long id; // Nullable
+    public static class RoutineExerciseRequest {
         private Long exerciseId;
         private Integer displayOrder;
         private String memo;
-
-        private List<RoutineSetDto> sets;
+        private List<RoutineSetRequest> sets;
     }
 
     @Getter
     @NoArgsConstructor
-    public static class RoutineSetDto {
-        private Long id; // Nullable
+    public static class RoutineSetRequest {
         private Integer displayOrder;
         private BigDecimal weightKg;
         private Integer reps;

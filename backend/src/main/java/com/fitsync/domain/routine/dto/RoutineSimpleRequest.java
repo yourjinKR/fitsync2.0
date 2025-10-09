@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class RoutineSimpleRequestDto {
+public class RoutineSimpleRequest {
     private Long id;
     private String name;
     private Integer displayOrder;

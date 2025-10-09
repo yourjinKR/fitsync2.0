@@ -1,7 +1,7 @@
 package com.fitsync.domain.workout.mapper;
 
 import com.fitsync.domain.exercise.entity.Exercise;
-import com.fitsync.domain.routine.dto.RoutineDetailResponseDto;
+import com.fitsync.domain.routine.dto.RoutineDetailResponse;
 import com.fitsync.domain.user.entity.User;
 import com.fitsync.domain.workout.dto.WorkoutCreateRequestDto;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponseDto;
@@ -50,7 +50,7 @@ public class WorkoutMapper {
     }
 
     // create : routineDTO -> workoutDTO
-    public WorkoutCreateRequestDto toWorkoutDto(RoutineDetailResponseDto dto) {
+    public WorkoutCreateRequestDto toWorkoutDto(RoutineDetailResponse dto) {
         return null;
     }
 

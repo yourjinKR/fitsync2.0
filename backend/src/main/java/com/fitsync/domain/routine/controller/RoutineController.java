@@ -24,7 +24,7 @@ public class RoutineController {
 
     // 루틴 생성
     @PostMapping
-    public ResponseEntity<Long> createRoutine(@RequestBody RoutineCreateRequestDto requestDto) {
+    public ResponseEntity<Long> createRoutine(@RequestBody RoutineCreateRequest requestDto) {
 
         Long id =  routineService.createRoutine(requestDto);
 
@@ -33,7 +33,7 @@ public class RoutineController {
 
     // 사용자 루틴 목록
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<RoutineSimpleResponseDto>> getRoutineList(
+    public ResponseEntity<Page<RoutineSimpleResponse>> getRoutineList(
             @PathVariable Long userId,
             @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
@@ -43,7 +43,7 @@ public class RoutineController {
 
         // 현재 유저와 동일할 경우 나의 루틴을 조회
         if (userId.equals(currentUser.getId())) {
-            Page<RoutineSimpleResponseDto> result = routineService.getMyRoutineList(userId, pageable);
+            Page<RoutineSimpleResponse> result = routineService.getMyRoutineList(userId, pageable);
             return ResponseEntity.ok(result);
         }
 
@@ -53,25 +53,25 @@ public class RoutineController {
 
     // 특정 루틴 상세보기
     @GetMapping("/{id}")
-    public ResponseEntity<RoutineDetailResponseDto> getRoutine(@PathVariable("id") Long id) {
+    public ResponseEntity<RoutineDetailResponse> getRoutine(@PathVariable("id") Long id) {
 
-        RoutineDetailResponseDto result = routineService.getRoutine(id);
+        RoutineDetailResponse result = routineService.getRoutine(id);
 
         return ResponseEntity.ok(result);
     }
 
     // 루틴 업데이트
     @PutMapping("/{id}")
-    public ResponseEntity<RoutineDetailResponseDto> updateRoutine(@PathVariable("id") Long id, @RequestBody RoutineUpdateRequestDto requestDto) {
+    public ResponseEntity<RoutineDetailResponse> updateRoutine(@PathVariable("id") Long id, @RequestBody RoutineUpdateRequest requestDto) {
 
-        RoutineDetailResponseDto result = routineService.updateRoutine(id, requestDto);
+        RoutineDetailResponse result = routineService.updateRoutine(id, requestDto);
 
         return ResponseEntity.ok(result);
     }
 
     // 루틴 기본 정보 수정 (이름, 메모)
     @PatchMapping("/header/{id}")
-    public ResponseEntity<Void> updateRoutineHeader(@PathVariable("id") Long id, @RequestBody RoutineSimpleRequestDto requestDto) {
+    public ResponseEntity<Void> updateRoutineHeader(@PathVariable("id") Long id, @RequestBody RoutineSimpleRequest requestDto) {
 
         routineService.updateRoutineHeader(id, requestDto);
 
@@ -80,7 +80,7 @@ public class RoutineController {
 
     // 루틴간 정렬 변경
     @PatchMapping("/displayOrder")
-    public ResponseEntity<Void> sortRoutine(@RequestBody List<RoutineSimpleRequestDto> requestDtos) {
+    public ResponseEntity<Void> sortRoutine(@RequestBody List<RoutineSimpleRequest> requestDtos) {
 
         routineService.sortRoutine(requestDtos);
 
@@ -89,7 +89,7 @@ public class RoutineController {
 
     // 루틴 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRoutine(@PathVariable Long id, @RequestBody RoutineDeleteRequestDto requestDto) {
+    public ResponseEntity<Void> deleteRoutine(@PathVariable Long id, @RequestBody RoutineDeleteRequest requestDto) {
 
         routineService.deleteRoutine(id, requestDto);
 

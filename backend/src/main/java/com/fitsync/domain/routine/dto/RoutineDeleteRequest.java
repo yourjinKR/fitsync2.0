@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class RoutineDeleteRequestDto {
+public class RoutineDeleteRequest {
     private Long id;
     private Long ownerId;
 }

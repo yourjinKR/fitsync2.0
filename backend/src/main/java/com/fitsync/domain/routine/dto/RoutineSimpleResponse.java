@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoutineSimpleResponseDto {
+public class RoutineSimpleResponse {
 
     private Long id;
     private Long ownerId;

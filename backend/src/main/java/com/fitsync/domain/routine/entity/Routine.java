@@ -1,6 +1,6 @@
 package com.fitsync.domain.routine.entity;
 
-import com.fitsync.domain.routine.dto.RoutineSimpleRequestDto;
+import com.fitsync.domain.routine.dto.RoutineSimpleRequest;
 import com.fitsync.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -75,7 +75,7 @@ public class Routine {
     }
 
     // PATCH UPDATE
-    public void updateBasic(RoutineSimpleRequestDto requestDto) {
+    public void updateBasic(RoutineSimpleRequest requestDto) {
         if (name != null) this.name = requestDto.getName();
         if (displayOrder != null) this.displayOrder = requestDto.getDisplayOrder();
         if (memo != null) this.memo = requestDto.getMemo();

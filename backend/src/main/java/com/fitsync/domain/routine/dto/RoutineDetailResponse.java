@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoutineDetailResponseDto {
+public class RoutineDetailResponse {
     private Long id;
     private Long ownerId;
     private Long writerId;
@@ -22,13 +22,13 @@ public class RoutineDetailResponseDto {
     private Integer displayOrder;
     private String memo;
 
-    private List<RoutineExerciseDto> exercises;
+    private List<RoutineExerciseResponse> exercises;
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class RoutineExerciseDto {
+    public static class RoutineExerciseResponse {
         private Long id;
         private Integer displayOrder;
         private String memo;
@@ -41,7 +41,7 @@ public class RoutineDetailResponseDto {
         private MetricRequirement distanceMeterStatus;
         private MetricRequirement durationSecondStatus;
 
-        private List<RoutineSetDto> sets;
+        private List<RoutineSetResponse> sets;
     }
 
 
@@ -49,7 +49,7 @@ public class RoutineDetailResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class RoutineSetDto {
+    public static class RoutineSetResponse {
         private Long id;
         private Integer displayOrder;
         private BigDecimal weightKg;

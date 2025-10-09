@@ -2,9 +2,9 @@ package com.fitsync.domain.routine.mapper;
 
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
-import com.fitsync.domain.routine.dto.RoutineCreateRequestDto;
-import com.fitsync.domain.routine.dto.RoutineDetailResponseDto;
-import com.fitsync.domain.routine.dto.RoutineUpdateRequestDto;
+import com.fitsync.domain.routine.dto.RoutineCreateRequest;
+import com.fitsync.domain.routine.dto.RoutineDetailResponse;
+import com.fitsync.domain.routine.dto.RoutineUpdateRequest;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class RoutineMapper {
 
     // create
-    public Routine toEntity(RoutineCreateRequestDto dto) {
+    public Routine toEntity(RoutineCreateRequest dto) {
         return Routine.builder()
                 .name(dto.getName())
                 .displayOrder(dto.getDisplayOrder())
@@ -23,15 +23,15 @@ public class RoutineMapper {
                 .build();
     }
 
-    public RoutineExercise toEntity(RoutineCreateRequestDto.RoutineExerciseDto dto) {
-        return RoutineExercise.builder()
+    public RoutineExercise toEntity(RoutineCreateRequest.RoutineExerciseRequest dto) {
+        return com.fitsync.domain.routine.entity.RoutineExercise.builder()
                 .displayOrder(dto.getDisplayOrder())
                 .memo(dto.getMemo())
                 .build();
     }
 
-    public RoutineSet toEntity(RoutineCreateRequestDto.RoutineSetDto dto) {
-        return RoutineSet.builder()
+    public RoutineSet toEntity(RoutineCreateRequest.RoutineSetRequest dto) {
+        return com.fitsync.domain.routine.entity.RoutineSet.builder()
                 .displayOrder(dto.getDisplayOrder())
                 .weightKg(dto.getWeightKg())
                 .reps(dto.getReps())
@@ -41,11 +41,11 @@ public class RoutineMapper {
     }
 
     // read detail
-    public RoutineDetailResponseDto toDto(Routine routine) {
+    public RoutineDetailResponse toDto(Routine routine) {
         User owner = routine.getOwner();
         User writer = routine.getWriter();
 
-        return RoutineDetailResponseDto.builder()
+        return RoutineDetailResponse.builder()
                 .id(routine.getId())
                 .ownerId(owner.getId())
                 .writerId(writer.getId())
@@ -56,11 +56,11 @@ public class RoutineMapper {
                 .build();
     }
 
-    public RoutineDetailResponseDto.RoutineExerciseDto toDto(RoutineExercise rExercise) {
+    public RoutineDetailResponse.RoutineExerciseResponse toDto(RoutineExercise rExercise) {
         Exercise  exercise = rExercise.getExercise();
         ExerciseMetricRequirement metric = exercise.getMetricRequirement();
 
-        return RoutineDetailResponseDto.RoutineExerciseDto.builder()
+        return RoutineDetailResponse.RoutineExerciseResponse.builder()
                 .id(rExercise.getId())
                 .displayOrder(rExercise.getDisplayOrder())
                 .memo(rExercise.getMemo())
@@ -75,8 +75,8 @@ public class RoutineMapper {
                 .build();
     }
 
-    public RoutineDetailResponseDto.RoutineSetDto toDto(RoutineSet set) {
-        return RoutineDetailResponseDto.RoutineSetDto.builder()
+    public RoutineDetailResponse.RoutineSetResponse toDto(RoutineSet set) {
+        return RoutineDetailResponse.RoutineSetResponse.builder()
                 .id(set.getId())
                 .displayOrder(set.getDisplayOrder())
                 .weightKg(set.getWeightKg())
@@ -87,7 +87,7 @@ public class RoutineMapper {
     }
 
     // update
-    public Routine toEntity(RoutineUpdateRequestDto dto) {
+    public Routine toEntity(RoutineUpdateRequest dto) {
         return Routine.builder()
                 .id(dto.getId())
 //                .owner()
@@ -99,8 +99,8 @@ public class RoutineMapper {
                 .build();
     }
 
-    public RoutineExercise toEntity(RoutineUpdateRequestDto.RoutineExerciseDto dto) {
-        return RoutineExercise.builder()
+    public RoutineExercise toEntity(RoutineUpdateRequest.RoutineExerciseRequest dto) {
+        return com.fitsync.domain.routine.entity.RoutineExercise.builder()
                 .id(dto.getId())
 //                .routine()
 //                .exercise()
@@ -110,8 +110,8 @@ public class RoutineMapper {
                 .build();
     }
 
-    public RoutineSet toEntity(RoutineUpdateRequestDto.RoutineSetDto dto) {
-        return RoutineSet.builder()
+    public RoutineSet toEntity(RoutineUpdateRequest.RoutineSetRequest dto) {
+        return com.fitsync.domain.routine.entity.RoutineSet.builder()
                 .id(dto.getId())
 //                .routineExercise()
                 .displayOrder( dto.getDisplayOrder())

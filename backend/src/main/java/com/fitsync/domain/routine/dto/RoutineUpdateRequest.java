@@ -8,28 +8,29 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class RoutineCreateRequestDto {
-
-    // 루틴 기본정보 (User 정보 제거)
+public class RoutineUpdateRequest {
+    private Long id;
     private String name;
     private Integer displayOrder;
     private String memo;
 
-    // 루틴 내 운동정보
-    private List<RoutineExerciseDto> exercises;
+    private List<RoutineExerciseRequest> routineExercises;
 
     @Getter
     @NoArgsConstructor
-    public static class RoutineExerciseDto {
+    public static class RoutineExerciseRequest {
+        private Long id; // Nullable
         private Long exerciseId;
         private Integer displayOrder;
         private String memo;
-        private List<RoutineSetDto> sets;
+
+        private List<RoutineSetRequest> sets;
     }
 
     @Getter
     @NoArgsConstructor
-    public static class RoutineSetDto {
+    public static class RoutineSetRequest {
+        private Long id; // Nullable
         private Integer displayOrder;
         private BigDecimal weightKg;
         private Integer reps;
