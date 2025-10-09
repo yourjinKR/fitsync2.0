@@ -5,6 +5,10 @@ name: CI/CD Pipeline for Spring Boot and React
 on:
   push:
     branches: [ "main" ] # main 브랜치에 push될 때 워크플로우 실행
+    paths-ignore:
+      - "README.md"
+      - "**/*.md"
+      - "docs/**"
 
 jobs:
   build-and-deploy:
