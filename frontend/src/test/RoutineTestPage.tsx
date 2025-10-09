@@ -4,15 +4,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import ExerciseApi from '../api/ExerciseApi';
 import RoutineApi from '../api/RoutineApi';
-import { ExerciseSimpleResponseDto } from '../types/domain/exercise';
-import {
-  RoutineCreateRequestDto,
-  RoutineDetailResponseDto,
-  RoutineUpdateRequestDto,
-  RoutineSimpleResponseDto,
-  RoutineDeleteRequestDto,
-} from '../types/domain/routine';
 import { ApiError } from '../types/error';
+import { 
+  RoutineDetailResponse, 
+  RoutineCreateRequest, 
+  RoutineDeleteRequest, 
+  RoutineSimpleResponse, 
+  RoutineUpdateRequest,
+} from '../types/domain/routine/index';
 
 // dnd
 import {
@@ -22,6 +21,8 @@ import {
   DropResult,
 } from '@hello-pangea/dnd';
 import { Pageable } from '../types/api';
+import { ExerciseSimpleResponse } from '../types/domain/exercise';
+
 
 /* ------------------------------------------------------------------ */
 /* 1) 이 페이지에서만 쓰는 타입                                         */
@@ -180,7 +181,7 @@ const ResultDisplay = styled.div`
 /* 5) 컴포넌트                                                         */
 /* ------------------------------------------------------------------ */
 const RoutineTestPage = () => {
-  const [allExercises, setAllExercises] = useState<ExerciseSimpleResponseDto[]>([]);
+  const [allExercises, setAllExercises] = useState<ExerciseSimpleResponse[]>([]);
 
   // 생성용 상태
   const [createState, setCreateState] = useState(INITIAL_CREATE_STATE);
@@ -188,12 +189,12 @@ const RoutineTestPage = () => {
 
   // 조회/수정용 상태
   const [viewRoutineId, setViewRoutineId] = useState('');
-  const [viewedRoutine, setViewedRoutine] = useState<RoutineDetailResponseDto | null>(null);
+  const [viewedRoutine, setViewedRoutine] = useState<RoutineDetailResponse | null>(null);
   const [editState, setEditState] = useState<EditingRoutine | null>(INITIAL_EDIT_STATE);
 
   // 루틴 리스트(사용자)
   const [userIdForList, setUserIdForList] = useState('3'); // 테스트용 default
-  const [routinePage, setRoutinePage] = useState<Page<RoutineSimpleResponseDto> | null>(null);
+  const [routinePage, setRoutinePage] = useState<Page<RoutineSimpleResponse> | null>(null);
   const [pageParams, setPageParams] = useState({ page: 0, size: 20, sort: 'id,asc' });
   const [isLoadingList, setIsLoadingList] = useState(false);
 
@@ -248,7 +249,7 @@ const RoutineTestPage = () => {
         // 1) 상세 조회
         const detail = await RoutineApi.getRoutine(r.id);
         // 2) 리스트에서 조정한 displayOrder 반영, 내부는 유지
-        const dto: RoutineUpdateRequestDto = {
+        const dto: RoutineUpdateRequest = {
           id: detail.id,
           name: detail.name,
           displayOrder: r.displayOrder ?? 0,
@@ -282,7 +283,7 @@ const RoutineTestPage = () => {
   };
 
   /* ------------------ 생성기 핸들러 ------------------ */
-  const handleAddToCreate = (exercise: ExerciseSimpleResponseDto) => {
+  const handleAddToCreate = (exercise: ExerciseSimpleResponse) => {
     setCreateState(prev => ({
       ...prev,
       exercises: [
@@ -343,9 +344,7 @@ const RoutineTestPage = () => {
     if (!createState.name) return alert('루틴 이름을 입력해주세요.');
     if (createState.exercises.length === 0) return alert('운동을 하나 이상 추가해주세요.');
 
-    const requestDto: RoutineCreateRequestDto = {
-      ownerId: 1, // 테스트용
-      writerId: 1, // 테스트용
+    const requestDto: RoutineCreateRequest = {
       name: createState.name,
       memo: createState.memo,
       displayOrder: 0,
@@ -428,7 +427,7 @@ const RoutineTestPage = () => {
     setEditState({ ...editState, [name]: value } as EditingRoutine);
   };
 
-  const addExerciseToEdit = (exercise: ExerciseSimpleResponseDto) => {
+  const addExerciseToEdit = (exercise: ExerciseSimpleResponse) => {
     if (!editState) {
       alert('왼쪽에서 루틴을 조회 후, "편집 모드로 불러오기"를 먼저 눌러주세요.');
       return;
@@ -494,7 +493,7 @@ const RoutineTestPage = () => {
     if (!editState.name) return alert('루틴 이름을 입력해주세요.');
     if (editState.routineExercises.length === 0) return alert('최소 1개의 운동이 필요합니다.');
 
-    const dto: RoutineUpdateRequestDto = {
+    const dto: RoutineUpdateRequest = {
       id: editState.id,
       name: editState.name,
       displayOrder: editState.displayOrder ?? 0,
@@ -555,10 +554,10 @@ const RoutineTestPage = () => {
   };
 
   // ----------------- 삭제: 리스트 항목에서 사용 -----------------
-  const deleteRoutineFromList = async (r: RoutineSimpleResponseDto) => {
+  const deleteRoutineFromList = async (r: RoutineSimpleResponse) => {
     if (!confirm(`정말로 삭제할까요?\n[${r.name}] (ID: ${r.id})`)) return;
     try {
-      const req: RoutineDeleteRequestDto = { id: r.id, ownerId: r.ownerId };
+      const req: RoutineDeleteRequest = { id: r.id, ownerId: r.ownerId };
       await RoutineApi.deleteRoutine(r.id, req);
 
       // 리스트에서 제거 + displayOrder 재정렬
@@ -587,7 +586,7 @@ const RoutineTestPage = () => {
     if (!viewedRoutine) return;
     if (!confirm(`정말로 삭제할까요?\n[${viewedRoutine.name}] (ID: ${viewedRoutine.id})`)) return;
     try {
-      const req: RoutineDeleteRequestDto = { id: viewedRoutine.id, ownerId: viewedRoutine.ownerId };
+      const req: RoutineDeleteRequest = { id: viewedRoutine.id, ownerId: viewedRoutine.ownerId };
       console.log("data check : ", viewedRoutine);
       await RoutineApi.deleteRoutine(viewedRoutine.id, req);
 
