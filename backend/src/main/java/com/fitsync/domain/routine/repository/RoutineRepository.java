@@ -33,6 +33,7 @@ public interface RoutineRepository extends JpaRepository<Routine, Long> {
        join r.owner o
        join r.writer w
        where (:ownerId is null or o.id = :ownerId)
+           order by r.displayOrder
     """)
     Page<RoutineSimpleResponseDto> findMyRoutineList(
             @Param("ownerId") Long ownerId,

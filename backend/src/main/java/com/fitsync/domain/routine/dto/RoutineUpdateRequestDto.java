@@ -9,32 +9,28 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class RoutineUpdateRequestDto {
-
-    // 기본정보
     private Long id;
     private String name;
     private Integer displayOrder;
     private String memo;
 
-    // 루틴 내 운동정보
     private List<RoutineExerciseDto> routineExercises;
 
     @Getter
     @NoArgsConstructor
     public static class RoutineExerciseDto {
-        private Long id; // 운동을 추가했을 경우에는 null일 수 있음
+        private Long id; // Nullable
         private Long exerciseId;
         private Integer displayOrder;
         private String memo;
 
-        // 세트 정보
         private List<RoutineSetDto> sets;
     }
 
     @Getter
     @NoArgsConstructor
     public static class RoutineSetDto {
-        private Long id;
+        private Long id; // Nullable
         private Integer displayOrder;
         private BigDecimal weightKg;
         private Integer reps;

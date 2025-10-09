@@ -4,6 +4,7 @@ import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
 import com.fitsync.domain.routine.dto.RoutineCreateRequestDto;
 import com.fitsync.domain.routine.dto.RoutineDetailResponseDto;
+import com.fitsync.domain.routine.dto.RoutineUpdateRequestDto;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
@@ -82,6 +83,42 @@ public class RoutineMapper {
                 .reps(set.getReps())
                 .distanceMeter(set.getDistanceMeter())
                 .durationSecond(set.getDurationSecond())
+                .build();
+    }
+
+    // update
+    public Routine toEntity(RoutineUpdateRequestDto dto) {
+        return Routine.builder()
+                .id(dto.getId())
+//                .owner()
+//                .writer()
+                .name(dto.getName())
+                .displayOrder(dto.getDisplayOrder())
+                .memo(dto.getMemo())
+//                .routineExercises(dto.getRoutineExercises())
+                .build();
+    }
+
+    public RoutineExercise toEntity(RoutineUpdateRequestDto.RoutineExerciseDto dto) {
+        return RoutineExercise.builder()
+                .id(dto.getId())
+//                .routine()
+//                .exercise()
+                .displayOrder( dto.getDisplayOrder())
+                .memo(dto.getMemo())
+//                .sets()
+                .build();
+    }
+
+    public RoutineSet toEntity(RoutineUpdateRequestDto.RoutineSetDto dto) {
+        return RoutineSet.builder()
+                .id(dto.getId())
+//                .routineExercise()
+                .displayOrder( dto.getDisplayOrder())
+                .weightKg(dto.getWeightKg())
+                .reps(dto.getReps())
+                .distanceMeter(dto.getDistanceMeter())
+                .durationSecond(dto.getDurationSecond())
                 .build();
     }
 }

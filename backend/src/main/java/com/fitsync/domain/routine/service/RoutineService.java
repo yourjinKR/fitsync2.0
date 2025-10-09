@@ -19,11 +19,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO : 루틴 정렬 순서 변경시 굉~~장히 오래 걸림, 추후 개선 필요
 @Service
 @RequiredArgsConstructor
 public class RoutineService {
@@ -119,7 +119,9 @@ public class RoutineService {
         Routine routine = routineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
-        routine.updateBasic(requestDto);
+        routine.rename(requestDto.getName());
+        routine.reorder(requestDto.getDisplayOrder());
+        routine.reMemo(requestDto.getMemo());
     }
 
     // 루틴 순서 정렬
@@ -127,12 +129,14 @@ public class RoutineService {
     public void sortRoutine(List<RoutineSimpleRequestDto> requestDtos) {
 
         // 각각의 id로 entity 조회 후 업데이트
-        requestDtos.forEach(dto -> {
-            Long id = dto.getId();
+        requestDtos.forEach(requestDto -> {
+            Long id = requestDto.getId();
             Routine routine = routineRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
-            routine.updateBasic(dto);
+            routine.rename(requestDto.getName());
+            routine.reorder(requestDto.getDisplayOrder());
+            routine.reMemo(requestDto.getMemo());
         });
 
     }
@@ -162,7 +166,7 @@ public class RoutineService {
         }
 
         // 4) 트랜잭션 종료 시 플러시 → 변경사항 반영
-        return new RoutineDetailResponseDto(routine);
+        return routineMapper.toDto(routine);
     }
 
     // ===== 내부 동기화 로직 =====
@@ -201,7 +205,7 @@ public class RoutineService {
                 // 세트 동기화(신규는 전부 추가)
                 if (dto.getSets() != null) {
                     for (RoutineUpdateRequestDto.RoutineSetDto s : dto.getSets()) {
-                        RoutineSet newSet = buildRoutineSet(s);
+                        RoutineSet newSet = routineMapper.toEntity(s);
                         newRe.addSet(newSet);
                     }
                 }
@@ -234,7 +238,6 @@ public class RoutineService {
         }
     }
 
-    // TODO : 이해하기
     private void syncRoutineSets(RoutineExercise parent, List<RoutineUpdateRequestDto.RoutineSetDto> reqSets) {
         Map<Long, RoutineSet> existingMap = parent.getSets().stream()
                 .filter(s -> s.getId() != null)
@@ -253,7 +256,7 @@ public class RoutineService {
         // 추가/수정
         for (RoutineUpdateRequestDto.RoutineSetDto s : reqSets) {
             if (s.getId() == null) {
-                RoutineSet newSet = buildRoutineSet(s);
+                RoutineSet newSet = routineMapper.toEntity(s);
                 parent.addSet(newSet);
             } else {
                 RoutineSet target = existingMap.get(s.getId());
@@ -273,7 +276,7 @@ public class RoutineService {
 
     // ===== 팩토리/헬퍼 =====
 
-    // DTO -> Entity
+    // 매핑 및 운동 부여
     private RoutineExercise buildRoutineExercise(
             RoutineUpdateRequestDto.RoutineExerciseDto dto,
             Map<Long, Exercise> exerciseRef) {
@@ -285,23 +288,12 @@ public class RoutineService {
         if (exercise == null) {
             throw new ResourceNotFoundException("운동 정보를 찾지 못했습니다. exerciseId=" + dto.getExerciseId());
         }
-        return RoutineExercise.builder()
-                .exercise(exercise)
-                .displayOrder(nullSafe(dto.getDisplayOrder(), 0))
-                .memo(dto.getMemo())
-                .build();
+
+        RoutineExercise routineExercise = routineMapper.toEntity(dto);
+        routineExercise.selectExercise(exercise);
+        return routineExercise;
     }
 
-    // DTO -> Entity
-    private RoutineSet buildRoutineSet(RoutineUpdateRequestDto.RoutineSetDto s) {
-        return RoutineSet.builder()
-                .displayOrder(nullSafe(s.getDisplayOrder(), 0))
-                .weightKg(s.getWeightKg())
-                .reps(s.getReps())
-                .distanceMeter(s.getDistanceMeter())
-                .durationSecond(s.getDurationSecond())
-                .build();
-    }
 
     // ID 목록을 받고 Map으로 변환
     private Map<Long, Exercise> loadExercisesAsMap(Set<Long> ids) {

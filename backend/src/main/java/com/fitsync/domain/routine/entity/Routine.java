@@ -81,5 +81,16 @@ public class Routine {
         if (memo != null) this.memo = requestDto.getMemo();
     }
 
+    public void rename(String name) {
+        this.name = name;
+    }
+
+    public void reorder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
+    }
+
+    public void reMemo(String memo) {
+        this.memo = memo;
+    }
 }
 
