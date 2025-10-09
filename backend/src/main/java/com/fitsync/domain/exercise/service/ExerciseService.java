@@ -27,7 +27,7 @@ public class ExerciseService {
      * @return <code>ExerciseDetailResponseDto</code> 바로 해당 정보를 보여주기 위해 응답
      */
     @Transactional
-    public ExerciseDetailResponseDto createExercise(ExerciseCreateRequestDto requestDto) {
+    public ExerciseDetailResponse createExercise(ExerciseCreateRequest requestDto) {
 
         if (exerciseRepository.existsByName(requestDto.getName())) {
             throw new IllegalArgumentException("이미 동일한 이름의 운동이 존재합니다 :  " + requestDto.getName());
@@ -49,7 +49,7 @@ public class ExerciseService {
     /**
      * 모든 운동 정보를 가져오는 메소드
      */
-    public Page<ExerciseSimpleResponseDto> getAllExercises(Pageable pageable) {
+    public Page<ExerciseSimpleResponse> getAllExercises(Pageable pageable) {
         return exerciseRepository.findAllSimple(pageable);
     }
 
@@ -58,7 +58,7 @@ public class ExerciseService {
      * @param exerciseId 운동 정보 PK
      * @return <code>ExerciseResponseDto</code>
      */
-    public ExerciseDetailResponseDto getExercise(Long exerciseId) {
+    public ExerciseDetailResponse getExercise(Long exerciseId) {
 
         Exercise exercise = exerciseRepository.findByIdWithInstructions(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
@@ -73,7 +73,7 @@ public class ExerciseService {
      * @return <code>ExerciseDetailResponseDto</code>
      */
     @Transactional
-    public ExerciseDetailResponseDto updateExercise(Long exerciseId, ExerciseUpdateRequestDto requestDto) {
+    public ExerciseDetailResponse updateExercise(Long exerciseId, ExerciseUpdateRequest requestDto) {
 
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
@@ -116,7 +116,7 @@ public class ExerciseService {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      */
     @Transactional
-    public void inactivateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+    public void inactivateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),
@@ -129,7 +129,7 @@ public class ExerciseService {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      */
     @Transactional
-    public void activateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+    public void activateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),

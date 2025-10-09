@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class ExerciseIsHiddenUpdateRequestDto {
+public class ExerciseIsHiddenUpdateRequest {
 
     private List<Long> exerciseIds;
 }

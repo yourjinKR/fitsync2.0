@@ -4,7 +4,7 @@ import com.fitsync.domain.exercise.entity.MetricRequirement;
 import lombok.Getter;
 
 @Getter
-public class ExerciseFormResponseDto {
+public class ExerciseFormResponse {
 
     private Long id;
     private String name;

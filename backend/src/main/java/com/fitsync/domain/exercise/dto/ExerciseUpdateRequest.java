@@ -1,40 +1,43 @@
 package com.fitsync.domain.exercise.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fitsync.domain.exercise.entity.MetricRequirement;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-// TODO : 이미지 URL 추가 (추후에 진행)
 @Getter
 @NoArgsConstructor
-public class ExerciseCreateRequestDto {
-    
-    // id 필요없음
+public class ExerciseUpdateRequest {
+
     private String name;
     private String category;
     private String description;
     private boolean isHidden;
 
-    private List<InstructionRequestDto> instructions;
-    private MetricRequestDto metricRequirement;
+    private List<InstructionRequest> instructions;
+    private MetricRequest metricRequirement;
 
-    // 운동 설명
     @Getter
-    @NoArgsConstructor
-    public static class InstructionRequestDto {
+    public static class InstructionRequest {
+        private Long id;
         private Integer stepOrder;
         private String description;
     }
 
-    // 운동 입력 가능 여부
     @Getter
-    @NoArgsConstructor
-    public static class MetricRequestDto {
+    @Builder
+    public static class MetricRequest {
         private MetricRequirement weightKgStatus;
         private MetricRequirement repsStatus;
         private MetricRequirement distanceMeterStatus;
         private MetricRequirement durationSecondStatus;
+    }
+
+    @JsonProperty("isHidden")
+    public boolean isHidden() {
+        return this.isHidden;
     }
 }

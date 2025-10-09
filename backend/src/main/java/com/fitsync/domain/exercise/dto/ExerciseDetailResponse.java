@@ -2,26 +2,32 @@ package com.fitsync.domain.exercise.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fitsync.domain.exercise.entity.MetricRequirement;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
-public class ExerciseUpdateRequestDto {
+@Builder
+@AllArgsConstructor
+public class ExerciseDetailResponse {
 
+    private Long id;
     private String name;
     private String category;
     private String description;
     private boolean isHidden;
+    private OffsetDateTime createdAt;
 
-    private List<InstructionRequestDto> instructions;
-    private MetricRequestDto metricRequirement;
+    private List<InstructionResponse> instructions;
+    private MetricResponse metricRequirement;
 
     @Getter
-    public static class InstructionRequestDto {
+    @Builder
+    @AllArgsConstructor
+    public static class InstructionResponse {
         private Long id;
         private Integer stepOrder;
         private String description;
@@ -29,7 +35,8 @@ public class ExerciseUpdateRequestDto {
 
     @Getter
     @Builder
-    public static class MetricRequestDto {
+    @AllArgsConstructor
+    public static class MetricResponse {
         private MetricRequirement weightKgStatus;
         private MetricRequirement repsStatus;
         private MetricRequirement distanceMeterStatus;

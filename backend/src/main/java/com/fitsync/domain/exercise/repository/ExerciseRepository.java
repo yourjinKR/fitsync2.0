@@ -1,6 +1,6 @@
 package com.fitsync.domain.exercise.repository;
 
-import com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto;
+import com.fitsync.domain.exercise.dto.ExerciseSimpleResponse;
 import com.fitsync.domain.exercise.entity.Exercise;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,10 +18,10 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
 
 
     @Query("""
-    select new com.fitsync.domain.exercise.dto.ExerciseSimpleResponseDto(e.id, e.name, e.category, e.isHidden)
+    select new com.fitsync.domain.exercise.dto.ExerciseSimpleResponse(e.id, e.name, e.category, e.isHidden)
             from  Exercise e
     """)
-    Page<ExerciseSimpleResponseDto> findAllSimple(Pageable pageable);
+    Page<ExerciseSimpleResponse> findAllSimple(Pageable pageable);
 
     /**
      * 상세 조회 시 사용하는 메소드.

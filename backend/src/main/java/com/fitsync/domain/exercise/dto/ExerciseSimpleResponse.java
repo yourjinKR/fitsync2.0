@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ExerciseSimpleResponseDto {
+public class ExerciseSimpleResponse {
 
     private Long id;
     private String name;

@@ -1,8 +1,8 @@
 package com.fitsync.domain.exercise.mapper;
 
-import com.fitsync.domain.exercise.dto.ExerciseCreateRequestDto;
-import com.fitsync.domain.exercise.dto.ExerciseDetailResponseDto;
-import com.fitsync.domain.exercise.dto.ExerciseUpdateRequestDto;
+import com.fitsync.domain.exercise.dto.ExerciseCreateRequest;
+import com.fitsync.domain.exercise.dto.ExerciseDetailResponse;
+import com.fitsync.domain.exercise.dto.ExerciseUpdateRequest;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.entity.ExerciseInstruction;
 import com.fitsync.domain.exercise.entity.ExerciseMetricRequirement;
@@ -14,7 +14,7 @@ import java.util.List;
 public class ExerciseMapper {
 
     // create
-    public Exercise toEntity(ExerciseCreateRequestDto dto) {
+    public Exercise toEntity(ExerciseCreateRequest dto) {
         return Exercise.builder()
                 .name(dto.getName())
                 .category(dto.getCategory())
@@ -23,14 +23,14 @@ public class ExerciseMapper {
                 .build();
     }
 
-    public ExerciseInstruction toEntity(ExerciseCreateRequestDto.InstructionRequestDto dto) {
+    public ExerciseInstruction toEntity(ExerciseCreateRequest.InstructionRequest dto) {
         return ExerciseInstruction.builder()
                 .description(dto.getDescription())
                 .stepOrder(dto.getStepOrder())
                 .build();
     }
 
-    public ExerciseMetricRequirement toEntity(ExerciseCreateRequestDto.MetricRequestDto dto) {
+    public ExerciseMetricRequirement toEntity(ExerciseCreateRequest.MetricRequest dto) {
         return ExerciseMetricRequirement.builder()
                 .weightKgStatus(dto.getWeightKgStatus())
                 .repsStatus(dto.getRepsStatus())
@@ -41,8 +41,8 @@ public class ExerciseMapper {
 
 
     // read detail
-    public ExerciseDetailResponseDto toDto(Exercise entity) {
-        return ExerciseDetailResponseDto.builder()
+    public ExerciseDetailResponse toDto(Exercise entity) {
+        return ExerciseDetailResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
                 .category(entity.getCategory())
@@ -54,16 +54,16 @@ public class ExerciseMapper {
                 .build();
     }
 
-    public ExerciseDetailResponseDto.InstructionResponseDto toDto(ExerciseInstruction entity) {
-        return ExerciseDetailResponseDto.InstructionResponseDto.builder()
+    public ExerciseDetailResponse.InstructionResponse toDto(ExerciseInstruction entity) {
+        return ExerciseDetailResponse.InstructionResponse.builder()
                 .id(entity.getId())
                 .stepOrder(entity.getStepOrder())
                 .description(entity.getDescription())
                 .build();
     }
 
-    public ExerciseDetailResponseDto.MetricResponseDto toDto(ExerciseMetricRequirement entity) {
-        return ExerciseDetailResponseDto.MetricResponseDto.builder()
+    public ExerciseDetailResponse.MetricResponse toDto(ExerciseMetricRequirement entity) {
+        return ExerciseDetailResponse.MetricResponse.builder()
                 .weightKgStatus(entity.getWeightKgStatus())
                 .repsStatus(entity.getRepsStatus())
                 .distanceMeterStatus(entity.getDistanceMeterStatus())
@@ -73,7 +73,7 @@ public class ExerciseMapper {
 
 
     // update
-    public void applyUpdateFrom(Exercise exercise, ExerciseUpdateRequestDto dto) {
+    public void applyUpdateFrom(Exercise exercise, ExerciseUpdateRequest dto) {
 
         exercise.rename(dto.getName());
         exercise.recategorize(dto.getCategory());
@@ -91,7 +91,7 @@ public class ExerciseMapper {
         exercise.updateMetricRequirement(setting);
     }
 
-    public MetricRequirementSetting toMetricRequirement(ExerciseUpdateRequestDto.MetricRequestDto dto) {
+    public MetricRequirementSetting toMetricRequirement(ExerciseUpdateRequest.MetricRequest dto) {
         return new MetricRequirementSetting(
                 dto.getWeightKgStatus(),
                 dto.getRepsStatus(),
@@ -99,7 +99,7 @@ public class ExerciseMapper {
                 dto.getDurationSecondStatus());
     }
 
-    public InstructionSetting toInstructionSetting(ExerciseUpdateRequestDto.InstructionRequestDto dto) {
+    public InstructionSetting toInstructionSetting(ExerciseUpdateRequest.InstructionRequest dto) {
         return new InstructionSetting(
                 dto.getId(),
                 dto.getStepOrder(),
