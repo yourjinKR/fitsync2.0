@@ -11,7 +11,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkoutDetailResponseDto {
+public class WorkoutDetailResponse {
 
     private Long id;
     private String title;
@@ -19,37 +19,37 @@ public class WorkoutDetailResponseDto {
     private String memo;
     private OffsetDateTime createdAt;
 
-    private userSimpleDto owner;
-    private userSimpleDto writer;
+    private userResponse owner;
+    private userResponse writer;
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class userSimpleDto {
+    public static class userResponse {
         private Long id;
         private String name;
     }
 
-    private List<WorkoutExerciseResponseDto> workoutExercises;
+    private List<WorkoutExerciseResponse> workoutExercises;
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class WorkoutExerciseResponseDto {
+    public static class WorkoutExerciseResponse {
         private Long id;
         private Long exerciseId;
         private String exerciseName;
         private String memo;
 
-        private List<WorkoutSetResponseDto> workoutSets;
+        private List<WorkoutSetResponse> workoutSets;
     }
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class WorkoutSetResponseDto {
+    public static class WorkoutSetResponse {
         private Long id;
         private BigDecimal weightKg;
         private Integer reps;

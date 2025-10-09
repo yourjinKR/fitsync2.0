@@ -3,8 +3,8 @@ package com.fitsync.domain.workout.service;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.domain.user.entity.User;
-import com.fitsync.domain.workout.dto.WorkoutCreateRequestDto;
-import com.fitsync.domain.workout.dto.WorkoutDetailResponseDto;
+import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
+import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.entity.WorkoutExercise;
 import com.fitsync.domain.workout.entity.WorkoutSet;
@@ -28,7 +28,7 @@ public class WorkoutService {
     private final ExerciseRepository exerciseRepository;
 
     // create
-    public Long createWorkout(WorkoutCreateRequestDto requestDto) {
+    public Long createWorkout(WorkoutCreateRequest requestDto) {
         Workout workout;
 
         User currentUser = loginUserProvider.getCurrentUser();
@@ -41,7 +41,7 @@ public class WorkoutService {
         }
 
         if (requestDto.getWorkoutExercises() != null) {
-            for (WorkoutCreateRequestDto.WorkoutExerciseRequestDto exerciseDto : requestDto.getWorkoutExercises()) {
+            for (WorkoutCreateRequest.WorkoutExerciseRequest exerciseDto : requestDto.getWorkoutExercises()) {
                 Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
                         .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
 
@@ -49,7 +49,7 @@ public class WorkoutService {
                 workoutExercise.selectExercise(exercise);
 
                 if (exerciseDto.getWorkoutSets() != null) {
-                    for (WorkoutCreateRequestDto.WorkoutSetRequestDto setDto : exerciseDto.getWorkoutSets()) {
+                    for (WorkoutCreateRequest.WorkoutSetRequest setDto : exerciseDto.getWorkoutSets()) {
 
                         WorkoutSet workoutSet = workoutMapper.toEntity(setDto);
 
@@ -67,7 +67,7 @@ public class WorkoutService {
     }
 
     // read
-    public WorkoutDetailResponseDto getWorkoutById(Long id) {
+    public WorkoutDetailResponse getWorkoutById(Long id) {
 
         Workout workout = workoutRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 운동기록을 찾지 못함, id : " + id));

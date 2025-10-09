@@ -1,7 +1,7 @@
 package com.fitsync.domain.workout.controller;
 
-import com.fitsync.domain.workout.dto.WorkoutCreateRequestDto;
-import com.fitsync.domain.workout.dto.WorkoutDetailResponseDto;
+import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
+import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.service.WorkoutService;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +25,15 @@ public class WorkoutController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WorkoutDetailResponseDto> getWorkoutById(@PathVariable Long id) {
+    public ResponseEntity<WorkoutDetailResponse> getWorkoutById(@PathVariable Long id) {
 
-        WorkoutDetailResponseDto responseDto = workoutService.getWorkoutById(id);
+        WorkoutDetailResponse responseDto = workoutService.getWorkoutById(id);
 
         return ResponseEntity.ok(responseDto);
     }
 
     @PostMapping
-    public ResponseEntity<Long> createWorkout(@RequestBody WorkoutCreateRequestDto requestDto) {
+    public ResponseEntity<Long> createWorkout(@RequestBody WorkoutCreateRequest requestDto) {
 
         Long id = workoutService.createWorkout(requestDto);
 

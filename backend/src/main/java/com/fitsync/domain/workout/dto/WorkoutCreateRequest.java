@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Getter
 @NoArgsConstructor
-public class WorkoutCreateRequestDto {
+public class WorkoutCreateRequest {
 
     private String title;
     private Map<String, Object> routineSnapshot;
@@ -19,21 +19,21 @@ public class WorkoutCreateRequestDto {
     private Long ownerId;
     private Long writerId;
 
-    private List<WorkoutExerciseRequestDto> workoutExercises;
+    private List<WorkoutExerciseRequest> workoutExercises;
 
     @Getter
     @NoArgsConstructor
-    public static class WorkoutExerciseRequestDto {
+    public static class WorkoutExerciseRequest {
         private Long exerciseId;
         private String exerciseName;
         private String memo;
 
-        private List<WorkoutSetRequestDto> workoutSets;
+        private List<WorkoutSetRequest> workoutSets;
     }
 
     @Getter
     @NoArgsConstructor
-    public static class WorkoutSetRequestDto {
+    public static class WorkoutSetRequest {
         private BigDecimal weightKg;
         private Integer reps;
         private Integer distanceMeter;

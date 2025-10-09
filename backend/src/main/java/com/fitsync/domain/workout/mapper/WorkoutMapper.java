@@ -3,8 +3,8 @@ package com.fitsync.domain.workout.mapper;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.routine.dto.RoutineDetailResponse;
 import com.fitsync.domain.user.entity.User;
-import com.fitsync.domain.workout.dto.WorkoutCreateRequestDto;
-import com.fitsync.domain.workout.dto.WorkoutDetailResponseDto;
+import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
+import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.entity.WorkoutExercise;
 import com.fitsync.domain.workout.entity.WorkoutSet;
@@ -16,7 +16,7 @@ import java.util.List;
 public class WorkoutMapper {
 
     // create
-    public Workout toEntity(WorkoutCreateRequestDto dto) {
+    public Workout toEntity(WorkoutCreateRequest dto) {
         return Workout.builder()
 //                .id()
 //                .owner()
@@ -28,7 +28,7 @@ public class WorkoutMapper {
                 .build();
     }
 
-    public WorkoutExercise toEntity(WorkoutCreateRequestDto.WorkoutExerciseRequestDto dto) {
+    public WorkoutExercise toEntity(WorkoutCreateRequest.WorkoutExerciseRequest dto) {
         return WorkoutExercise.builder()
 //                .id()
 //                .workout()
@@ -39,7 +39,7 @@ public class WorkoutMapper {
                 .build();
     }
 
-    public WorkoutSet toEntity(WorkoutCreateRequestDto.WorkoutSetRequestDto dto) {
+    public WorkoutSet toEntity(WorkoutCreateRequest.WorkoutSetRequest dto) {
         return WorkoutSet.builder()
 //                .id()
                 .weightKg(dto.getWeightKg())
@@ -50,7 +50,7 @@ public class WorkoutMapper {
     }
 
     // create : routineDTO -> workoutDTO
-    public WorkoutCreateRequestDto toWorkoutDto(RoutineDetailResponse dto) {
+    public WorkoutCreateRequest toWorkoutDto(RoutineDetailResponse dto) {
         return null;
     }
 
@@ -58,17 +58,17 @@ public class WorkoutMapper {
 
 
     // read detail
-    public WorkoutDetailResponseDto toDetailDto(Workout workout) {
+    public WorkoutDetailResponse toDetailDto(Workout workout) {
 
         User owner = workout.getOwner();
         User writer = workout.getOwner();
 
         List<WorkoutExercise> workoutExercises = workout.getWorkoutExercises();
-        List<WorkoutDetailResponseDto.WorkoutExerciseResponseDto> workoutExerciseDtoList = workoutExercises.stream()
+        List<WorkoutDetailResponse.WorkoutExerciseResponse> workoutExerciseDtoList = workoutExercises.stream()
                 .map(this::toExerciseDto)
                 .toList();
 
-        return WorkoutDetailResponseDto.builder()
+        return WorkoutDetailResponse.builder()
                 .id(workout.getId())
                 .title(workout.getTitle())
                 .routineSnapshot(workout.getRoutineSnapshot())
@@ -80,19 +80,19 @@ public class WorkoutMapper {
                 .build();
     }
 
-    public WorkoutDetailResponseDto.userSimpleDto toUserSimpleDto(User user) {
-        return new WorkoutDetailResponseDto.userSimpleDto(user.getId(), user.getName());
+    public WorkoutDetailResponse.userResponse toUserSimpleDto(User user) {
+        return new WorkoutDetailResponse.userResponse(user.getId(), user.getName());
     }
 
-    public WorkoutDetailResponseDto.WorkoutExerciseResponseDto toExerciseDto(WorkoutExercise workoutExercise) {
+    public WorkoutDetailResponse.WorkoutExerciseResponse toExerciseDto(WorkoutExercise workoutExercise) {
         Exercise innerExercise = workoutExercise.getExercise();
 
         List<WorkoutSet> workoutSets = workoutExercise.getWorkoutSets();
-        List<WorkoutDetailResponseDto.WorkoutSetResponseDto> workoutSetDtoList = workoutSets.stream()
+        List<WorkoutDetailResponse.WorkoutSetResponse> workoutSetDtoList = workoutSets.stream()
                 .map(this::toSetDto)
                 .toList();
 
-        return WorkoutDetailResponseDto.WorkoutExerciseResponseDto.builder()
+        return WorkoutDetailResponse.WorkoutExerciseResponse.builder()
                 .id(workoutExercise.getId())
                 .exerciseId(innerExercise.getId())
                 .exerciseName(workoutExercise.getExerciseName())
@@ -101,9 +101,9 @@ public class WorkoutMapper {
                 .build();
     }
 
-    public WorkoutDetailResponseDto.WorkoutSetResponseDto toSetDto(WorkoutSet workoutSet) {
+    public WorkoutDetailResponse.WorkoutSetResponse toSetDto(WorkoutSet workoutSet) {
 
-        return WorkoutDetailResponseDto.WorkoutSetResponseDto.builder()
+        return WorkoutDetailResponse.WorkoutSetResponse.builder()
                 .id(workoutSet.getId())
                 .weightKg(workoutSet.getWeightKg())
                 .reps(workoutSet.getReps())
