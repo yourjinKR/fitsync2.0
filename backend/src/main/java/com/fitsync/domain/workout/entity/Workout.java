@@ -57,8 +57,8 @@ public class Workout {
         exercise.setWorkout(this);
     }
 
-    public void removeExercise(WorkoutExercise exercise) {
-        workoutExercises.remove(exercise);
-        exercise.setWorkout(null);
+    public void forMe(User user) {
+        this.owner = user;
+        this.writer = user;
     }
 }

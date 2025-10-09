@@ -28,7 +28,7 @@ public class WorkoutExercise {
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
 
-    @Column(name = "exercise_name", length = 120)
+    @Column(name = "exercise_name", length = 120) // 스냅샷용
     private String exerciseName;
 
     @Column(name = "memo", columnDefinition = "TEXT")
@@ -43,8 +43,7 @@ public class WorkoutExercise {
         set.setWorkoutExercise(this);
     }
 
-    public void removeSet(WorkoutSet set) {
-        workoutSets.remove(set);
-        set.setWorkoutExercise(null);
+    public void selectExercise(Exercise exercise) {
+        this.exercise = exercise;
     }
 }

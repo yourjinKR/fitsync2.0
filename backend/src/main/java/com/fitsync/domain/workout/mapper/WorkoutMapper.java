@@ -1,19 +1,63 @@
 package com.fitsync.domain.workout.mapper;
 
 import com.fitsync.domain.exercise.entity.Exercise;
+import com.fitsync.domain.routine.dto.RoutineDetailResponseDto;
 import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.workout.dto.WorkoutCreateRequestDto;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponseDto;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.entity.WorkoutExercise;
 import com.fitsync.domain.workout.entity.WorkoutSet;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class WorkoutMapper {
 
+    // create
+    public Workout toEntity(WorkoutCreateRequestDto dto) {
+        return Workout.builder()
+//                .id()
+//                .owner()
+//                .writer()
+                .title(dto.getTitle())
+                .routineSnapshot(dto.getRoutineSnapshot())
+                .memo(dto.getMemo())
+//                .workoutExercises()
+                .build();
+    }
+
+    public WorkoutExercise toEntity(WorkoutCreateRequestDto.WorkoutExerciseRequestDto dto) {
+        return WorkoutExercise.builder()
+//                .id()
+//                .workout()
+//                .exercise()
+                .exerciseName(dto.getExerciseName())
+                .memo(dto.getMemo())
+//                .workoutSets()
+                .build();
+    }
+
+    public WorkoutSet toEntity(WorkoutCreateRequestDto.WorkoutSetRequestDto dto) {
+        return WorkoutSet.builder()
+//                .id()
+                .weightKg(dto.getWeightKg())
+                .reps(dto.getReps())
+                .distanceMeter(dto.getDistanceMeter())
+                .durationSecond(dto.getDurationSecond())
+                .build();
+    }
+
+    // create : routineDTO -> workoutDTO
+    public WorkoutCreateRequestDto toWorkoutDto(RoutineDetailResponseDto dto) {
+        return null;
+    }
+
+
+
+
+    // read detail
     public WorkoutDetailResponseDto toDetailDto(Workout workout) {
 
         User owner = workout.getOwner();

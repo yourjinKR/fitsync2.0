@@ -1,6 +1,5 @@
 package com.fitsync.domain.workout.dto;
 
-import com.fitsync.domain.workout.entity.Workout;
 import lombok.*;
 
 import java.math.BigDecimal;

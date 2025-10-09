@@ -36,13 +36,8 @@ public class WorkoutService {
             throw new UnauthorizedAccessException("운동을 기록할 권한이 없습니다. ");
         }
         else {
-            workout = Workout.builder()
-                    .owner(currentUser)
-                    .writer(currentUser)
-                    .title(requestDto.getTitle())
-                    .routineSnapshot(requestDto.getRoutineSnapshot())
-                    .memo(requestDto.getMemo())
-                    .build();
+            workout = workoutMapper.toEntity(requestDto);
+            workout.forMe(currentUser);
         }
 
         if (requestDto.getWorkoutExercises() != null) {
@@ -50,21 +45,13 @@ public class WorkoutService {
                 Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
                         .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
 
-                WorkoutExercise workoutExercise = WorkoutExercise.builder()
-                        .exercise(exercise)
-                        .exerciseName(exerciseDto.getExerciseName())
-                        .memo(exerciseDto.getMemo())
-                        .build();
+                WorkoutExercise workoutExercise = workoutMapper.toEntity(exerciseDto);
+                workoutExercise.selectExercise(exercise);
 
                 if (exerciseDto.getWorkoutSets() != null) {
                     for (WorkoutCreateRequestDto.WorkoutSetRequestDto setDto : exerciseDto.getWorkoutSets()) {
 
-                        WorkoutSet workoutSet = WorkoutSet.builder()
-                                .weightKg(setDto.getWeightKg())
-                                .reps(setDto.getReps())
-                                .durationSecond(setDto.getDurationSecond())
-                                .distanceMeter(setDto.getDistanceMeter())
-                                .build();
+                        WorkoutSet workoutSet = workoutMapper.toEntity(setDto);
 
                         workoutExercise.addSet(workoutSet);
                     }

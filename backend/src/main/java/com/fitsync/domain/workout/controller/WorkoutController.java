@@ -33,7 +33,7 @@ public class WorkoutController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createWorkout(@RequestBody WorkoutCreateRequestDto requestDto) {
+    public ResponseEntity<Long> createWorkout(@RequestBody WorkoutCreateRequestDto requestDto) {
 
         Long id = workoutService.createWorkout(requestDto);
 
