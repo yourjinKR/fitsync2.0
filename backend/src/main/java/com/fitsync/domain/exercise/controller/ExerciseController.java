@@ -98,10 +98,10 @@ public class ExerciseController {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      * @return empty context
      */
-    @PostMapping("/deactivations")
-    public ResponseEntity<Void> inactivateExercise(@RequestBody ExerciseIsHiddenUpdateRequest requestDto) {
+    @PostMapping("/deactivate")
+    public ResponseEntity<Void> inactivateExercises(@RequestBody ExerciseIsHiddenUpdateRequest requestDto) {
 
-        exerciseService.inactivateExercises(requestDto);
+        exerciseService.deactivateExercises(requestDto);
 
         return ResponseEntity.ok().build();
     }
@@ -111,10 +111,24 @@ public class ExerciseController {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      * @return empty context
      */
-    @PostMapping("/activations")
-    public ResponseEntity<Void> activateExercise(@RequestBody ExerciseIsHiddenUpdateRequest requestDto) {
+    @PostMapping("/activate")
+    public ResponseEntity<Void> activateExercises(@RequestBody ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseService.activateExercises(requestDto);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 활성화/비활성화를 하나의 엔드포인트에서 관리
+     * @param activate 비활성화할 ID 리스트
+     * @param deactivate 활성화할 ID 리스트
+     * @return empty context
+     */
+    @PatchMapping("/activation-states")
+    public ResponseEntity<Void> updateActivationStates(@RequestBody ExerciseIsHiddenBatchUpdateRequest requestDto) {
+        exerciseService.deactivateExercises(requestDto.getDeactivate());
+        exerciseService.activateExercises(requestDto.getActivate());
 
         return ResponseEntity.ok().build();
     }

@@ -3,6 +3,8 @@ import {
   ExerciseSimpleResponse,
   ExerciseCreateRequest,
   ExerciseDetailResponse,
+  ExerciseIsHiddenBatchUpdateRequest,
+  ExerciseIsHiddenUpdateRequest,
 } from "../types/domain/exercise/index";
 
 import apiClient from "./apiClient";
@@ -64,38 +66,43 @@ const ExerciseApi = {
    * @param exerciseId - id (pk)
    */
   inactivateExercise(exerciseId: number): Promise<void> {
-
     return apiClient.patch(`/api/exercise/${exerciseId}/deactivation`);
   },
 
   /**
    * 특정 ID의 운동 정보를 활성화합니다.
    * @param exerciseId id (pk)
-   * @returns 
+   * @returns void
    */
   activateExercise(exerciseId: number): Promise<void> {
-
     return apiClient.patch(`/api/exercise/${exerciseId}/activation`);
   },
   
   /**
    * 특정 운동들을 비활성화합니다.
    * @param exerciseIds id list (pk)
-   * @returns 
+   * @returns void
    */
-  inactivateExercises(exerciseIds: number[]): Promise<void> {
-
-    return apiClient.post(`/api/exercise/deactivations`, {exerciseIds});
+  inactivateExercises(exerciseIds: ExerciseIsHiddenUpdateRequest): Promise<void> {
+    return apiClient.post(`/api/exercise/deactivate`, {exerciseIds});
   },
   
   /**
    * 특정 운동들을 활성화합니다.
    * @param exerciseIds id list (pk)
-   * @returns 
+   * @returns void
    */
-  activateExercises(exerciseIds: number[]): Promise<void> {
+  activateExercises(exerciseIds: ExerciseIsHiddenUpdateRequest): Promise<void> {
+    return apiClient.post(`/api/exercise/activate`, {exerciseIds});
+  },
 
-    return apiClient.post(`/api/exercise/activations`, {exerciseIds});
+  /**
+   * 특정 운동들을 활성화/비활성화합니다.
+   * @param requestDto ExerciseIsHiddenBatchUpdateRequest
+   * @returns void
+   */
+  updateActivationStates(requestDto: ExerciseIsHiddenBatchUpdateRequest): Promise<void> {
+    return apiClient.patch(`/api/exercise/activation-states`, {requestDto});
   },
 
   /**

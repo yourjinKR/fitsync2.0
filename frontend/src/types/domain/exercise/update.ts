@@ -27,3 +27,8 @@ export namespace ExerciseUpdateRequest {
 export interface ExerciseIsHiddenUpdateRequest {
   exerciseIds: number[];
 }
+
+export interface ExerciseIsHiddenBatchUpdateRequest{
+  activate : ExerciseIsHiddenUpdateRequest;
+  deactivate : ExerciseIsHiddenUpdateRequest;
+}

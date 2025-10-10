@@ -116,7 +116,7 @@ public class ExerciseService {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      */
     @Transactional
-    public void inactivateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
+    public void deactivateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),
