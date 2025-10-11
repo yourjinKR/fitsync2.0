@@ -2,9 +2,9 @@ import { ExerciseIsHiddenBatchUpdateRequest } from './../types/domain/exercise/u
 import ExerciseApi from '../api/ExerciseApi';
 import { Pageable } from '../types/api';
 import { ExerciseDetailResponse, ExerciseSimpleResponse, ExerciseUpdateRequest } from '../types/domain/exercise';
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-const INIT_PAGE: Pageable = { page: 0, size: 100, sort: "id.desc" };
+const INIT_PAGE: Pageable = { page: 0, size: 30, sort: "id,desc" };
 const EMPTY_LIST: ExerciseSimpleResponse[] = [];
 const EMPTY_DETAIL: ExerciseDetailResponse | null = null;
 const EMPTY_UPDATE_FORM: ExerciseUpdateRequest | null = null;
@@ -27,27 +27,33 @@ const useExercise = () => {
   const [selectedIdList, setSelectedIdList] = useState<ExerciseIsHiddenBatchUpdateRequest>(EMPTY_BATCH);
 
   // 운동정보 불러오기
-  const fetchExerciseList = async () => {
-    const response = await ExerciseApi.getAllExercises(exerciseListPage); 
-    setExerciseList(response.content);
-  };
+  const fetchExerciseList = useCallback(async () => {
+    try {
+      const response = await ExerciseApi.getAllExercises(exerciseListPage); 
+      setExerciseList(response.content);
+    } catch (error) {
+      console.error("운동정보를 불러오지 못했습니다. error :" , error);
+    }
+  },[exerciseListPage]);
   
   // 다음 페이지 세팅
   const nextExercisePage = () => {
     setExerciseListPage({...exerciseListPage, page : exerciseListPage.page++});
   };
 
+  /* 
+  dependencies에 fetchExerciseList를 추가
+  그렇게 되면 fetchExerciseList는 랜더링마다 함수 인스턴스가 새로 생기는 관계로
+  useEffect가 불필요하게 반복적으로 발생할 수 있음
+  */
+  useEffect(() => {
+    fetchExerciseList();
+  },[fetchExerciseList, exerciseListPage]);
+
   // 페이징 초기화
   const clearExercisePage = () => {
     setExerciseListPage(INIT_PAGE);
   }
-  
-  //운동 정보 다음 페이지 불러오기 (무한 스크롤)
-  const loadMoreExerciseList = async () => {
-    nextExercisePage();
-    const response = await ExerciseApi.getAllExercises(exerciseListPage);
-    setExerciseList([...exerciseList, ...response.content]);
-  };
 
   // 특정 운동 상세정보 조회
   const loadExerciseDetailInfo = async(exerciseId:number) => {
@@ -93,7 +99,6 @@ const useExercise = () => {
     fetchExerciseList,
     nextExercisePage,
     clearExercisePage,
-    loadMoreExerciseList,
 
     exerciseDetail,
     setExerciseDetail,
