@@ -26,7 +26,7 @@ public interface RoutineRepository extends JpaRepository<Routine, Long> {
 
     // dto mapping jpql문은 응답 DTO가 단일 DTO(List나 중첩 클래스가 없는)일때 사용을 권장
     @Query("""
-       select new com.fitsync.domain.routine.dto.RoutineSimpleResponseDto(
+       select new com.fitsync.domain.routine.dto.RoutineSimpleResponse(
            r.id, o.id, w.id, r.name, r.displayOrder, r.memo, r.createdAt, r.updatedAt
        )
        from Routine r

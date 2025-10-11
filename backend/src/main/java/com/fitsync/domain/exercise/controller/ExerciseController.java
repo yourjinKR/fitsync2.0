@@ -121,8 +121,6 @@ public class ExerciseController {
 
     /**
      * 활성화/비활성화를 하나의 엔드포인트에서 관리
-     * @param activate 비활성화할 ID 리스트
-     * @param deactivate 활성화할 ID 리스트
      * @return empty context
      */
     @PatchMapping("/activation-states")
