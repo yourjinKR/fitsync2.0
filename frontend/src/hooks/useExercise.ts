@@ -4,6 +4,14 @@ import { Pageable } from '../types/api';
 import { ExerciseDetailResponse, ExerciseSimpleResponse, ExerciseUpdateRequest } from '../types/domain/exercise';
 import { useState } from "react";
 
+const INIT_PAGE: Pageable = { page: 0, size: 100, sort: "id.desc" };
+const EMPTY_LIST: ExerciseSimpleResponse[] = [];
+const EMPTY_DETAIL: ExerciseDetailResponse | null = null;
+const EMPTY_UPDATE_FORM: ExerciseUpdateRequest | null = null;
+const EMPTY_BATCH: ExerciseIsHiddenBatchUpdateRequest = {
+  activate: { exerciseIds: [] },
+  deactivate: { exerciseIds: [] },
+};
 // 상태 불변성 위반: exerciseListPage.page++ 는 기존 state를 직접 변경합니다. 반드시 함수형 업데이트로 바꾸세요.
 // 비동기-상태 경쟁 조건: nextExercisePage() 후 곧바로 ExerciseApi.getAllExercises(exerciseListPage) 를 호출하면 이전 페이지 값으로 API가 불립니다. 페이지 변경 → useEffect에서 fetch 트리거가 안전합니다.
 // 초깃값 undefined: exerciseList, exerciseDetail, exerciseUpdateForm, selectedIdList 가 undefined일 수 있어 런타임 에러 위험이 있습니다. 타입 안전한 초깃값을 두세요.
@@ -12,16 +20,15 @@ import { useState } from "react";
 // 여러 API 분기 로직: 활성/비활성 일괄 업데이트 분기는 명확한 가드와 early-return으로 간결하게.
 
 const useExercise = () => {
-  const initPage = {page : 0, size: 100, sort: 'id.desc'};
-  const [exerciseListPage, setExerciseListPage] = useState<Pageable>(initPage);
-  const [exerciseList, setExerciseList] = useState<ExerciseSimpleResponse[]>();
-  const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailResponse>();
-  const [exerciseUpdateForm, setExerciseUpdateForm] = useState<ExerciseUpdateRequest>();
-  const [selectedIdList, setSelectedIdList] = useState<ExerciseIsHiddenBatchUpdateRequest>();
+  const [exerciseListPage, setExerciseListPage] = useState<Pageable>(INIT_PAGE);
+  const [exerciseList, setExerciseList] = useState<ExerciseSimpleResponse[]>(EMPTY_LIST);
+  const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailResponse>(EMPTY_DETAIL);
+  const [exerciseUpdateForm, setExerciseUpdateForm] = useState<ExerciseUpdateRequest>(EMPTY_UPDATE_FORM);
+  const [selectedIdList, setSelectedIdList] = useState<ExerciseIsHiddenBatchUpdateRequest>(EMPTY_BATCH);
 
   // 운동정보 불러오기
   const fetchExerciseList = async () => {
-    const response = await ExerciseApi.getAllExercises(exerciseListPage);
+    const response = await ExerciseApi.getAllExercises(exerciseListPage); 
     setExerciseList(response.content);
   };
   
@@ -32,7 +39,7 @@ const useExercise = () => {
 
   // 페이징 초기화
   const clearExercisePage = () => {
-    setExerciseListPage(initPage);
+    setExerciseListPage(INIT_PAGE);
   }
   
   //운동 정보 다음 페이지 불러오기 (무한 스크롤)
