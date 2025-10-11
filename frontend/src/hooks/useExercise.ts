@@ -1,12 +1,13 @@
 import { ExerciseIsHiddenBatchUpdateRequest } from './../types/domain/exercise/update';
 import ExerciseApi from '../api/ExerciseApi';
 import { Pageable } from '../types/api';
-import { ExerciseDetailResponse, ExerciseSimpleResponse, ExerciseUpdateRequest } from '../types/domain/exercise';
+import { ExerciseCreateRequest, ExerciseDetailResponse, ExerciseSimpleResponse, ExerciseUpdateRequest } from '../types/domain/exercise';
 import { useCallback, useEffect, useState } from "react";
 
 const INIT_PAGE: Pageable = { page: 0, size: 30, sort: "id,desc" };
 const EMPTY_LIST: ExerciseSimpleResponse[] = [];
 const EMPTY_DETAIL: ExerciseDetailResponse | null = null;
+const EMPTY_CREATE_FORM : ExerciseCreateRequest | null = null;
 const EMPTY_UPDATE_FORM: ExerciseUpdateRequest | null = null;
 const EMPTY_BATCH: ExerciseIsHiddenBatchUpdateRequest = {
   activate: { exerciseIds: [] },
@@ -23,6 +24,7 @@ const useExercise = () => {
   const [exerciseListPage, setExerciseListPage] = useState<Pageable>(INIT_PAGE);
   const [exerciseList, setExerciseList] = useState<ExerciseSimpleResponse[]>(EMPTY_LIST);
   const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailResponse>(EMPTY_DETAIL);
+  const [exerciseCreateForm, setExerciseCreateForm] = useState<ExerciseCreateRequest>(EMPTY_CREATE_FORM);
   const [exerciseUpdateForm, setExerciseUpdateForm] = useState<ExerciseUpdateRequest>(EMPTY_UPDATE_FORM);
   const [selectedIdList, setSelectedIdList] = useState<ExerciseIsHiddenBatchUpdateRequest>(EMPTY_BATCH);
 
@@ -61,10 +63,52 @@ const useExercise = () => {
     setExerciseDetail(response);
   };
 
+  // 운동 정보 생성
+  const createNewExercise = async () => {
+    const response = await ExerciseApi.createExercise(exerciseCreateForm);
+    setExerciseDetail(response);
+  };
+
+  // 운동 상세정보 -> 운동 생성 form
+  const buildExerciseCreateForm = () => {
+    const detail = exerciseDetail;
+    const instructions = detail.instructions.map(inst => {
+      return {stepOrder: inst.stepOrder, description: inst.description};
+    });
+
+    const request:ExerciseCreateRequest = {
+      name : detail.name,
+      category : detail.category,
+      description : detail.description,
+      isHidden : detail.isHidden,
+      instructions,
+      metricRequirement : detail.metricRequirement
+    };
+    setExerciseCreateForm(request);
+  }
+
   // 운동 정보 수정
   const updateExerciseInfo = async () => {
     const response = await ExerciseApi.updateExercise(exerciseDetail.id, exerciseUpdateForm);
     setExerciseDetail(response);
+  };
+
+  // 운동 상세정보 -> 운동 수정 form
+  const buildUpdateExerciseForm = () => {
+    const detail = exerciseDetail;
+    const instructions = detail.instructions.map(inst => {
+      return {id : inst.id, stepOrder: inst.stepOrder, description: inst.description};
+    });
+
+    const request:ExerciseUpdateRequest = {
+      name : detail.name,
+      category : detail.category,
+      description : detail.description,
+      isHidden : detail.isHidden,
+      instructions,
+      metricRequirement : detail.metricRequirement
+    };
+    setExerciseUpdateForm(request);
   };
 
   // 운동정보 활성화/비활성화 업데이트
@@ -96,20 +140,47 @@ const useExercise = () => {
     exerciseList,
     setExerciseList,
 
+    /**
+     * 운동정보 불러오기 요청
+     */
     fetchExerciseList,
     nextExercisePage,
     clearExercisePage,
 
     exerciseDetail,
     setExerciseDetail,
+    /**
+     * 운동 상세정보 요청
+     */
     loadExerciseDetailInfo,
+
+    exerciseCreateForm,
+    setExerciseCreateForm,
+    /**
+     * 운동정보 신규 추가 form 빌드 함수
+     */
+    buildExerciseCreateForm,
+    /**
+     * 운동정보 신규 추가 요청
+     */
+    createNewExercise,
     
     exerciseUpdateForm,
     setExerciseUpdateForm,
+    /**
+     * 운동정보 수정 form 빌드 함수
+     */
+    buildUpdateExerciseForm,
+    /**
+     * 운동정보 수정 요청
+     */
     updateExerciseInfo,
 
     selectedIdList,
     setSelectedIdList,
+    /**
+     * 운동정보 배치 수정 요청
+     */
     updateExerciseState
   }
 };
