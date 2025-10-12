@@ -13,19 +13,13 @@ const EMPTY_BATCH: ExerciseIsHiddenBatchUpdateRequest = {
   activate: { exerciseIds: [] },
   deactivate: { exerciseIds: [] },
 };
-// 상태 불변성 위반: exerciseListPage.page++ 는 기존 state를 직접 변경합니다. 반드시 함수형 업데이트로 바꾸세요.
-// 비동기-상태 경쟁 조건: nextExercisePage() 후 곧바로 ExerciseApi.getAllExercises(exerciseListPage) 를 호출하면 이전 페이지 값으로 API가 불립니다. 페이지 변경 → useEffect에서 fetch 트리거가 안전합니다.
-// 초깃값 undefined: exerciseList, exerciseDetail, exerciseUpdateForm, selectedIdList 가 undefined일 수 있어 런타임 에러 위험이 있습니다. 타입 안전한 초깃값을 두세요.
-// 로딩/에러/hasMore 누락: UI 제어를 위해 loading, error, hasMore가 필요합니다.
-// 불필요 재렌더/함수 참조 안정성: 외부에 노출하는 함수는 useCallback으로 참조 안정성을 확보하세요.
-// 여러 API 분기 로직: 활성/비활성 일괄 업데이트 분기는 명확한 가드와 early-return으로 간결하게.
 
 const useExercise = () => {
   const [exerciseListPage, setExerciseListPage] = useState<Pageable>(INIT_PAGE);
   const [exerciseList, setExerciseList] = useState<ExerciseSimpleResponse[]>(EMPTY_LIST);
-  const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailResponse>(EMPTY_DETAIL);
-  const [exerciseCreateForm, setExerciseCreateForm] = useState<ExerciseCreateRequest>(EMPTY_CREATE_FORM);
-  const [exerciseUpdateForm, setExerciseUpdateForm] = useState<ExerciseUpdateRequest>(EMPTY_UPDATE_FORM);
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseDetailResponse | null>(EMPTY_DETAIL);
+  const [exerciseCreateForm, setExerciseCreateForm] = useState<ExerciseCreateRequest | null>(EMPTY_CREATE_FORM);
+  const [exerciseUpdateForm, setExerciseUpdateForm] = useState<ExerciseUpdateRequest | null>(EMPTY_UPDATE_FORM);
   const [selectedIdList, setSelectedIdList] = useState<ExerciseIsHiddenBatchUpdateRequest>(EMPTY_BATCH);
 
   // 운동정보 불러오기
@@ -40,7 +34,7 @@ const useExercise = () => {
   
   // 다음 페이지 세팅
   const nextExercisePage = () => {
-    setExerciseListPage({...exerciseListPage, page : exerciseListPage.page++});
+    setExerciseListPage(prev => ({...prev, page : prev.page += 1}));
   };
 
   /* 
@@ -60,23 +54,33 @@ const useExercise = () => {
   // 특정 운동 상세정보 조회
   const loadExerciseDetailInfo = async(exerciseId:number) => {
     const response = await ExerciseApi.getExerciseById(exerciseId);
-    setExerciseDetail(response);
+    setSelectedExercise(response);
+  };
+
+  // 선택된 운동 초기화
+  const initSelectedExercise = () => {
+    setSelectedExercise(EMPTY_DETAIL);
   };
 
   // 운동 정보 생성
-  const createNewExercise = async () => {
-    const response = await ExerciseApi.createExercise(exerciseCreateForm);
-    setExerciseDetail(response);
+  const submitExerciseCreate = async () => {
+    if (!selectedExercise) return;
+
+    const request = buildExerciseCreateForm(selectedExercise);
+    const response = await ExerciseApi.createExercise(request);
+    setSelectedExercise(response);
   };
 
   // 운동 상세정보 -> 운동 생성 form
-  const buildExerciseCreateForm = () => {
-    const detail = exerciseDetail;
+  const buildExerciseCreateForm = (selectedExercise:ExerciseDetailResponse) => {
+    if (!selectedExercise) return;
+
+    const detail = selectedExercise;
     const instructions = detail.instructions.map(inst => {
       return {stepOrder: inst.stepOrder, description: inst.description};
     });
 
-    const request:ExerciseCreateRequest = {
+    const createForm:ExerciseCreateRequest = {
       name : detail.name,
       category : detail.category,
       description : detail.description,
@@ -84,23 +88,30 @@ const useExercise = () => {
       instructions,
       metricRequirement : detail.metricRequirement
     };
-    setExerciseCreateForm(request);
+
+    return createForm;
   }
 
   // 운동 정보 수정
-  const updateExerciseInfo = async () => {
-    const response = await ExerciseApi.updateExercise(exerciseDetail.id, exerciseUpdateForm);
-    setExerciseDetail(response);
+  const submitExerciseUpdate = async () => {
+    if (!selectedExercise) return;
+
+    const request = buildUpdateExerciseForm(selectedExercise);
+    const response = await ExerciseApi.updateExercise(selectedExercise.id, request);
+
+    setSelectedExercise(response);
   };
 
   // 운동 상세정보 -> 운동 수정 form
-  const buildUpdateExerciseForm = () => {
-    const detail = exerciseDetail;
+  const buildUpdateExerciseForm = (request:ExerciseDetailResponse) => {
+    if (!request) return;
+
+    const detail = request;
     const instructions = detail.instructions.map(inst => {
       return {id : inst.id, stepOrder: inst.stepOrder, description: inst.description};
     });
 
-    const request:ExerciseUpdateRequest = {
+    const updateForm:ExerciseUpdateRequest = {
       name : detail.name,
       category : detail.category,
       description : detail.description,
@@ -108,24 +119,34 @@ const useExercise = () => {
       instructions,
       metricRequirement : detail.metricRequirement
     };
-    setExerciseUpdateForm(request);
+
+    return updateForm;
   };
 
   // 운동정보 활성화/비활성화 업데이트
-  const updateExerciseState = async () => {
-    let response:void;
-    if (selectedIdList.activate.exerciseIds.length && !selectedIdList.deactivate.exerciseIds.length) {
-      response = await ExerciseApi.activateExercises(selectedIdList.activate);
-    } 
-    if (!selectedIdList.activate.exerciseIds.length && selectedIdList.deactivate.exerciseIds.length) {
-      response = await ExerciseApi.inactivateExercises(selectedIdList.deactivate);
+  const updateExerciseState = async (): Promise<boolean> => {
+    try {
+      const { activate, deactivate } = selectedIdList;
+      const a = activate.exerciseIds.length > 0;
+      const d = deactivate.exerciseIds.length > 0;
+
+      if (a && d) {
+        await ExerciseApi.updateActivationStates(selectedIdList);
+      } else if (a) {
+        await ExerciseApi.activateExercises(activate);
+      } else if (d) {
+        await ExerciseApi.inactivateExercises(deactivate);
+      } else {
+        return false;
+      }
+
+      clearExercisePage();
+      return true;
+
+    } catch (error) {
+      console.error(error);
+      return false;
     }
-    if (selectedIdList.activate.exerciseIds.length && selectedIdList.deactivate.exerciseIds.length) {
-      response = await ExerciseApi.updateActivationStates(selectedIdList);
-    }
-    console.log(response);
-    clearExercisePage();
-    fetchExerciseList();
   }
 
 
@@ -147,8 +168,9 @@ const useExercise = () => {
     nextExercisePage,
     clearExercisePage,
 
-    exerciseDetail,
-    setExerciseDetail,
+    selectedExercise,
+    setSelectedExercise,
+    initSelectedExercise,
     /**
      * 운동 상세정보 요청
      */
@@ -163,7 +185,7 @@ const useExercise = () => {
     /**
      * 운동정보 신규 추가 요청
      */
-    createNewExercise,
+    submitExerciseCreate,
     
     exerciseUpdateForm,
     setExerciseUpdateForm,
@@ -174,7 +196,7 @@ const useExercise = () => {
     /**
      * 운동정보 수정 요청
      */
-    updateExerciseInfo,
+    submitExerciseUpdate,
 
     selectedIdList,
     setSelectedIdList,
