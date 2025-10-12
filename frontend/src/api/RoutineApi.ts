@@ -12,7 +12,7 @@ import apiClient from "./apiClient";
 
 const RoutineApi = {
 
-  createRoutine(requestDto : RoutineCreateRequest): Promise<number> {
+  createRoutine(requestDto : RoutineCreateRequest): Promise<RoutineDetailResponse> {
     return apiClient.post('/api/routine', requestDto)
       .then(response => response.data);
   },

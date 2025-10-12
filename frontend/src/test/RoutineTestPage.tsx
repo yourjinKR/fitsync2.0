@@ -365,7 +365,7 @@ const RoutineTestPage = () => {
 
     try {
       const response = await RoutineApi.createRoutine(requestDto);
-      setCreatedRoutineInfo(response);
+      setCreatedRoutineInfo(response.id);
       alert(`루틴 생성 성공! ID: ${response}`);
       setCreateState(INITIAL_CREATE_STATE);
     } catch (err) {
