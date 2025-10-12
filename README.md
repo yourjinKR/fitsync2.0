@@ -1,15 +1,15 @@
-# 프로젝트 목적
+# GOAL
 - 교육과정 중 진행했던 프로젝트를 보완
 - 새로운 기술 학습 
 
-# 기술스택
+# TECH STACK
 - JDK 17
 - Typescript  
 - Spring Boot
 - Postgresql 16.10
 - Node v22.18.0
 
-# 데브옵스
+# DEVOPS
 - Docker
 - Github Action
 - EC2 (백엔드, Spring Boot)
