@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Repository
@@ -19,5 +20,17 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
         WHERE (o.id = :ownerId)
         ORDER BY w.createdAt DESC
     """)
-    List<WorkoutSimpleResponse> findByCreatedAt(Long ownerId);
+    List<WorkoutSimpleResponse> findMyRoutineList(Long ownerId);
+
+    @Query("""
+        SELECT w FROM Workout w
+        LEFT JOIN FETCH w.workoutExercises we
+        LEFT JOIN FETCH we.exercise e
+        LEFT JOIN FETCH we.workoutSets ws
+        WHERE w.owner.id = :ownerId
+        AND w.createdAt >= :startTime
+        AND w.createdAt < :endTime
+        ORDER BY w.createdAt DESC
+    """)
+    List<Workout> findWorkoutListToday(Long ownerId, OffsetDateTime startTime, OffsetDateTime endTime);
 }

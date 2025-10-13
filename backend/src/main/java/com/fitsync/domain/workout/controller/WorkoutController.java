@@ -20,7 +20,15 @@ public class WorkoutController {
 
     private final WorkoutService workoutService;
 
-    @GetMapping("/my/{id}")
+    @GetMapping("/{id}")
+    public ResponseEntity<WorkoutDetailResponse> getWorkoutById(@PathVariable Long id) {
+
+        WorkoutDetailResponse responseDto = workoutService.getWorkoutById(id);
+
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<WorkoutSimpleResponse>> getMyWorkoutList(@PathVariable Long userId) {
 
         List<WorkoutSimpleResponse> responseDtos = workoutService.getMyWorkoutList(userId);
@@ -28,12 +36,12 @@ public class WorkoutController {
         return ResponseEntity.ok(responseDtos);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<WorkoutDetailResponse> getWorkoutById(@PathVariable Long id) {
+    @GetMapping("/user/{userId}/today")
+    public ResponseEntity<List<WorkoutDetailResponse>> getMyWorkoutToday(@PathVariable Long userId) {
 
-        WorkoutDetailResponse responseDto = workoutService.getWorkoutById(id);
+        List<WorkoutDetailResponse> responseDtos = workoutService.getMyWorkoutToday(userId);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(responseDtos);
     }
 
     @PostMapping

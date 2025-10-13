@@ -1,9 +1,9 @@
 package com.fitsync.domain.workout.service;
 
 import com.fitsync.domain.exercise.entity.Exercise;
+import com.fitsync.domain.exercise.mapper.ExerciseMapper;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.domain.user.entity.User;
-import com.fitsync.domain.user.repository.UserRepository;
 import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.dto.WorkoutSimpleResponse;
@@ -18,8 +18,9 @@ import com.fitsync.global.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,6 +32,7 @@ public class WorkoutService {
     private final WorkoutMapper workoutMapper;
     private final LoginUserProvider loginUserProvider;
     private final ExerciseRepository exerciseRepository;
+    private final ExerciseMapper exerciseMapper;
 
     // create
     public Long createWorkout(WorkoutCreateRequest requestDto) {
@@ -80,10 +82,26 @@ public class WorkoutService {
         return workoutMapper.toDetailDto(workout);
     }
 
-    // read list
+    // read simple list
     public List<WorkoutSimpleResponse> getMyWorkoutList(Long userId) {
 
-        return workoutRepository.findByCreatedAt(userId);
+        return workoutRepository.findMyRoutineList(userId);
+    }
+
+    // read today
+    public List<WorkoutDetailResponse> getMyWorkoutToday(Long userId) {
+
+        ZoneOffset userOffset = ZoneOffset.of("+09:00");
+        LocalDate today = LocalDate.now(userOffset);
+
+        OffsetDateTime startTime = today.atStartOfDay().atOffset(userOffset);
+        OffsetDateTime endTime = today.plusDays(1).atStartOfDay().atOffset(userOffset);
+
+        List<Workout> entities = workoutRepository.findWorkoutListToday(userId, startTime, endTime);
+
+        return entities.stream()
+                .map(workoutMapper::toDetailDto)
+                .toList();
     }
 
     // update (메모는 수정 가능)
