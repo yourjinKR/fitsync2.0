@@ -3,8 +3,10 @@ package com.fitsync.domain.workout.service;
 import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.user.repository.UserRepository;
 import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
+import com.fitsync.domain.workout.dto.WorkoutSimpleResponse;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.entity.WorkoutExercise;
 import com.fitsync.domain.workout.entity.WorkoutSet;
@@ -16,6 +18,9 @@ import com.fitsync.global.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -73,6 +78,12 @@ public class WorkoutService {
                 .orElseThrow(() -> new ResourceNotFoundException("해당 운동기록을 찾지 못함, id : " + id));
 
         return workoutMapper.toDetailDto(workout);
+    }
+
+    // read list
+    public List<WorkoutSimpleResponse> getMyWorkoutList(Long userId) {
+
+        return workoutRepository.findByCreatedAt(userId);
     }
 
     // update (메모는 수정 가능)
