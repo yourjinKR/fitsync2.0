@@ -1,24 +1,24 @@
-# exercise_metric_flags
+# exercise_metric_requirements
 
 ## 1. 테이블 개요 (Table Overview)
 | 항목 | 내용 |
 | :--- | :--- |
-| **테이블 명** | `exercise_metric_flags` |
+| **테이블 명** | `exercise_metric_requirements` |
 | **설명** | 각 **운동(`exercises`)**과 **1:1**로 매핑되어, 해당 운동에서 기록 가능한 핵심 메트릭(무게, 횟수, 거리, 시간)의 **상태**를 `FORBIDDEN/OPTIONAL/REQUIRED` 3단계로 관리합니다. |
 
 
 ## 2. 타입 정의 (Types)
-- **`metric_requirement` (ENUM)**  
+- **`exercise_metric_requirements` (ENUM)**  
   - 값: `FORBIDDEN`(불가), `OPTIONAL`(선택), `REQUIRED`(필수)  
   - 목적: 메트릭 입력의 요구 수준을 단일 컬럼로 명확히 표현
 
 
 ## 3. 컬럼 명세 (Column Specification)
 - `exercise_id` **BIGINT**: PK이자 FK. `exercises.id` 참조, **1:1** 매핑 보장. 운동이 삭제되면 해당 행도 **CASCADE**로 삭제.
-- `weight_kg_status` **metric_requirement NOT NULL DEFAULT 'FORBIDDEN'**: 무게(kg) 입력 상태.
-- `reps_status` **metric_requirement NOT NULL DEFAULT 'FORBIDDEN'**: 반복(회) 입력 상태.
-- `distance_m_status` **metric_requirement NOT NULL DEFAULT 'FORBIDDEN'**: 거리(m) 입력 상태.
-- `duration_sec_status` **metric_requirement NOT NULL DEFAULT 'FORBIDDEN'**: 시간(초) 입력 상태.
+- `weight_kg_status` **exercise_metric_requirements NOT NULL DEFAULT 'FORBIDDEN'**: 무게(kg) 입력 상태.
+- `reps_status` **exercise_metric_requirements NOT NULL DEFAULT 'FORBIDDEN'**: 반복(회) 입력 상태.
+- `distance_m_status` **exercise_metric_requirements NOT NULL DEFAULT 'FORBIDDEN'**: 거리(m) 입력 상태.
+- `duration_sec_status` **exercise_metric_requirements NOT NULL DEFAULT 'FORBIDDEN'**: 시간(초) 입력 상태.
 
 > 모든 상태 컬럼은 `NOT NULL`이며 기본값은 `FORBIDDEN`입니다.
 

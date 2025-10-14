@@ -1,4 +1,3 @@
-import React from 'react';
 import useExercise from '../hooks/useExercise';
 
 const ExerciseHookTestPage = () => {

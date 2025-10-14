@@ -3,7 +3,7 @@
 // ============================
 
 import { JSONObject } from "../common";
-import { RoutineDetailResponseDto } from "./routine";
+import { RoutineDetailResponse } from "./routine";
 
 // Omit을 사용해 Response 타입으로부터 생성
 type WorkoutSetRequestDto = Omit<WorkoutSetResponseDto, 'id'>;
@@ -15,7 +15,7 @@ type WorkoutExerciseRequestDto = Omit<WorkoutExerciseResponseDto, 'id' | 'workou
 
 export interface WorkoutCreateRequestDto {
   title: string;
-  routineSnapshot: RoutineDetailResponseDto; // routine detail DTO를 그대로 재사용
+  routineSnapshot: RoutineDetailResponse; // routine detail DTO를 그대로 재사용
   memo: string;
   ownerId: number; // 오타 수정
   writerId: number;

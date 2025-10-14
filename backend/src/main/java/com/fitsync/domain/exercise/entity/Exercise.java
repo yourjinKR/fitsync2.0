@@ -62,7 +62,7 @@ public class Exercise {
 
     // 해당 운동이 어떤 값들을 지닐 수 있는지 (중량, 횟수, 거리, 시간)
     @Builder.Default
-    @OneToOne(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, optional = false)
     private ExerciseMetricRequirement metricRequirement = new ExerciseMetricRequirement();
 
     public void setRequirement(ExerciseMetricRequirement metricRequirement) {
