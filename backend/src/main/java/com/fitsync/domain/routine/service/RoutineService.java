@@ -6,6 +6,7 @@ import com.fitsync.domain.routine.dto.*;
 import com.fitsync.domain.routine.entity.Routine;
 import com.fitsync.domain.routine.entity.RoutineExercise;
 import com.fitsync.domain.routine.entity.RoutineSet;
+import com.fitsync.domain.routine.mapper.RoutineMapper;
 import com.fitsync.domain.routine.repository.RoutineRepository;
 import com.fitsync.domain.user.entity.User;
 import com.fitsync.global.error.exception.BadRequestException;
@@ -18,61 +19,47 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO : 루틴 정렬 순서 변경시 굉~~장히 오래 걸림, 추후 개선 필요
 @Service
 @RequiredArgsConstructor
 public class RoutineService {
 
     private final RoutineRepository routineRepository;
+    private final RoutineMapper routineMapper;
     private final ExerciseRepository exerciseRepository;
     private final LoginUserProvider loginUserProvider;
 
     // 루틴 생성하기
     @Transactional
-    public RoutineCreateResponseDto createRoutine(RoutineCreateRequestDto requestDto) {
+    public RoutineDetailResponse createRoutine(RoutineCreateRequest requestDto) {
 
         // 1. 현재 사용자 조회
         User currentUser = loginUserProvider.getCurrentUser();
 
         // 2. 최상위 Routine 엔티티 생성
-        Routine routine = Routine.builder()
-                .owner(currentUser)
-                .writer(currentUser)
-                .name(requestDto.getName())
-                .displayOrder(requestDto.getDisplayOrder())
-                .memo(requestDto.getMemo())
-                .build();
+        Routine routine = routineMapper.toEntity(requestDto);
+        routine.forMe(currentUser);
 
         // 3. DTO의 운동 목록을 순회하며 RoutineExercise 엔티티 생성 및 연결
         if (requestDto.getExercises() != null) {
-            for (RoutineCreateRequestDto.RoutineExerciseDto exerciseDto : requestDto.getExercises()) {
+            for (RoutineCreateRequest.RoutineExerciseRequest exerciseDto : requestDto.getExercises()) {
 
                 // 3-1. exerciseId로 Exercise 엔티티 조회
                 Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
                         .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
 
                 // 3-2. RoutineExercise 엔티티 생성
-                RoutineExercise routineExercise = RoutineExercise.builder()
-                        .exercise(exercise) // 조회한 Exercise 엔티티 설정
-                        .displayOrder(exerciseDto.getDisplayOrder())
-                        .memo(exerciseDto.getMemo())
-                        .build();
+                RoutineExercise routineExercise = routineMapper.toEntity(exerciseDto);
+                routineExercise.selectExercise(exercise);
 
                 // 3-3. DTO의 세트 목록을 순회하며 RoutineSet 엔티티 생성 및 연결
                 if (exerciseDto.getSets() != null) {
-                    for (RoutineCreateRequestDto.RoutineSetDto setDto : exerciseDto.getSets()) {
-                        RoutineSet routineSet = RoutineSet.builder()
-                                .displayOrder(setDto.getDisplayOrder())
-                                .weightKg(setDto.getWeightKg())
-                                .reps(setDto.getReps())
-                                .distanceMeter(setDto.getDistanceMeter())
-                                .durationSecond(setDto.getDurationSecond())
-                                // ... 나머지 세트 정보 ...
-                                .build();
+                    for (RoutineCreateRequest.RoutineSetRequest setDto : exerciseDto.getSets()) {
+                        RoutineSet routineSet = routineMapper.toEntity(setDto);
                         routineExercise.addSet(routineSet); // RoutineExercise에 세트 추가
                     }
                 }
@@ -83,35 +70,35 @@ public class RoutineService {
         // 4. 최상위 엔티티인 Routine 저장 (Cascade 옵션으로 자식 엔티티들도 함께 저장됨)
         Routine savedRoutine = routineRepository.save(routine);
 
-        return new RoutineCreateResponseDto(savedRoutine.getId());
+        return routineMapper.toDto(savedRoutine);
     }
 
     // 사용자가 자신의 루틴 목록을 확인
     @Transactional
-    public Page<RoutineSimpleResponseDto> getMyRoutineList(Long ownerId, Pageable  pageable) {
+    public Page<RoutineSimpleResponse> getMyRoutineList(Long ownerId, Pageable  pageable) {
 
         return routineRepository.findMyRoutineList(ownerId, pageable);
     }
 
     // 루틴 확인
     @Transactional(readOnly = true)
-    public RoutineDetailResponseDto getRoutine(Long id) {
+    public RoutineDetailResponse getRoutine(Long id) {
 
         Routine routine = routineRepository.findRoutineDetailsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
-        return new RoutineDetailResponseDto(routine);
+        return routineMapper.toDto(routine);
     }
 
     // 루틴 삭제
     @Transactional
-    public void deleteRoutine(Long id, RoutineDeleteRequestDto requestDto) {
+    public void deleteRoutine(Long id, RoutineDeleteRequest requestDto) {
 
         if (!id.equals(requestDto.getId())) {
             throw new BadRequestException("id가 일치하지 않습니다.");
         }
 
-        Routine routine = routineRepository.findRoutineDetailsById(id)
+        Routine routine = routineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
         User currentUser = loginUserProvider.getCurrentUser();
@@ -127,25 +114,29 @@ public class RoutineService {
 
     // 루틴 기본정보 수정
     @Transactional
-    public void updateRoutineHeader(Long id, RoutineSimpleRequestDto requestDto) {
+    public void updateRoutineHeader(Long id, RoutineSimpleRequest requestDto) {
 
         Routine routine = routineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
-        routine.updateBasic(requestDto);
+        routine.rename(requestDto.getName());
+        routine.reorder(requestDto.getDisplayOrder());
+        routine.reMemo(requestDto.getMemo());
     }
 
     // 루틴 순서 정렬
     @Transactional
-    public void sortRoutine(List<RoutineSimpleRequestDto> requestDtos) {
+    public void sortRoutine(List<RoutineSimpleRequest> requestDtos) {
 
         // 각각의 id로 entity 조회 후 업데이트
-        requestDtos.forEach(dto -> {
-            Long id = dto.getId();
+        requestDtos.forEach(requestDto -> {
+            Long id = requestDto.getId();
             Routine routine = routineRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
 
-            routine.updateBasic(dto);
+            routine.rename(requestDto.getName());
+            routine.reorder(requestDto.getDisplayOrder());
+            routine.reMemo(requestDto.getMemo());
         });
 
     }
@@ -157,7 +148,7 @@ public class RoutineService {
      * - 각 하위 컬렉션의 sets 가 null 이면 해당 세트는 유지(동기화 생략)
      */
     @Transactional
-    public RoutineDetailResponseDto updateRoutine(Long id, RoutineUpdateRequestDto requestDto) {
+    public RoutineDetailResponse updateRoutine(Long id, RoutineUpdateRequest requestDto) {
         // 1) 루틴 + 운동까지 로딩 (세트는 @BatchSize 로 효율적 로딩)
         Routine routine = routineRepository.findRoutineDetailsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못했습니다. id=" + id));
@@ -175,12 +166,12 @@ public class RoutineService {
         }
 
         // 4) 트랜잭션 종료 시 플러시 → 변경사항 반영
-        return new RoutineDetailResponseDto(routine);
+        return routineMapper.toDto(routine);
     }
 
     // ===== 내부 동기화 로직 =====
 
-    private void syncRoutineExercises(Routine routine, List<RoutineUpdateRequestDto.RoutineExerciseDto> reqExercises) {
+    private void syncRoutineExercises(Routine routine, List<RoutineUpdateRequest.RoutineExerciseRequest> reqExercises) {
         // 기존 엔티티 맵핑(빠른 조회용)
         Map<Long, RoutineExercise> existingMap = routine.getRoutineExercises().stream()
                 .filter(re -> re.getId() != null)
@@ -188,14 +179,14 @@ public class RoutineService {
 
         // 요청에 포함된 exerciseId를 모아 한 번에 로딩(성능 최적화)
         Set<Long> neededExerciseIds = reqExercises.stream()
-                .map(RoutineUpdateRequestDto.RoutineExerciseDto::getExerciseId)
+                .map(RoutineUpdateRequest.RoutineExerciseRequest::getExerciseId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<Long, Exercise> exerciseRef = loadExercisesAsMap(neededExerciseIds);
 
         // DTO에 존재하는 id 모음(삭제 판단용)
         Set<Long> requestIds = reqExercises.stream()
-                .map(RoutineUpdateRequestDto.RoutineExerciseDto::getId)
+                .map(RoutineUpdateRequest.RoutineExerciseRequest::getId)
                 .filter(Objects::nonNull) // id가 null이 아닌 데이터 (기존/수정)
                 .collect(Collectors.toSet());
 
@@ -205,7 +196,7 @@ public class RoutineService {
         );
 
         // 3-2) 추가/수정
-        for (RoutineUpdateRequestDto.RoutineExerciseDto dto : reqExercises) {
+        for (RoutineUpdateRequest.RoutineExerciseRequest dto : reqExercises) {
             if (dto.getId() == null) {
                 // 추가
                 RoutineExercise newRe = buildRoutineExercise(dto, exerciseRef);
@@ -213,8 +204,8 @@ public class RoutineService {
 
                 // 세트 동기화(신규는 전부 추가)
                 if (dto.getSets() != null) {
-                    for (RoutineUpdateRequestDto.RoutineSetDto s : dto.getSets()) {
-                        RoutineSet newSet = buildRoutineSet(s);
+                    for (RoutineUpdateRequest.RoutineSetRequest s : dto.getSets()) {
+                        RoutineSet newSet = routineMapper.toEntity(s);
                         newRe.addSet(newSet);
                     }
                 }
@@ -247,14 +238,13 @@ public class RoutineService {
         }
     }
 
-    // TODO : 이해하기
-    private void syncRoutineSets(RoutineExercise parent, List<RoutineUpdateRequestDto.RoutineSetDto> reqSets) {
+    private void syncRoutineSets(RoutineExercise parent, List<RoutineUpdateRequest.RoutineSetRequest> reqSets) {
         Map<Long, RoutineSet> existingMap = parent.getSets().stream()
                 .filter(s -> s.getId() != null)
-                .collect(Collectors.toMap(RoutineSet::getId, Function.identity()));
+                .collect(Collectors.toMap(com.fitsync.domain.routine.entity.RoutineSet::getId, Function.identity()));
 
         Set<Long> reqIds = reqSets.stream()
-                .map(RoutineUpdateRequestDto.RoutineSetDto::getId)
+                .map(RoutineUpdateRequest.RoutineSetRequest::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -264,9 +254,9 @@ public class RoutineService {
         );
 
         // 추가/수정
-        for (RoutineUpdateRequestDto.RoutineSetDto s : reqSets) {
+        for (RoutineUpdateRequest.RoutineSetRequest s : reqSets) {
             if (s.getId() == null) {
-                RoutineSet newSet = buildRoutineSet(s);
+                RoutineSet newSet = routineMapper.toEntity(s);
                 parent.addSet(newSet);
             } else {
                 RoutineSet target = existingMap.get(s.getId());
@@ -286,9 +276,9 @@ public class RoutineService {
 
     // ===== 팩토리/헬퍼 =====
 
-    // DTO -> Entity
+    // 매핑 및 운동 부여
     private RoutineExercise buildRoutineExercise(
-            RoutineUpdateRequestDto.RoutineExerciseDto dto,
+            RoutineUpdateRequest.RoutineExerciseRequest dto,
             Map<Long, Exercise> exerciseRef) {
 
         if (dto.getExerciseId() == null) {
@@ -298,23 +288,12 @@ public class RoutineService {
         if (exercise == null) {
             throw new ResourceNotFoundException("운동 정보를 찾지 못했습니다. exerciseId=" + dto.getExerciseId());
         }
-        return RoutineExercise.builder()
-                .exercise(exercise)
-                .displayOrder(nullSafe(dto.getDisplayOrder(), 0))
-                .memo(dto.getMemo())
-                .build();
+
+        RoutineExercise routineExercise = routineMapper.toEntity(dto);
+        routineExercise.selectExercise(exercise);
+        return routineExercise;
     }
 
-    // DTO -> Entity
-    private RoutineSet buildRoutineSet(RoutineUpdateRequestDto.RoutineSetDto s) {
-        return RoutineSet.builder()
-                .displayOrder(nullSafe(s.getDisplayOrder(), 0))
-                .weightKg(s.getWeightKg())
-                .reps(s.getReps())
-                .distanceMeter(s.getDistanceMeter())
-                .durationSecond(s.getDurationSecond())
-                .build();
-    }
 
     // ID 목록을 받고 Map으로 변환
     private Map<Long, Exercise> loadExercisesAsMap(Set<Long> ids) {

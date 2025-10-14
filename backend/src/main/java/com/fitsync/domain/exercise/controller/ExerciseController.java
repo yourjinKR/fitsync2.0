@@ -22,8 +22,8 @@ public class ExerciseController {
      * @return <code>ExerciseDetailResponseDto</code>
      */
     @PostMapping
-    public ResponseEntity<ExerciseDetailResponseDto> createExercise(@RequestBody ExerciseCreateRequestDto requestDto) {
-        ExerciseDetailResponseDto createdExercise = exerciseService.createExercise(requestDto);
+    public ResponseEntity<ExerciseDetailResponse> createExercise(@RequestBody ExerciseCreateRequest requestDto) {
+        ExerciseDetailResponse createdExercise = exerciseService.createExercise(requestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdExercise); // return 201
     }
@@ -33,11 +33,11 @@ public class ExerciseController {
      * 예시 URL: /exercises?page=0&size=20&sort=name,asc
      */
     @GetMapping("/all")
-    public ResponseEntity<Page<ExerciseSimpleResponseDto>> getAllExercises(
+    public ResponseEntity<Page<ExerciseSimpleResponse>> getAllExercises(
             // @PageableDefault를 통해 기본값을 설정 가능
             @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-        Page<ExerciseSimpleResponseDto> exercisePage = exerciseService.getAllExercises(pageable);
+        Page<ExerciseSimpleResponse> exercisePage = exerciseService.getAllExercises(pageable);
 
         return ResponseEntity.ok(exercisePage);
     }
@@ -47,7 +47,7 @@ public class ExerciseController {
      * @param exerciseId pk
      */
     @GetMapping("/{exerciseId}")
-    public ResponseEntity<ExerciseDetailResponseDto> getExercise(@PathVariable("exerciseId") Long exerciseId) {
+    public ResponseEntity<ExerciseDetailResponse> getExercise(@PathVariable("exerciseId") Long exerciseId) {
 
         return ResponseEntity.ok(exerciseService.getExercise(exerciseId));
     }
@@ -59,9 +59,9 @@ public class ExerciseController {
      * @param requestDto 내부에 id는 없음
      */
     @PutMapping("/{exerciseId}")
-    public ResponseEntity<ExerciseDetailResponseDto> updateExercise(@PathVariable Long exerciseId, @RequestBody ExerciseUpdateRequestDto requestDto) {
+    public ResponseEntity<ExerciseDetailResponse> updateExercise(@PathVariable Long exerciseId, @RequestBody ExerciseUpdateRequest requestDto) {
 
-        ExerciseDetailResponseDto updatedExercise = exerciseService.updateExercise(exerciseId, requestDto);
+        ExerciseDetailResponse updatedExercise = exerciseService.updateExercise(exerciseId, requestDto);
 
         System.out.println("dto!!! : " + requestDto.toString());
 
@@ -98,10 +98,10 @@ public class ExerciseController {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      * @return empty context
      */
-    @PostMapping("/deactivations")
-    public ResponseEntity<Void> inactivateExercise(@RequestBody ExerciseIsHiddenUpdateRequestDto requestDto) {
+    @PostMapping("/deactivate")
+    public ResponseEntity<Void> inactivateExercises(@RequestBody ExerciseIsHiddenUpdateRequest requestDto) {
 
-        exerciseService.inactivateExercises(requestDto);
+        exerciseService.deactivateExercises(requestDto);
 
         return ResponseEntity.ok().build();
     }
@@ -111,10 +111,22 @@ public class ExerciseController {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      * @return empty context
      */
-    @PostMapping("/activations")
-    public ResponseEntity<Void> activateExercise(@RequestBody ExerciseIsHiddenUpdateRequestDto requestDto) {
+    @PostMapping("/activate")
+    public ResponseEntity<Void> activateExercises(@RequestBody ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseService.activateExercises(requestDto);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 활성화/비활성화를 하나의 엔드포인트에서 관리
+     * @return empty context
+     */
+    @PatchMapping("/activation-states")
+    public ResponseEntity<Void> updateActivationStates(@RequestBody ExerciseIsHiddenBatchUpdateRequest requestDto) {
+        exerciseService.deactivateExercises(requestDto.getDeactivate());
+        exerciseService.activateExercises(requestDto.getActivate());
 
         return ResponseEntity.ok().build();
     }

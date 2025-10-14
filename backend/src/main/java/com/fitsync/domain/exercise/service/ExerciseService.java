@@ -2,6 +2,8 @@ package com.fitsync.domain.exercise.service;
 
 import com.fitsync.domain.exercise.dto.*;
 import com.fitsync.domain.exercise.entity.Exercise;
+import com.fitsync.domain.exercise.entity.ExerciseInstruction;
+import com.fitsync.domain.exercise.mapper.ExerciseMapper;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +12,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
+    private final ExerciseMapper exerciseMapper;
 
     /**
      * 새로운 운동 정보를 생성하는 메소드
@@ -22,26 +27,30 @@ public class ExerciseService {
      * @return <code>ExerciseDetailResponseDto</code> 바로 해당 정보를 보여주기 위해 응답
      */
     @Transactional
-    public ExerciseDetailResponseDto createExercise(ExerciseCreateRequestDto requestDto) {
+    public ExerciseDetailResponse createExercise(ExerciseCreateRequest requestDto) {
 
         if (exerciseRepository.existsByName(requestDto.getName())) {
             throw new IllegalArgumentException("이미 동일한 이름의 운동이 존재합니다 :  " + requestDto.getName());
         }
 
-        Exercise exercise = requestDto.toEntity();
-        Exercise savedExercise = exerciseRepository.save(exercise);
+        Exercise exercise = exerciseMapper.toEntity(requestDto);
 
-        return new ExerciseDetailResponseDto(savedExercise);
+        List<ExerciseInstruction> instructions = requestDto.getInstructions().stream()
+                .map(exerciseMapper::toEntity)
+                .toList();
+        instructions.forEach(exercise::addInstruction);
+
+        exercise.setRequirement(exerciseMapper.toEntity(requestDto.getMetricRequirement()));
+
+        Exercise savedExercise = exerciseRepository.save(exercise);
+        return exerciseMapper.toDto(savedExercise);
     }
 
     /**
      * 모든 운동 정보를 가져오는 메소드
      */
-    public Page<ExerciseSimpleResponseDto> getAllExercises(Pageable pageable) {
-
-        Page<Exercise> exercisePage = exerciseRepository.findAll(pageable);
-
-        return exercisePage.map(ExerciseSimpleResponseDto::new);
+    public Page<ExerciseSimpleResponse> getAllExercises(Pageable pageable) {
+        return exerciseRepository.findAllSimple(pageable);
     }
 
     /**
@@ -49,12 +58,12 @@ public class ExerciseService {
      * @param exerciseId 운동 정보 PK
      * @return <code>ExerciseResponseDto</code>
      */
-    public ExerciseDetailResponseDto getExercise(Long exerciseId) {
+    public ExerciseDetailResponse getExercise(Long exerciseId) {
 
         Exercise exercise = exerciseRepository.findByIdWithInstructions(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
-        return new ExerciseDetailResponseDto(exercise);
+        return exerciseMapper.toDto(exercise);
     }
 
     /**
@@ -64,15 +73,15 @@ public class ExerciseService {
      * @return <code>ExerciseDetailResponseDto</code>
      */
     @Transactional
-    public ExerciseDetailResponseDto updateExercise(Long exerciseId, ExerciseUpdateRequestDto requestDto) {
+    public ExerciseDetailResponse updateExercise(Long exerciseId, ExerciseUpdateRequest requestDto) {
 
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
 
-        exercise.update(requestDto);
+        // dto, entity 분리하기
+        exerciseMapper.applyUpdateFrom(exercise, requestDto);
 
-        return new ExerciseDetailResponseDto(exercise);
-
+        return exerciseMapper.toDto(exercise);
     }
 
     /**
@@ -107,7 +116,7 @@ public class ExerciseService {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      */
     @Transactional
-    public void inactivateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+    public void deactivateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),
@@ -120,7 +129,7 @@ public class ExerciseService {
      * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
      */
     @Transactional
-    public void activateExercises(ExerciseIsHiddenUpdateRequestDto requestDto) {
+    public void activateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
         exerciseRepository.updateHiddenStatusByIds(
                 requestDto.getExerciseIds(),

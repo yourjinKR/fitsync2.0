@@ -1,6 +1,7 @@
 package com.fitsync.global.error;
 
 import com.fitsync.global.error.exception.BadRequestException;
+import com.fitsync.global.error.exception.ResourceConflictException;
 import com.fitsync.global.error.exception.ResourceNotFoundException;
 import com.fitsync.global.error.exception.UnauthorizedAccessException;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,12 @@ public class GlobalExceptionHandler {
     // 리소스를 찾을 수 없음 (404)
     @ExceptionHandler(ResourceNotFoundException.class)
     protected ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException e) {
-        // 예외 메시지를 body에 담아 404 NOT_FOUND 상태 코드로 응답
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    // 자원 중복 (409)
+    @ExceptionHandler(ResourceConflictException.class)
+    protected ResponseEntity<String> handleResourceConflictException(ResourceConflictException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 }

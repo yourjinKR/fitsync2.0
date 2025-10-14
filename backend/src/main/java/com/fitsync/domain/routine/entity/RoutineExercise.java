@@ -25,7 +25,7 @@ public class RoutineExercise {
     @JoinColumn(name = "routine_id", nullable = false)
     private Routine routine;
 
-    @Setter
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
@@ -41,6 +41,10 @@ public class RoutineExercise {
     @OneToMany(mappedBy = "routineExercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC, id ASC")
     private List<RoutineSet> sets = new ArrayList<>();
+
+    public void selectExercise(Exercise exercise) {
+        this.exercise = exercise;
+    }
 
     public void addSet(RoutineSet routineSet) {
         this.sets.add(routineSet);
