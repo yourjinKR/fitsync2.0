@@ -1,216 +1,374 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ExerciseCreateRequestDto, ExerciseDetailResponseDto, ExerciseSimpleResponseDto, MetricRequirement } from '../types/domain/exercise';
-import ExerciseApi from '../api/ExerciseApi';
+// ExerciseTestPage.tsx (GlobalStyle 기반, any 제거)
+// - 필요한 import 경로는 프로젝트에 맞게 조정하세요.
 
-const ExerciseTestPage = () => {
-  const init = {
-    id: 0,
-    name: '',
-    category: '',
-    description: null,
-    isHidden: false,
-    createdAt: '',
-    updatedAt : '',
-    instructions: [],
-    metricRequirement: {
-      weightKgStatus: MetricRequirement.FORBIDDEN,
-      repsStatus: MetricRequirement.FORBIDDEN,
-      distanceMeterStatus: MetricRequirement.FORBIDDEN,
-      durationSecondStatus: MetricRequirement.FORBIDDEN,
-    },
-  };
-  enum Mode {
-    NEW, MODIFY
-  };
+import React, { JSX, useMemo } from 'react';
+import { ExerciseCreateRequest, ExerciseIsHiddenBatchUpdateRequest, ExerciseUpdateRequest, MetricRequirement } from '../types/domain/exercise';
+import useExercise from '../hooks/useExercise';
 
-  const [allExercises, setAllExercises] = useState<ExerciseSimpleResponseDto[]>([]);
-  const [selectedExercise, setSelectedExercise] = useState<ExerciseCreateRequestDto & ExerciseDetailResponseDto>(init);
-  // const [newExercise, setNewExercise] = useState<ExerciseCreateRequestDto>(init);
-  const [mode, setMode] = useState<Mode>(Mode.NEW);
+// MetricRequirement 추론 타입 (도메인 타입에서 가져오도록 구성)
+const METRIC_OPTIONS: MetricRequirement[] = [MetricRequirement.FORBIDDEN, MetricRequirement.OPTIONAL, MetricRequirement.REQUIRED] as const;
 
-  const fetchAllExercises = useCallback(async () => {
-    try {
-      const data = await ExerciseApi.getAllExercises({ page: 0, size: 30, sort: 'id,desc' });
-      setAllExercises(data.content);
-    } catch (error) {
-      console.error('❌ 전체 운동 조회 실패:', error);
-    }
-  }, []);
+// 유틸 타입 추론
+type MetricShape = ExerciseCreateRequest['metricRequirement'];
+type InstructionCreate = ExerciseCreateRequest['instructions'][number];
+type InstructionUpdate = ExerciseUpdateRequest['instructions'][number];
 
-  useEffect(() => { fetchAllExercises(); }, [fetchAllExercises]);
+export default function ExerciseTestPage(): JSX.Element {
+  const {
+    // paging
+    exerciseListPage,
 
-  const loadExerciseDetailInfo = async (exerciseId : number) => {
-    const response = await ExerciseApi.getExerciseById(exerciseId);
-    console.log(response);
-    
-    setSelectedExercise(response);
-    setMode(Mode.MODIFY);
-  }
+    // list
+    exerciseList,
+    fetchExerciseList,
+    nextExercisePage,
+    clearExercisePage,
 
-  const handleSelectedExercise = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, type, value, checked } = e.target;
+    // detail
+    selectedExercise,
+    loadExerciseDetailInfo,
+    initSelectedExercise,
 
-    // checkbox는 boolean, 나머지는 string
-    const raw: string | boolean = type === 'checkbox' ? checked : value;
+    // create
+    exerciseCreateForm,
+    setExerciseCreateForm,
+    buildExerciseCreateForm,
+    submitExerciseCreate,
 
-    // 1) instructions.i.field  (예: "instructions.2.description")
-    if (name.startsWith('instructions.')) {
-      const [, idxStr, field] = name.split('.'); // ['instructions', '2', 'description']
-      const index = Number(idxStr);
+    // update
+    exerciseUpdateForm,
+    setExerciseUpdateForm,
+    buildUpdateExerciseForm,
+    submitExerciseUpdate,
 
-      setSelectedExercise(prev => {
-        const next = prev.instructions.map((inst, i) =>
-          i === index ? { ...inst, [field as 'description' | 'stepOrder']: raw } : inst
-        );
-        return { ...prev, instructions: next };
-      });
+    // batch activation
+    selectedIdList,
+    setSelectedIdList,
+    updateExerciseState,
+  } = useExercise();
 
-      return;
-    }
-
-    // 2) metricRequirement.field  (예: "metricRequirement.repsStatus")
-    if (name.startsWith('metricRequirement.')) {
-      const key = name.split('.')[1] as keyof typeof selectedExercise.metricRequirement; // 'repsStatus' 등
-      setSelectedExercise(prev => ({
-        ...prev,
-        metricRequirement: {
-          ...prev.metricRequirement,
-          [key]: raw as 'FORBIDDEN' | 'OPTIONAL' | 'REQUIRED',
-        },
-      }));
-      return;
-    }
-
-    // 3) 최상위 필드 (name, category, description, isHidden 등)
-    setSelectedExercise(prev => ({
-      ...prev,
-      [name]: raw,
-    }));
+  // ------- helpers -------
+  const toggleBatch = (id: number, mode: 'activate' | 'deactivate') => {
+    setSelectedIdList((prev): ExerciseIsHiddenBatchUpdateRequest => {
+        const act = new Set<number>(prev.activate.exerciseIds);
+        const deact = new Set<number>(prev.deactivate.exerciseIds);
+        if (mode === 'activate') {
+          if (act.has(id)) {
+            act.delete(id);
+          } else {
+            act.add(id);
+          }
+        if (deact.has(id)) {
+          deact.delete(id);
+        }
+        } else {
+            if (deact.has(id)) {
+              deact.delete(id);
+            } else {
+              deact.add(id);
+            }
+          if (act.has(id)) {
+            act.delete(id);
+          }
+        }
+      return {
+        activate: { exerciseIds: Array.from(act) },
+        deactivate: { exerciseIds: Array.from(deact) },
+      };
+    });
   };
 
-  // TODO : 깊은복사? 얕은복사? 알아보기
-  const addInstruction = (e:React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const isMarked = (id: number) => ({
+    activate: selectedIdList.activate.exerciseIds.includes(id),
+    deactivate: selectedIdList.deactivate.exerciseIds.includes(id),
+  });
 
-    const instructions = selectedExercise.instructions;
-    instructions.push({stepOrder : instructions.length, description : "운동 설명" + instructions.length});
-    
-    setSelectedExercise({...selectedExercise, });
-  }
-  
-  const removeInstruction = (e:React.MouseEvent<HTMLButtonElement>, stepOrder:number) => {
-    e.preventDefault();
-    console.log(stepOrder);
-    console.log(selectedExercise.instructions);
-    
-    let instructions = selectedExercise.instructions;
-    instructions = instructions.filter((inst) => inst.stepOrder !== stepOrder);
+  const canCreate = useMemo(() => Boolean(exerciseCreateForm), [exerciseCreateForm]);
+  const canUpdate = useMemo(() => Boolean(exerciseUpdateForm), [exerciseUpdateForm]);
 
-    setSelectedExercise({...selectedExercise, instructions : instructions});
-  }
-
-  const createMode = () => {
-    setMode(Mode.NEW);
-    setSelectedExercise(init);
-  }
-
-  const handleExerciseSubmit = async (e:React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (mode === Mode.NEW) {
-      const response = await ExerciseApi.createExercise(selectedExercise);
-      console.log(response);
-    } else {
-      const response = await ExerciseApi.updateExercise(selectedExercise.id, selectedExercise);
-      console.log(response);
-    }
-  }
-
-
+  // ------- UI (GlobalStyle 클래스 사용) -------
   return (
-    <div>
-      <div>
-        {mode === Mode.NEW ? (<h1>운동 생성</h1>) : (<h1>운동 수정</h1>) }
-        {mode === Mode.MODIFY && (<button onClick={createMode}>운동 생성하기</button>)}
-        <form>
-          <h3>운동명</h3>
-          <input type="text" name="name" value={selectedExercise.name} onChange={(e) => handleSelectedExercise(e)}/>
-          <h3>카테고리</h3>
-          <input type="text" name="category" value={selectedExercise.category} onChange={(e) => handleSelectedExercise(e)}/>
-          <h3>간단설명</h3>
-          <input type="text" name="description" value={selectedExercise.description} onChange={(e) => handleSelectedExercise(e)}/>
-          <br/>
-          
-          <h3>운동설명</h3>
-          {selectedExercise.instructions.map((inst, i) => (
-            <div>
-              <input type="text" name={`instructions.${i}.description`} value={inst.description} key={inst.stepOrder} onChange={(e) => handleSelectedExercise(e)}/>
-              <button onClick={(e) => removeInstruction(e, inst.stepOrder)}>X</button>
-            </div>
-          ))} 
-          <button onClick={addInstruction}>운동 설명 추가</button>
-
-          <h3>운동 세트값 권한</h3>
-
-          <div>
-            <div>중량</div>
-            <select
-              name="metricRequirement.weightKgStatus"
-              value={selectedExercise.metricRequirement.weightKgStatus}
-              onChange={handleSelectedExercise}
-            >
-              <option value="FORBIDDEN">금지</option>
-              <option value="OPTIONAL">선택</option>
-              <option value="REQUIRED">필수</option>
-            </select>
-
-            <div>횟수</div>
-            <select
-              name="metricRequirement.repsStatus"
-              value={selectedExercise.metricRequirement.repsStatus}
-              onChange={handleSelectedExercise}
-            >
-              <option value="FORBIDDEN">금지</option>
-              <option value="OPTIONAL">선택</option>
-              <option value="REQUIRED">필수</option>
-            </select>
-
-            <div>시간</div>
-            <select
-              name="metricRequirement.durationSecondStatus"
-              value={selectedExercise.metricRequirement.durationSecondStatus}
-              onChange={handleSelectedExercise}
-            >
-              <option value="FORBIDDEN">금지</option>
-              <option value="OPTIONAL">선택</option>
-              <option value="REQUIRED">필수</option>
-            </select>
-
-            <div>거리</div>
-            <select
-              name="metricRequirement.distanceMeterStatus"
-              value={selectedExercise.metricRequirement.distanceMeterStatus}
-              onChange={handleSelectedExercise}
-            >
-              <option value={"FORBIDDEN"}>금지</option>
-              <option value={"OPTIONAL"}>선택</option>
-              <option value={"REQUIRED"}>필수</option>s
-            </select>
+    <div className="container" style={{ paddingTop: '24px', paddingBottom: '48px' }}>
+      <header style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <h1 className="fs-xl" style={{ margin: 0 }}>Exercise Test Page</h1>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button className="btn-ghost" onClick={() => fetchExerciseList()}>Reload</button>
+          <button className="btn-ghost" onClick={() => nextExercisePage()}>Next Page</button>
+          <button className="btn-ghost" onClick={() => clearExercisePage()}>Reset Page</button>
+          <div className="fs-sm" style={{ color: 'var(--text-3)' }}>
+            page={exerciseListPage.page} size={exerciseListPage.size} sort={exerciseListPage.sort}
           </div>
-
-          <button onClick={handleExerciseSubmit}>수정 혹은 생성 버튼임</button>
-        </form>
-      </div>
-
-      <h1>운동 리스트</h1>
-      {allExercises.map(ex => (
-        <div key={ex.id} onClick={() => loadExerciseDetailInfo(ex.id)}>
-          {ex.name}
         </div>
-      ))}
+      </header>
+
+      {/* List */}
+      <section className="card" style={{ padding: '16px', marginBottom: '24px' }}>
+        <h2 className="fs-lg" style={{ marginTop: 0 }}>Exercises</h2>
+        <div style={{ overflowX: 'auto', border: `1px solid var(--border-1)`, borderRadius: 'var(--radius-md)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-sm)' }}>
+            <thead style={{ background: 'var(--bg-elev-2)' }}>
+              <tr>
+                {['ID', 'Name', 'Category', 'Hidden', 'Mark', 'Action'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '12px', borderBottom: `1px solid var(--border-1)` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {exerciseList.map(e => {
+                const mark = isMarked(e.id);
+                return (
+                  <tr key={e.id} style={{ borderTop: `1px solid var(--border-1)` }}>
+                    <td style={{ padding: '10px 12px' }}>{e.id}</td>
+                    <td style={{ padding: '10px 12px' }}>{e.name}</td>
+                    <td style={{ padding: '10px 12px' }}>{e.category}</td>
+                    <td style={{ padding: '10px 12px' }}>{String(e.isHidden)}</td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <label style={{ marginRight: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <input type="checkbox" checked={mark.activate} onChange={() => toggleBatch(e.id, 'activate')} />
+                        <span className="fs-sm">Activate</span>
+                      </label>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <input type="checkbox" checked={mark.deactivate} onChange={() => toggleBatch(e.id, 'deactivate')} />
+                        <span className="fs-sm">Deactivate</span>
+                      </label>
+                    </td>
+                    <td style={{ padding: '10px 12px' }}>
+                      <button className="btn-primary" onClick={() => loadExerciseDetailInfo(e.id)}>Load Detail</button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {exerciseList.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ padding: '14px', textAlign: 'center', color: 'var(--text-3)' }}>No data</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+          <button className="btn-primary" onClick={updateExerciseState}>Apply Activation Changes</button>
+          <div className="fs-sm" style={{ color: 'var(--text-3)' }}>
+            activate=[{selectedIdList.activate.exerciseIds.join(', ')}] | deactivate=[{selectedIdList.deactivate.exerciseIds.join(', ')}]
+          </div>
+        </div>
+      </section>
+
+      {/* Detail */}
+      <section className="card" style={{ padding: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h2 className="fs-lg" style={{ margin: 0 }}>Detail</h2>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-ghost" onClick={initSelectedExercise}>Clear</button>
+            {selectedExercise && (
+              <>
+                <button className="btn-ghost" onClick={() => buildExerciseCreateForm(selectedExercise)}>Build Create Form</button>
+                <button className="btn-ghost" onClick={() => buildUpdateExerciseForm(selectedExercise)}>Build Update Form</button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {selectedExercise ? (
+          <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr', alignItems: 'start' }}>
+            <div className="card" style={{ padding: 12 }}>
+              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '12px' }}>
+                {JSON.stringify(selectedExercise, null, 2)}
+              </pre>
+            </div>
+
+            <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr', alignItems: 'start' }}>
+              {/* Create form */}
+              <div className="card" style={{ padding: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <h3 style={{ margin: 0 }}>Create Form</h3>
+                  <button className="btn-primary" onClick={submitExerciseCreate} disabled={!canCreate}>Create</button>
+                </div>
+                {exerciseCreateForm ? (
+                  <FormEditorCreate form={exerciseCreateForm} onChange={setExerciseCreateForm} />
+                ) : ( 
+                  <p className="fs-sm" style={{ color: 'var(--text-3)' }}>"Build Create Form" 버튼으로 초기화하세요.</p>
+                )}
+              </div>
+
+              {/* Update form */}
+              <div className="card" style={{ padding: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <h3 style={{ margin: 0 }}>Update Form</h3>
+                  <button className="btn-primary" onClick={submitExerciseUpdate} disabled={!canUpdate || !selectedExercise}>Update</button>
+                </div>
+                {exerciseUpdateForm ? (
+                  <FormEditorUpdate form={exerciseUpdateForm} onChange={setExerciseUpdateForm} />
+                ) : (
+                  <p className="fs-sm" style={{ color: 'var(--text-3)' }}>"Build Update Form" 버튼으로 초기화하세요.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="fs-sm" style={{ color: 'var(--text-3)' }}>행을 선택한 뒤 "Load Detail"을 클릭하세요.</p>
+        )}
+      </section>
     </div>
   );
-};
+}
 
-export default ExerciseTestPage;
+// ------- Create Form Editor -------
+function FormEditorCreate({
+  form,
+  onChange,
+}: {
+  form: ExerciseCreateRequest;
+  onChange: (f: ExerciseCreateRequest) => void;
+}): JSX.Element {
+  const update = (patch: Partial<ExerciseCreateRequest>) => onChange({ ...form, ...patch });
+
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
+        <LabeledInput label="Name" value={form.name} onChange={v => update({ name: v })} />
+        <LabeledInput label="Category" value={form.category} onChange={v => update({ category: v })} />
+      </div>
+      <LabeledTextarea label="Description" value={form.description ?? ''} onChange={v => update({ description: v })} />
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <input type="checkbox" checked={Boolean(form.isHidden)} onChange={e => update({ isHidden: e.target.checked })} />
+        <span className="fs-sm">isHidden</span>
+      </label>
+
+      <MetricEditor metric={form.metricRequirement} onChange={m => update({ metricRequirement: m })} />
+
+      <InstructionListEditorCreate items={form.instructions ?? []} onChange={items => update({ instructions: items })} />
+    </div>
+  );
+}
+
+// ------- Update Form Editor -------
+function FormEditorUpdate({
+  form,
+  onChange,
+}: {
+  form: ExerciseUpdateRequest;
+  onChange: (f: ExerciseUpdateRequest) => void;
+}): JSX.Element {
+  const update = (patch: Partial<ExerciseUpdateRequest>) => onChange({ ...form, ...patch });
+
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr' }}>
+        <LabeledInput label="Name" value={form.name} onChange={v => update({ name: v })} />
+        <LabeledInput label="Category" value={form.category} onChange={v => update({ category: v })} />
+      </div>
+      <LabeledTextarea label="Description" value={form.description ?? ''} onChange={v => update({ description: v })} />
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <input type="checkbox" checked={Boolean(form.isHidden)} onChange={e => update({ isHidden: e.target.checked })} />
+        <span className="fs-sm">isHidden</span>
+      </label>
+
+      <MetricEditor metric={form.metricRequirement} onChange={m => update({ metricRequirement: m })} />
+
+      <InstructionListEditorUpdate items={form.instructions ?? []} onChange={items => update({ instructions: items })} />
+    </div>
+  );
+}
+
+// ------- Subcomponents (GlobalStyle 폼 규칙 준수) -------
+function LabeledInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }): JSX.Element {
+  return (
+    <label className="fs-sm">
+      <div style={{ marginBottom: 6, color: 'var(--text-2)' }}>{label}</div>
+      <input value={value ?? ''} onChange={e => onChange(e.target.value)} />
+    </label>
+  );
+}
+
+function LabeledTextarea({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }): JSX.Element {
+  return (
+    <label className="fs-sm" style={{ display: 'block' }}>
+      <div style={{ marginBottom: 6, color: 'var(--text-2)' }}>{label}</div>
+      <textarea className="fs-sm" value={value ?? ''} onChange={e => onChange(e.target.value)} />
+    </label>
+  );
+}
+
+function MetricEditor({ metric, onChange }: { metric: MetricShape; onChange: (m: MetricShape) => void }): JSX.Element {
+  const update = (patch: Partial<MetricShape>) => onChange({ ...metric, ...patch });
+
+  return (
+    <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(4, minmax(0,1fr))' }}>
+      <SelectField label="weightKgStatus" value={metric?.weightKgStatus ?? MetricRequirement.FORBIDDEN} onChange={v => update({ weightKgStatus: v })} />
+      <SelectField label="repsStatus" value={metric?.repsStatus ?? MetricRequirement.FORBIDDEN} onChange={v => update({ repsStatus: v })} />
+      <SelectField label="distanceMeterStatus" value={metric?.distanceMeterStatus ?? MetricRequirement.FORBIDDEN} onChange={v => update({ distanceMeterStatus: v })} />
+      <SelectField label="durationSecondStatus" value={metric?.durationSecondStatus ?? MetricRequirement.FORBIDDEN} onChange={v => update({ durationSecondStatus: v })} />
+    </div>
+  );
+}
+
+function SelectField({ label, value, onChange }: { label: string; value: MetricRequirement; onChange: (v: MetricRequirement) => void }): JSX.Element {
+  return (
+    <label className="fs-sm">
+      <div style={{ marginBottom: 6, color: 'var(--text-2)' }}>{label}</div>
+      <select value={value} onChange={e => onChange(e.target.value as MetricRequirement)}>
+        {METRIC_OPTIONS.map(opt => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function InstructionListEditorCreate({ items, onChange }: { items: InstructionCreate[]; onChange: (next: InstructionCreate[]) => void }): JSX.Element {
+  const add = () => onChange([...(items || []), { stepOrder: (items?.length || 0) + 1, description: '' }]);
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+  const patch = (idx: number, patchItem: Partial<InstructionCreate>) => onChange(items.map((it, i) => (i === idx ? { ...it, ...patchItem } : it)));
+
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h4 style={{ margin: 0 }}>Instructions</h4>
+        <button className="btn-ghost" onClick={add}>Add</button>
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {items && items.length > 0 ? (
+          items.map((it, idx) => (
+            <div key={idx} style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 3fr auto', alignItems: 'end' }}>
+              <LabeledInput label="stepOrder" value={String(it.stepOrder ?? '')} onChange={v => patch(idx, { stepOrder: v ? Number(v) : undefined })} />
+              <LabeledInput label="description" value={it.description ?? ''} onChange={v => patch(idx, { description: v })} />
+              <button className="btn-ghost" onClick={() => remove(idx)}>Del</button>
+            </div>
+          ))
+        ) : (
+          <p className="fs-sm" style={{ color: 'var(--text-3)' }}>No instructions. Add one.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InstructionListEditorUpdate({ items, onChange }: { items: InstructionUpdate[]; onChange: (next: InstructionUpdate[]) => void }): JSX.Element {
+  const add = () => onChange([...(items || []), { id: undefined as unknown as number, stepOrder: (items?.length || 0) + 1, description: '' }]);
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+  const patch = (idx: number, patchItem: Partial<InstructionUpdate>) => onChange(items.map((it, i) => (i === idx ? { ...it, ...patchItem } : it)));
+
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h4 style={{ margin: 0 }}>Instructions</h4>
+        <button className="btn-ghost" onClick={add}>Add</button>
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {items && items.length > 0 ? (
+          items.map((it, idx) => (
+            <div key={idx} style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr 1fr 3fr auto', alignItems: 'end' }}>
+              <LabeledInput label="id" value={it.id ? String(it.id) : ''} onChange={v => patch(idx, { id: v ? Number(v) : (undefined as unknown as number) })} />
+              <LabeledInput label="stepOrder" value={String(it.stepOrder ?? '')} onChange={v => patch(idx, { stepOrder: v ? Number(v) : undefined })} />
+              <LabeledInput label="description" value={it.description ?? ''} onChange={v => patch(idx, { description: v })} />
+              <button className="btn-ghost" onClick={() => remove(idx)}>Del</button>
+            </div>
+          ))
+        ) : (
+          <p className="fs-sm" style={{ color: 'var(--text-3)' }}>No instructions. Add one.</p>
+        )}
+      </div>
+    </div>
+  );
+}
