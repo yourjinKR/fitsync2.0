@@ -61,4 +61,9 @@ public class Workout {
         this.owner = user;
         this.writer = user;
     }
+
+    public void updateBasic(String title, String memo) {
+        this.title = title;
+        this.memo = memo;
+    }
 }

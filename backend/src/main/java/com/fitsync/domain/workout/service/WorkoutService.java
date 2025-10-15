@@ -7,6 +7,7 @@ import com.fitsync.domain.user.entity.User;
 import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.dto.WorkoutSimpleResponse;
+import com.fitsync.domain.workout.dto.WorkoutUpdateRequest;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.entity.WorkoutExercise;
 import com.fitsync.domain.workout.entity.WorkoutSet;
@@ -104,7 +105,14 @@ public class WorkoutService {
                 .toList();
     }
 
-    // update (메모는 수정 가능)
+    // update (제목 및 메모는 수정 가능)
+    public void updateWorkout(Long workoutId, WorkoutUpdateRequest requestDto) {
+
+        Workout workout = workoutRepository.findById(workoutId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 운동기록을 찾지 못함, id : " + workoutId));
+
+        workout.updateBasic(requestDto.getTitle(), requestDto.getMemo());
+    }
 
     // delete (일반 사용자는 권한 없음)
 

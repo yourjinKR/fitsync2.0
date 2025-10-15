@@ -3,6 +3,7 @@ package com.fitsync.domain.workout.controller;
 import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.dto.WorkoutSimpleResponse;
+import com.fitsync.domain.workout.dto.WorkoutUpdateRequest;
 import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.service.WorkoutService;
 import lombok.RequiredArgsConstructor;
@@ -52,10 +53,12 @@ public class WorkoutController {
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
-    @PatchMapping("/{id}/memo")
-    public ResponseEntity<?> updateWorkoutMemo(@PathVariable String id, @RequestBody Workout workout) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> updateWorkout(@PathVariable Long id, @RequestBody WorkoutUpdateRequest requestDto) {
 
-        return null;
+        workoutService.updateWorkout(id, requestDto);
+
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
