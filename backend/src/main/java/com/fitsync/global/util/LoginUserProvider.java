@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LoginUserProvider {
 
+    // TODO : getReferenceId() 사용을 위한 Authentication에 id 추가하기
     private final UserRepository userRepository;
 
     public User getCurrentUser() {

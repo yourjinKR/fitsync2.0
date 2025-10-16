@@ -49,8 +49,7 @@ public class RoutineService {
             for (RoutineCreateRequest.RoutineExerciseRequest exerciseDto : requestDto.getExercises()) {
 
                 // 3-1. exerciseId로 Exercise 엔티티 조회
-                Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
-                        .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
+                Exercise exercise = exerciseRepository.getReferenceById(exerciseDto.getExerciseId());
 
                 // 3-2. RoutineExercise 엔티티 생성
                 RoutineExercise routineExercise = routineMapper.toEntity(exerciseDto);

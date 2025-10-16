@@ -50,8 +50,7 @@ public class WorkoutService {
 
         if (requestDto.getWorkoutExercises() != null) {
             for (WorkoutCreateRequest.WorkoutExerciseRequest exerciseDto : requestDto.getWorkoutExercises()) {
-                Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
-                        .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
+                Exercise exercise = exerciseRepository.getReferenceById(exerciseDto.getExerciseId());
 
                 WorkoutExercise workoutExercise = workoutMapper.toEntity(exerciseDto);
                 workoutExercise.selectExercise(exercise);
