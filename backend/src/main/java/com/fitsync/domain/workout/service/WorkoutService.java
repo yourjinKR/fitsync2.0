@@ -4,6 +4,7 @@ import com.fitsync.domain.exercise.entity.Exercise;
 import com.fitsync.domain.exercise.mapper.ExerciseMapper;
 import com.fitsync.domain.exercise.repository.ExerciseRepository;
 import com.fitsync.domain.user.entity.User;
+import com.fitsync.domain.user.entity.UserType;
 import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.dto.WorkoutSimpleResponse;
@@ -24,6 +25,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -114,6 +116,17 @@ public class WorkoutService {
     }
 
     // delete (일반 사용자는 권한 없음)
+    @Transactional
+    public void deleteWorkout(Long workoutId) {
+        User currUser = loginUserProvider.getCurrentUser();
+        UserType type = currUser.getType();
 
+        if (!type.equals(UserType.ADMIN)) {
+            throw new UnauthorizedAccessException("운동을 삭제할 권한이 없습니다.");
+        }
+
+        Workout refWorkout = workoutRepository.getReferenceById(workoutId);
+        workoutRepository.deleteById(refWorkout.getId());
+    }
 }
 
