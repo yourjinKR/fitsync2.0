@@ -38,6 +38,7 @@ public class WorkoutService {
     private final ExerciseMapper exerciseMapper;
 
     // create
+    @Transactional
     public Long createWorkout(WorkoutCreateRequest requestDto) {
         Workout workout;
 
@@ -76,6 +77,7 @@ public class WorkoutService {
     }
 
     // read
+    @Transactional
     public WorkoutDetailResponse getWorkoutById(Long id) {
 
         Workout workout = workoutRepository.findById(id)
@@ -85,12 +87,14 @@ public class WorkoutService {
     }
 
     // read simple list
+    @Transactional
     public List<WorkoutSimpleResponse> getMyWorkoutList(Long userId) {
 
         return workoutRepository.findMyRoutineList(userId);
     }
 
     // read today
+    @Transactional
     public List<WorkoutDetailResponse> getMyWorkoutToday(Long userId) {
 
         ZoneOffset userOffset = ZoneOffset.of("+09:00");
@@ -107,6 +111,7 @@ public class WorkoutService {
     }
 
     // update (제목 및 메모는 수정 가능)
+    @Transactional
     public void updateWorkout(Long workoutId, WorkoutUpdateRequest requestDto) {
 
         Workout workout = workoutRepository.findById(workoutId)
