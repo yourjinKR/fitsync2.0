@@ -124,9 +124,9 @@ public class WorkoutService {
     @Transactional
     public void deleteWorkout(Long workoutId) {
         User currUser = loginUserProvider.getCurrentUser();
-        UserType type = currUser.getType();
+        UserType userType = currUser.getType();
 
-        if (!type.equals(UserType.ADMIN)) {
+        if (!userType.equals(UserType.ADMIN)) {
             throw new UnauthorizedAccessException("운동을 삭제할 권한이 없습니다.");
         }
 

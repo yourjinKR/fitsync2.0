@@ -144,7 +144,9 @@ public class ExerciseService {
     @Transactional
     public void removeExercise(Long exerciseId) {
 
-        exerciseRepository.deleteById(exerciseId);
+        Exercise exercise = exerciseRepository.getReferenceById(exerciseId);
+
+        exerciseRepository.deleteById(exercise.getId());
     }
 
 
