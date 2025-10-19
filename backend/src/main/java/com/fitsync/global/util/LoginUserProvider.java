@@ -25,4 +25,9 @@ public class LoginUserProvider {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다: " + email));
     }
+
+    public boolean validateSameUser(Long userId) {
+        User currUser = getCurrentUser();
+        return userId.equals(currUser.getId());
+    }
 }
