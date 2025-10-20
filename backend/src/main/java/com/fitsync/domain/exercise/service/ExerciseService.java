@@ -58,10 +58,10 @@ public class ExerciseService {
      * @param exerciseId 운동 정보 PK
      * @return <code>ExerciseResponseDto</code>
      */
-    public ExerciseDetailResponse getExercise(Long exerciseId) {
+    @Transactional
+    public ExerciseDetailResponse getExercise(Long id) {
 
-        Exercise exercise = exerciseRepository.findByIdWithInstructions(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
+        Exercise exercise = selectExercise(id);
 
         return exerciseMapper.toDto(exercise);
     }
@@ -73,12 +73,10 @@ public class ExerciseService {
      * @return <code>ExerciseDetailResponseDto</code>
      */
     @Transactional
-    public ExerciseDetailResponse updateExercise(Long exerciseId, ExerciseUpdateRequest requestDto) {
+    public ExerciseDetailResponse updateExercise(Long id, ExerciseUpdateRequest requestDto) {
 
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
+        Exercise exercise = selectExercise(id);
 
-        // dto, entity 분리하기
         exerciseMapper.applyUpdateFrom(exercise, requestDto);
 
         return exerciseMapper.toDto(exercise);
@@ -89,11 +87,9 @@ public class ExerciseService {
      * @param exerciseId pk
      */
     @Transactional
-    public void inactivateExercise(Long exerciseId) {
+    public void inactivateExercise(Long id) {
 
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
-
+        Exercise exercise = selectExercise(id);
 
         exercise.hide();
     }
@@ -103,10 +99,9 @@ public class ExerciseService {
      * @param exerciseId pk
      */
     @Transactional
-    public void activateExercise(Long exerciseId) {
+    public void activateExercise(Long id) {
 
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + exerciseId));
+        Exercise exercise = selectExercise(id);
 
         exercise.show();
     }
@@ -147,6 +142,12 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.getReferenceById(exerciseId);
 
         exerciseRepository.deleteById(exercise.getId());
+    }
+
+    // just select
+    public Exercise selectExercise(Long id) {
+        return exerciseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + id));
     }
 
 
