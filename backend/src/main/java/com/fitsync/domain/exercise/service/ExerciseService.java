@@ -18,14 +18,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExerciseService {
 
+
     private final ExerciseRepository exerciseRepository;
     private final ExerciseMapper exerciseMapper;
 
-    /**
-     * 새로운 운동 정보를 생성하는 메소드
-     * @param requestDto <code>ExerciseCreateRequestDto</code> 생성 전용 DTO 사용
-     * @return <code>ExerciseDetailResponseDto</code> 바로 해당 정보를 보여주기 위해 응답
-     */
+
     @Transactional
     public ExerciseDetailResponse createExercise(ExerciseCreateRequest requestDto) {
 
@@ -46,18 +43,10 @@ public class ExerciseService {
         return exerciseMapper.toDto(savedExercise);
     }
 
-    /**
-     * 모든 운동 정보를 가져오는 메소드
-     */
     public Page<ExerciseSimpleResponse> getAllExercises(Pageable pageable) {
         return exerciseRepository.findAllSimple(pageable);
     }
 
-    /**
-     * id값에 일치하는 특정 운동 정보를 가져오는 메소드
-     * @param exerciseId 운동 정보 PK
-     * @return <code>ExerciseResponseDto</code>
-     */
     @Transactional
     public ExerciseDetailResponse getExercise(Long id) {
 
@@ -66,12 +55,6 @@ public class ExerciseService {
         return exerciseMapper.toDto(exercise);
     }
 
-    /**
-     * 운동 정보를 수정하는 메소드
-     * @param exerciseId pk
-     * @param requestDto <code>ExerciseUpdateRequestDto</code>
-     * @return <code>ExerciseDetailResponseDto</code>
-     */
     @Transactional
     public ExerciseDetailResponse updateExercise(Long id, ExerciseUpdateRequest requestDto) {
 
@@ -82,10 +65,6 @@ public class ExerciseService {
         return exerciseMapper.toDto(exercise);
     }
 
-    /**
-     * 운동정보를 비활성화 하는 메소드
-     * @param exerciseId pk
-     */
     @Transactional
     public void inactivateExercise(Long id) {
 
@@ -94,10 +73,6 @@ public class ExerciseService {
         exercise.hide();
     }
 
-    /**
-     * 운동정보를 활성화 하는 메소드
-     * @param exerciseId pk
-     */
     @Transactional
     public void activateExercise(Long id) {
 
@@ -106,10 +81,6 @@ public class ExerciseService {
         exercise.show();
     }
 
-    /**
-     * 복수의 운동 정보를 비활성화 하는 메소드
-     * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
-     */
     @Transactional
     public void deactivateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
@@ -119,10 +90,6 @@ public class ExerciseService {
         );
     }
 
-    /**
-     * 복수의 운동 정보를 활성화 하는 메소드
-     * @param requestDto <code>ExerciseIsHiddenUpdateRequestDto</code>
-     */
     @Transactional
     public void activateExercises(ExerciseIsHiddenUpdateRequest requestDto) {
 
@@ -132,10 +99,6 @@ public class ExerciseService {
         );
     }
 
-    /**
-     * 운동정보 삭제하는 메소드
-     * @param exerciseId pk
-     */
     @Transactional
     public void removeExercise(Long exerciseId) {
 
@@ -144,7 +107,6 @@ public class ExerciseService {
         exerciseRepository.deleteById(exercise.getId());
     }
 
-    // just select
     public Exercise selectExercise(Long id) {
         return exerciseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 ID와 일치하는 운동 정보를 찾지 못했습니다. exerciseId : " + id));
