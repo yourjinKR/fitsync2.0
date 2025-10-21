@@ -49,8 +49,7 @@ public class RoutineService {
             for (RoutineCreateRequest.RoutineExerciseRequest exerciseDto : requestDto.getExercises()) {
 
                 // 3-1. exerciseId로 Exercise 엔티티 조회
-                Exercise exercise = exerciseRepository.findById(exerciseDto.getExerciseId())
-                        .orElseThrow(() -> new ResourceNotFoundException("운동 정보를 찾을 수 없습니다: " + exerciseDto.getExerciseId()));
+                Exercise exercise = exerciseRepository.getReferenceById(exerciseDto.getExerciseId());
 
                 // 3-2. RoutineExercise 엔티티 생성
                 RoutineExercise routineExercise = routineMapper.toEntity(exerciseDto);
@@ -94,17 +93,17 @@ public class RoutineService {
     @Transactional
     public void deleteRoutine(Long id, RoutineDeleteRequest requestDto) {
 
-        if (!id.equals(requestDto.getId())) {
+        Long dtoId = requestDto.getId();
+        Long dtoOwnerId = requestDto.getOwnerId();
+
+        if (!id.equals(dtoId)) {
             throw new BadRequestException("id가 일치하지 않습니다.");
         }
 
-        Routine routine = routineRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 루틴을 찾지 못함 : " + id));
+        Routine routine = routineRepository.getReferenceById(id);
 
-        User currentUser = loginUserProvider.getCurrentUser();
-
-        if (currentUser.getId().equals(requestDto.getOwnerId())) {
-            routineRepository.deleteById(id);
+        if (loginUserProvider.validateSameUser(dtoOwnerId)) {
+            routineRepository.deleteById(routine.getId());
         } else {
             // 삭제 권한이 없는 에러 처리
             throw new UnauthorizedAccessException("해당 루틴을 삭제할 권한이 없습니다. ");

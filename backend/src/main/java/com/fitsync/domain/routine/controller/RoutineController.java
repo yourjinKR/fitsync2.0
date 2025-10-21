@@ -37,17 +37,8 @@ public class RoutineController {
             @PathVariable Long userId,
             @PageableDefault(size = 20, sort = "id") Pageable pageable) {
 
-        User currentUser = loginUserProvider.getCurrentUser();
-        System.out.println("user !!!! " + currentUser.getId());
-        System.out.println("user !!!! " + userId);
-
-        // 현재 유저와 동일할 경우 나의 루틴을 조회
-        if (userId.equals(currentUser.getId())) {
-            Page<RoutineSimpleResponse> result = routineService.getMyRoutineList(userId, pageable);
-            return ResponseEntity.ok(result);
-        }
-
-        return ResponseEntity.notFound().build();
+        Page<RoutineSimpleResponse> result = routineService.getMyRoutineList(userId, pageable);
+        return ResponseEntity.ok(result);
     }
 
 

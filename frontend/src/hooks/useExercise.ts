@@ -76,7 +76,7 @@ const useExercise = () => {
     if (!selectedExercise) return;
 
     const detail = selectedExercise;
-    const instructions = detail.instructions.map(inst => {
+    const parsedInstructions = detail.instructions.map(inst => {
       return {stepOrder: inst.stepOrder, description: inst.description};
     });
 
@@ -85,7 +85,7 @@ const useExercise = () => {
       category : detail.category,
       description : detail.description,
       isHidden : detail.isHidden,
-      instructions,
+      instructions : parsedInstructions,
       metricRequirement : detail.metricRequirement
     };
 
@@ -107,7 +107,7 @@ const useExercise = () => {
     if (!request) return;
 
     const detail = request;
-    const instructions = detail.instructions.map(inst => {
+    const parsedInstructions = detail.instructions.map(inst => {
       return {id : inst.id, stepOrder: inst.stepOrder, description: inst.description};
     });
 
@@ -116,7 +116,7 @@ const useExercise = () => {
       category : detail.category,
       description : detail.description,
       isHidden : detail.isHidden,
-      instructions,
+      instructions: parsedInstructions,
       metricRequirement : detail.metricRequirement
     };
 

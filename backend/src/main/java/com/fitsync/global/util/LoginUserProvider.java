@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LoginUserProvider {
 
+    // TODO : getReferenceId() 사용을 위한 Authentication에 id 추가하기
     private final UserRepository userRepository;
 
     public User getCurrentUser() {
@@ -23,5 +24,10 @@ public class LoginUserProvider {
         String email = authentication.getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("유저를 찾을 수 없습니다: " + email));
+    }
+
+    public boolean validateSameUser(Long userId) {
+        User currUser = getCurrentUser();
+        return userId.equals(currUser.getId());
     }
 }
