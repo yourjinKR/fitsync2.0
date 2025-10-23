@@ -1,0 +1,1 @@
+// frontend\src\types\domain\workout\common.ts
