@@ -21,6 +21,11 @@ const WorkoutApi = {
     return response.data;
   },
 
+  async getMyWorkoutToday(userId : number) : Promise<WorkoutDetailResponse[]> {
+    const response = await apiClient.get(`/api/workout/${userId}/today`);
+    return response.data;
+  },
+
   async updateWorkout(id : number, requestDto : WorkoutUpdateRequest) : Promise<WorkoutDetailResponse> {
     const response = await apiClient.put(`/api/workout/${id}`, requestDto);
     return response.data;
