@@ -1,15 +1,15 @@
 import { JSONObject } from "../../common";
 
-export interface WorkoutCreateRequestDto {
+export interface WorkoutCreateRequest {
   title: string;
   routineSnapshot: JSONObject;
   memo: string;
   ownerId: number;
   writerId: number;
-  workoutExercises: WorkoutCreateRequestDto.WorkoutExerciseRequest[];
+  workoutExercises: WorkoutCreateRequest.WorkoutExerciseRequest[];
 }
 
-export namespace WorkoutCreateRequestDto {
+export namespace WorkoutCreateRequest {
   export interface WorkoutExerciseRequest {
     exerciseId : number;
     exericseName : string;
