@@ -1,35 +1,34 @@
 // frontend\src\api\WorkoutApi.ts
 
-import { Page, Pageable } from "../types/api";
 import { WorkoutCreateRequest, WorkoutDetailResponse, WorkoutSimpleResponse, WorkoutUpdateRequest } from "../types/domain/workout";
 
 import apiClient from "./apiClient";
 
 const WorkoutApi = {
 
-  createWorkout(requestDto : WorkoutCreateRequest): Promise<WorkoutDetailResponse> {
-    return apiClient.post('/api/workout', requestDto)
-      .then(response => response.data);
+  async createWorkout(requestDto : WorkoutCreateRequest): Promise<WorkoutDetailResponse> {
+    const response = await apiClient.post('/api/workout', requestDto);
+    return response.data;
   },
 
-  getMyWorkoutList(userId : number): Promise<WorkoutSimpleResponse[]> {
-    return apiClient.get(`/api/workout/user/${userId}`)
-    .then(response => response.data);
+  async getMyWorkoutList(userId : number): Promise<WorkoutSimpleResponse[]> {
+    const response = await apiClient.get(`/api/workout/user/${userId}`);
+    return response.data;
   },
 
-  getWorkout(id : number) : Promise<WorkoutDetailResponse> {
-    return apiClient.get(`/api/workout/${id}`)
-      .then(response => response.data);
+  async getWorkout(id : number) : Promise<WorkoutDetailResponse> {
+    const response = await apiClient.get(`/api/workout/${id}`);
+    return response.data;
   },
 
-  updateWorkout(id : number, requestDto : WorkoutUpdateRequest) : Promise<WorkoutDetailResponse> {
-    return apiClient.put(`/api/workout/${id}`, requestDto)
-      .then(response => response.data);
+  async updateWorkout(id : number, requestDto : WorkoutUpdateRequest) : Promise<WorkoutDetailResponse> {
+    const response = await apiClient.put(`/api/workout/${id}`, requestDto);
+    return response.data;
   },
 
-  deleteWorkout(id : number) : Promise<void> {
-    return apiClient.delete(`/api/workout/${id}`)
-      .then(response => response.data);
+  async deleteWorkout(id : number) : Promise<void> {
+    const response = await apiClient.delete(`/api/workout/${id}`);
+    return response.data;
   },
 }
 
