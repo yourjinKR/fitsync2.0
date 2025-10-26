@@ -1,6 +1,7 @@
+import { WithId } from "../../common";
+
 // src/types/api/routine/simple.ts
-export interface RoutineSimpleResponse {
-  id: number;
+export interface RoutineSimpleResponse extends WithId {
   ownerId: number;
   writerId: number;
   name: string;
@@ -10,8 +11,7 @@ export interface RoutineSimpleResponse {
   updatedAt: string;
 }
 
-export interface RoutineSimpleRequest {
-  id: number;
+export interface RoutineSimpleRequest extends WithId {
   name: string;
   displayOrder: number;
   memo: string;

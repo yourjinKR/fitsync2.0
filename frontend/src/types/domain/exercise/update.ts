@@ -1,3 +1,4 @@
+import { WithId } from "../../common";
 import { MetricRequirement } from "./common";
 
 export interface ExerciseUpdateRequest {
@@ -10,8 +11,7 @@ export interface ExerciseUpdateRequest {
 }
 
 export namespace ExerciseUpdateRequest {
-  export interface InstructionRequest {
-    id: number;
+  export interface InstructionRequest extends WithId {
     stepOrder: number;
     description: string;
   }

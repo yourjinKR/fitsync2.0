@@ -1,8 +1,8 @@
+import { WithId } from "../../common";
 import { MetricRequirement } from "../exercise/index";
 
 // src/types/api/routine/detail.ts
-export interface RoutineDetailResponse {
-  id: number;
+export interface RoutineDetailResponse extends WithId {
   ownerId: number;
   writerId: number;
   name: string;
@@ -12,8 +12,7 @@ export interface RoutineDetailResponse {
 }
 
 export namespace RoutineDetailResponse {
-  export interface RoutineExerciseResponse {
-    id: number;
+  export interface RoutineExerciseResponse extends WithId {
     displayOrder: number;
     memo: string;
 
@@ -29,8 +28,7 @@ export namespace RoutineDetailResponse {
     sets: RoutineDetailResponse.RoutineSetResponse[];
   }
 
-  export interface RoutineSetResponse {
-    id: number;
+  export interface RoutineSetResponse extends WithId {
     displayOrder: number;
     weightKg: number;
     reps: number;
