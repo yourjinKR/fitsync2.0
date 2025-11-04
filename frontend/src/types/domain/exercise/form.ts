@@ -1,7 +1,7 @@
+import { WithId } from "../../common";
 import { MetricRequirement } from "./common";
 
-export interface ExerciseFormResponse {
-  id: number;
+export interface ExerciseFormResponse extends WithId {
   name: string;
   category: string;
   weightKgStatus: MetricRequirement;

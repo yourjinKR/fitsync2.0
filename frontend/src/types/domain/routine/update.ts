@@ -1,6 +1,7 @@
+import { WithId } from "../../common";
+
 // src/types/api/routine/update.ts
-export interface RoutineUpdateRequest {
-  id: number;
+export interface RoutineUpdateRequest extends WithId {
   name: string;
   displayOrder: number;
   memo: string;
@@ -9,7 +10,7 @@ export interface RoutineUpdateRequest {
 
 export namespace RoutineUpdateRequest {
   export interface RoutineExerciseRequest {
-    id: number | null;      // Nullable
+    id: number | null;
     exerciseId: number;
     displayOrder: number;
     memo: string;
@@ -17,9 +18,9 @@ export namespace RoutineUpdateRequest {
   }
 
   export interface RoutineSetRequest {
-    id: number | null;      // Nullable
+    id: number | null;
     displayOrder: number;
-    weightKg: number;       // BigDecimal → number
+    weightKg: number;
     reps: number;
     distanceMeter: number;
     durationSecond: number;

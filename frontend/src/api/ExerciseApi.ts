@@ -21,23 +21,19 @@ const ExerciseApi = {
    * 모든 운동 정보를 페이지 단위로 조회합니다.
    * @param params - 페이지, 사이즈, 정렬 정보
    */
-  getAllExercises(params: Pageable): Promise<Page<ExerciseSimpleResponse>> {
+  async getAllExercises(params: Pageable): Promise<Page<ExerciseSimpleResponse>> {
 
-    return apiClient.get<Page<ExerciseSimpleResponse>>('/api/exercise/all', { params })
-      // .then(response => response.data);
-      .then(response => {
-        console.log(response.data);
-        return response.data;
-      })
+    const response = await apiClient.get<Page<ExerciseSimpleResponse>>('/api/exercise/all', { params });
+    return response.data;
   },
 
   /**
    * 특정 ID의 운동 상세 정보를 조회합니다.
    * @param exerciseId - id (pk)
    */
-  getExerciseById(exerciseId: number): Promise<ExerciseDetailResponse> {
-    return apiClient.get<ExerciseDetailResponse>(`/api/exercise/${exerciseId}`)
-      .then(response => response.data);
+  async getExerciseById(exerciseId: number): Promise<ExerciseDetailResponse> {
+    const response = await apiClient.get<ExerciseDetailResponse>(`/api/exercise/${exerciseId}`);
+    return response.data;
   },
 
   /**
@@ -45,9 +41,9 @@ const ExerciseApi = {
    * @param requestDto ExerciseRequestDto (types/domain/exercise.ts 참고)
    * @returns ExerciseDetailResponseDto (관리자가 운동을 생성하면 해당 운동 정보를 바로 보여줌)
    */
-  createExercise(requestDto: ExerciseCreateRequest) : Promise<ExerciseDetailResponse> {
-    return apiClient.post(`/api/exercise`, requestDto)
-      .then(response => response.data);
+  async createExercise(requestDto: ExerciseCreateRequest) : Promise<ExerciseDetailResponse> {
+    const response = await apiClient.post(`/api/exercise`, requestDto);
+    return response.data;
   },
 
   /**
@@ -56,9 +52,9 @@ const ExerciseApi = {
    * @param requestDto 
    * @returns 
    */
-  updateExercise(exerciseId: number, requestDto: ExerciseCreateRequest) : Promise<ExerciseDetailResponse> {
-    return apiClient.put(`/api/exercise/${exerciseId}`, requestDto)
-      .then(response => response.data);
+  async updateExercise(exerciseId: number, requestDto: ExerciseCreateRequest) : Promise<ExerciseDetailResponse> {
+    const response = await apiClient.put(`/api/exercise/${exerciseId}`, requestDto);
+    return response.data;
   },
 
   /**

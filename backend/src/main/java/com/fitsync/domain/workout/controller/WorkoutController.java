@@ -4,10 +4,8 @@ import com.fitsync.domain.workout.dto.WorkoutCreateRequest;
 import com.fitsync.domain.workout.dto.WorkoutDetailResponse;
 import com.fitsync.domain.workout.dto.WorkoutSimpleResponse;
 import com.fitsync.domain.workout.dto.WorkoutUpdateRequest;
-import com.fitsync.domain.workout.entity.Workout;
 import com.fitsync.domain.workout.service.WorkoutService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +20,7 @@ public class WorkoutController {
     private final WorkoutService workoutService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<WorkoutDetailResponse> getWorkoutById(@PathVariable Long id) {
+    public ResponseEntity<WorkoutDetailResponse> getWorkout(@PathVariable Long id) {
 
         WorkoutDetailResponse responseDto = workoutService.getWorkoutById(id);
 
@@ -62,8 +60,10 @@ public class WorkoutController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteWorkout(@PathVariable String id) {
+    public ResponseEntity<?> deleteWorkout(@PathVariable Long id) {
 
-        return null;
+        workoutService.deleteWorkout(id);
+
+        return ResponseEntity.ok(id);
     }
 }

@@ -12,42 +12,41 @@ import apiClient from "./apiClient";
 
 const RoutineApi = {
 
-  createRoutine(requestDto : RoutineCreateRequest): Promise<RoutineDetailResponse> {
-    return apiClient.post('/api/routine', requestDto)
-      .then(response => response.data);
+  async createRoutine(requestDto : RoutineCreateRequest): Promise<RoutineDetailResponse> {
+    const response = await apiClient.post('/api/routine', requestDto);
+    return response.data;
   },
 
-  getRoutineList(userId : number, params : Pageable): Promise<Page<RoutineSimpleResponse>> {
-    return apiClient.get(`/api/routine/user/${userId}`, { params })
-    .then(response => response.data);
+  async getRoutineList(userId : number, params : Pageable): Promise<Page<RoutineSimpleResponse>> {
+    const response = await apiClient.get(`/api/routine/user/${userId}`, { params });
+    return response.data;
   },
 
-  getRoutine(id : number) : Promise<RoutineDetailResponse> {
-    return apiClient.get(`/api/routine/${id}`)
-      .then(response => response.data);
+  async getRoutine(id : number) : Promise<RoutineDetailResponse> {
+    const response = await apiClient.get(`/api/routine/${id}`);
+    return response.data;
   },
 
-  updateRoutine(id : number, requestDto : RoutineUpdateRequest) : Promise<RoutineDetailResponse> {
-    return apiClient.put(`/api/routine/${id}`, requestDto)
-      .then(response => response.data);
+  async updateRoutine(id : number, requestDto : RoutineUpdateRequest) : Promise<RoutineDetailResponse> {
+    const response = await apiClient.put(`/api/routine/${id}`, requestDto);
+    return response.data;
   },
   
-  updateRoutineHeader(id : number, requestDto : RoutineSimpleRequest) : Promise<void> {
-    return apiClient.patch(`/api/routine/header/${id}`, requestDto)
-      .then(response => {
-        console.log(response);
-        return response.data;
-      });
+  async updateRoutineHeader(id : number, requestDto : RoutineSimpleRequest) : Promise<void> {
+    const response = await apiClient.patch(`/api/routine/header/${id}`, requestDto);
+    console.log(response);
+    return response.data;
   },
 
-  sortRoutine(requestDto : RoutineSimpleRequest[]) : Promise<void> {
-    return apiClient.patch(`/api/routine/displayOrder`, requestDto)
-      .then(response => response.data);
+  async sortRoutine(requestDto : RoutineSimpleRequest[]) : Promise<void> {
+    const response = await apiClient.patch(`/api/routine/displayOrder`, requestDto);
+    return response.data;
   },
 
-  deleteRoutine(id : number, requestDto : RoutineDeleteRequest) : Promise<void> {
-    return apiClient.delete(`/api/routine/${id}`, {data : requestDto}) // delete는 data를 붙여줘야 함. 왤까? 나중에 알아보자...
-      .then(response => response.data);
+  async deleteRoutine(id : number, requestDto : RoutineDeleteRequest) : Promise<void> {
+    const response = await apiClient.delete(`/api/routine/${id}`, { data: requestDto }) // delete는 data를 붙여줘야 함. 왤까? 나중에 알아보자...
+      ;
+    return response.data;
   },
 }
 
