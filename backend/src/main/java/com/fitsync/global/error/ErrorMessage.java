@@ -1,9 +1,7 @@
 package com.fitsync.global.error;
 
 import java.text.MessageFormat;
-import lombok.Getter;
 
-@Getter
 public enum ErrorMessage {
     ERROR("기본 에러"),
     EXERCISE_DUPLICATE_NAME("이미 동일한 이름의 운동이 존재합니다."),
@@ -14,7 +12,11 @@ public enum ErrorMessage {
     private static final String PREFIX = "[ERROR]";
 
     ErrorMessage(String message) {
-        this.message = MessageFormat.format("{0} {1}", PREFIX, message);
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return MessageFormat.format("{0} {1}", PREFIX, message);
     }
 
     public String format(Object... args) {
