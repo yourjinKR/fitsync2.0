@@ -35,6 +35,10 @@
 -- 테이블이 이미 존재할 경우 의존하는 객체와 함께 삭제합니다.
 DROP TABLE IF EXISTS attachments CASCADE;
 
+-- 타입 지정
+DROP TYPE IF EXISTS attachable_type CASCADE;
+CREATE TYPE attachable_type AS ENUM ('USER_PROFILE', 'EXERCISE_INFO', 'POST', 'CHAT');
+
 -- attachments 테이블 생성
 CREATE TABLE attachments (
     -- 1. 파일 자체의 고유 정보
@@ -51,7 +55,7 @@ CREATE TABLE attachments (
     uploader_user_id BIGINT,
 
     -- 3. 파일이 첨부된 위치 정보 ("어디에")
-    attachable_type VARCHAR(50) NOT NULL,
+    attachable_type attachable_type NOT NULL,
     attachable_id BIGINT NOT NULL,
 
     -- 4. 정렬 순서
